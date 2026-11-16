@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="app-version" content="__PRODEXUS_APP_VERSION__" />
+    <meta name="app-build" content="__PRODEXUS_BUILD_ID__" />
+    <title>PRODEXUS Enterprise CMMS</title>
+    <meta name="description" content="Sistema integral de gestión de mantenimiento industrial, planes preventivos anuales, órdenes correctivas (MC), órdenes de trabajo (OT) y KPIs de cumplimiento técnico." />
+    <meta property="og:title" content="PRODEXUS Enterprise CMMS" />
+    <meta property="og:description" content="Sistema integral de gestión de mantenimiento industrial, planes preventivos anuales, órdenes correctivas (MC), órdenes de trabajo (OT) y KPIs de cumplimiento técnico." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen">
+    <div id="root"></div>
+    <script>
+      (function () {
+        try {
+          var meta = document.querySelector('meta[name="app-build"]');
+          var currentBuild = meta ? meta.getAttribute('content') : '';
+          if (!currentBuild || currentBuild.indexOf('__PRODEXUS') === 0) return;
+          fetch('./version.json?_ts=' + Date.now(), { cache: 'no-store' })
+            .then(function (r) {
+              var ct = r.headers.get('content-type') || '';
+              if (!r.ok || ct.indexOf('application/json') === -1) return null;
+              return r.json();
+            })
+            .then(function (data) {
+              if (!data || !data.buildId || data.buildId === currentBuild) return;
+              if (sessionStorage.getItem('prodexus_reloaded_build_id') === data.buildId) return;
+              sessionStorage.setItem('prodexus_reloaded_build_id', data.buildId);
+              var clearPromise = 'caches' in window
+                ? caches.keys().then(function (keys) {
+                    return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+                  })
+                : Promise.resolve();
+              clearPromise.finally(function () {
+                var u = new URL(window.location.href);
+                u.searchParams.set('_pv', data.buildId);
+                window.location.replace(u.toString());
+              });
+            })
+            .catch(function () {});
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
