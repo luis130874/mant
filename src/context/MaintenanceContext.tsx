@@ -289,6 +289,8 @@ interface MaintenanceContextType {
     motivo: string;
     ot_asociada?: string;
     equipo_asociado?: string;
+    proveedor?: string;
+    numero_factura?: string;
     solicitante: string;
   }) => void;
   registrarSalidasStockBatch: (
@@ -1923,6 +1925,8 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     motivo: string;
     ot_asociada?: string;
     equipo_asociado?: string;
+    proveedor?: string;
+    numero_factura?: string;
     solicitante: string;
   }) => {
     const target = stateRef.current.repuestos.find(
@@ -1967,6 +1971,8 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       motivo: data.motivo,
       ot_asociada: data.ot_asociada,
       equipo_asociado: data.equipo_asociado,
+      proveedor: data.proveedor,
+      numero_factura: data.numero_factura,
       solicitante: data.solicitante
     };
 
@@ -2251,15 +2257,17 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   if (cloudLoading && clientes.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-8 max-w-md w-full text-center space-y-4">
-          <img
-            src="/assets/aistudio/prodexus_921c729e.jpeg"
-            alt="Prodexus Logo"
-            className="h-12 mx-auto object-contain"
-          />
-          <div className="flex items-center justify-center gap-2 text-xs font-semibold text-slate-600">
-            <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] flex flex-col items-center justify-center p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] shadow-lg p-8 max-w-md w-full text-center space-y-4">
+          <div className="inline-flex p-2 bg-white rounded-xl border border-slate-100 mx-auto">
+            <img
+              src="/assets/aistudio/prodexus_921c729e.jpeg"
+              alt="Prodexus Logo"
+              className="h-12 mx-auto object-contain"
+            />
+          </div>
+          <div className="flex items-center justify-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 prodexus:text-[#132B36]">
+            <RefreshCw className="w-4 h-4 animate-spin text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
             <span>
               Cargando entorno {isSuperAdmin ? 'multiempresa' : userProfile?.empresaNombre}...
             </span>
@@ -2338,35 +2346,35 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     >
       {children}
       {confirmRequest && (
-        <div className="fixed inset-0 z-[80] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-5 space-y-4 text-xs animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-[80] bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] max-w-md w-full p-5 space-y-4 text-xs animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-start gap-3">
               <div
                 className={`p-2.5 rounded-lg shrink-0 ${
                   confirmRequest.options.tone === 'warning'
-                    ? 'bg-amber-100 text-amber-700'
+                    ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
                     : confirmRequest.options.tone === 'info'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-rose-100 text-rose-700'
+                    ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400'
+                    : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400'
                 }`}
               >
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div className="space-y-1 min-w-0">
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                   {confirmRequest.options.title || 'Confirmar Acción'}
                 </h3>
-                <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">
+                <p className="text-xs text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] leading-relaxed whitespace-pre-line">
                   {confirmRequest.options.message}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6]">
               <button
                 type="button"
                 onClick={() => handleConfirmResolve(false)}
-                className="px-4 py-2 font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 {confirmRequest.options.cancelText || 'Cancelar'}
               </button>
@@ -2377,7 +2385,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   confirmRequest.options.tone === 'warning'
                     ? 'bg-amber-600 hover:bg-amber-700'
                     : confirmRequest.options.tone === 'info'
-                    ? 'bg-blue-600 hover:bg-blue-700'
+                    ? 'bg-blue-600 prodexus:bg-[#2F7CF6] hover:bg-blue-700 prodexus:hover:bg-[#2566D1]'
                     : 'bg-rose-600 hover:bg-rose-700'
                 }`}
               >

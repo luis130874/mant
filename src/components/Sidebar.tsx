@@ -168,17 +168,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
     .filter(sec => sec.items.length > 0);
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col justify-between p-4 no-print min-h-[calc(100vh-4rem)]">
+    <aside className="w-64 shrink-0 bg-white dark:bg-slate-900 prodexus:bg-[#132B36] border-r border-slate-200 dark:border-slate-800 prodexus:border-[#1E4050] flex flex-col justify-between p-4 no-print min-h-[calc(100vh-4rem)] transition-colors">
       <div className="space-y-6">
         {/* Plant / Facility Switcher Card */}
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+        <div className="p-3 bg-slate-50 dark:bg-slate-800/70 prodexus:bg-[#1B3A48] rounded-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#295468]">
           <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 prodexus:text-[#8FB4C4] uppercase tracking-wider">
               Empresa / Planta Activa
             </label>
             {!isSuperAdmin && (
               <span title="Empresa asignada" className="inline-flex items-center">
-                <Lock className="w-3 h-3 text-slate-400" />
+                <Lock className="w-3 h-3 text-slate-400 prodexus:text-[#8FB4C4]" />
               </span>
             )}
           </div>
@@ -187,7 +187,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
             <select
               value={selectedCliente}
               onChange={(e) => setSelectedCliente(e.target.value)}
-              className="w-full text-xs font-semibold text-slate-900 bg-white border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full text-xs font-semibold text-slate-900 dark:text-slate-100 prodexus:text-white bg-white dark:bg-slate-900 prodexus:bg-[#132B36] border border-slate-200 dark:border-slate-700 prodexus:border-[#295468] rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="Todos">Todas las Plantas (Global)</option>
               {clientes.map(c => (
@@ -197,19 +197,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
               ))}
             </select>
           ) : (
-            <div className="w-full text-xs font-bold text-slate-900 bg-white border border-slate-200 rounded-lg p-2 truncate">
+            <div className="w-full text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-white bg-white dark:bg-slate-900 prodexus:bg-[#132B36] border border-slate-200 dark:border-slate-700 prodexus:border-[#295468] rounded-lg p-2 truncate">
               {selectedCliente}
             </div>
           )}
 
           <div className="mt-2.5">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 prodexus:text-[#8FB4C4] uppercase tracking-wider mb-1">
               Año de Planificación
             </label>
             <select
               value={selectedAnio}
               onChange={(e) => setSelectedAnio(Number(e.target.value))}
-              className="w-full text-xs font-bold text-blue-900 bg-white border border-blue-200 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full text-xs font-bold text-blue-900 dark:text-blue-300 prodexus:text-white bg-white dark:bg-slate-900 prodexus:bg-[#132B36] border border-blue-200 dark:border-slate-700 prodexus:border-[#2F7CF6]/50 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               {availableYears.map(yr => (
                 <option key={yr} value={yr}>
@@ -220,9 +220,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
           </div>
 
           {currentClienteObj && (
-            <div className="mt-2.5 pt-2 border-t border-slate-200 text-[11px] text-slate-500 space-y-1.5">
+            <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-700 prodexus:border-[#295468] text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#A5C3D0] space-y-1.5">
               {currentClienteObj.logo && (
-                <div className="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-slate-200 shadow-2xs">
+                <div className="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs">
                   <div className="h-6 w-14 flex items-center justify-center shrink-0">
                     <img
                       src={currentClienteObj.logo}
@@ -237,11 +237,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
               )}
               <div className="flex justify-between">
                 <span>RUT:</span>
-                <span className="font-mono text-slate-700">{currentClienteObj.rut}</span>
+                <span className="font-mono text-slate-700 dark:text-slate-200 prodexus:text-white">{currentClienteObj.rut}</span>
               </div>
               <div className="flex justify-between">
                 <span>Equipos protegidos:</span>
-                <span className="font-mono font-medium text-slate-900">{equiposFiltrados.length}</span>
+                <span className="font-mono font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#1FB85C]">{equiposFiltrados.length}</span>
               </div>
             </div>
           )}
@@ -251,7 +251,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
         <div className="space-y-5">
           {visibleSections.map((sec, idx) => (
             <div key={idx} className="space-y-1">
-              <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <p className="px-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 prodexus:text-[#7FA5B5] uppercase tracking-wider">
                 {sec.group}
               </p>
               {sec.items.map(item => {
@@ -263,16 +263,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
                     onClick={() => onTabChange(item.id)}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
                       isActive
-                        ? 'bg-blue-50 text-blue-700 font-semibold shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                        ? 'bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#1E4050] text-blue-700 dark:text-blue-300 prodexus:text-white prodexus:border prodexus:border-[#2F7CF6]/45 font-semibold shadow-xs'
+                        : 'text-slate-600 dark:text-slate-300 prodexus:text-slate-200 hover:text-slate-900 dark:hover:text-white prodexus:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/70 prodexus:hover:bg-[#1B3A48]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600 dark:text-blue-400 prodexus:text-[#1FB85C]' : 'text-slate-400 dark:text-slate-400 prodexus:text-[#8FB4C4]'}`} />
                       <span>{item.label}</span>
                     </div>
                     {item.badge && (
-                      <span className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${item.badgeColor || 'bg-slate-100 text-slate-600'}`}>
+                      <span className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${item.badgeColor || 'bg-slate-100 dark:bg-slate-800 prodexus:bg-[#132B36] text-slate-600 dark:text-slate-300 prodexus:text-slate-200'}`}>
                         {item.badge}
                       </span>
                     )}
@@ -285,18 +285,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
       </div>
 
       {/* Footer Info */}
-      <div className="pt-4 border-t border-slate-200 text-[11px] text-slate-400 space-y-2">
+      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#1E4050] text-[11px] text-slate-400 prodexus:text-[#8FB4C4] space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <div className="h-9 max-w-[140px] px-2 py-0.5 bg-white rounded-lg border border-slate-200 shadow-2xs flex items-center justify-center">
+          <div className="h-9 max-w-[140px] px-2 py-0.5 bg-white rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-center">
             <img
               src="/assets/aistudio/prodexus_921c729e.jpeg"
               alt="Prodexus Logo"
               className="max-h-full max-w-full object-contain"
             />
           </div>
-          <span className="font-mono text-[9.5px] bg-slate-100 text-slate-700 px-2 py-1 rounded-md font-bold shrink-0">v{APP_VERSION}</span>
+          <span className="font-mono text-[9.5px] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#1B3A48] text-slate-700 dark:text-slate-200 prodexus:text-white px-2 py-1 rounded-md font-bold shrink-0">v{APP_VERSION}</span>
         </div>
-        <p className="text-[10px] text-slate-500 font-medium">CMMS Industrial Cloud · ISO 55001</p>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 prodexus:text-[#8FB4C4] font-medium">CMMS Industrial Cloud · ISO 55001</p>
       </div>
     </aside>
   );

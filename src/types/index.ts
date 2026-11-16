@@ -285,6 +285,8 @@ export interface MovimientoRepuesto {
   motivo: string; // Motivo de movimiento o compra
   ot_asociada?: string; // Folio de OT / MP / MC si aplica
   equipo_asociado?: string; // Código de equipo intervenido
+  proveedor?: string; // Proveedor en ingresos de mercadería
+  numero_factura?: string; // Número de factura / documento en ingresos
   solicitante: string; // Técnico o pañolero
 }
 

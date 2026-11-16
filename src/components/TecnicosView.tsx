@@ -121,13 +121,13 @@ export const TecnicosView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <Users2 className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] tracking-tight flex items-center gap-2">
+            <Users2 className="w-6 h-6 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
             Cuadrilla de Técnicos & Especialistas
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
             Registro de personal técnico, especialidades, carga de trabajo y tasa de cumplimiento histórico.
           </p>
         </div>
@@ -136,7 +136,7 @@ export const TecnicosView: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Nuevo Técnico</span>
@@ -146,18 +146,18 @@ export const TecnicosView: React.FC = () => {
       </div>
 
       {/* Search and Summary */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs">
+      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex items-center justify-between gap-3 text-xs">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar por nombre, código o especialidad..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+            className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] w-64"
           />
         </div>
-        <span className="text-xs font-semibold text-slate-500">
+        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
           {tecnicos.filter(t => t.estado === 'Activo').length} Activos · {tecnicos.filter(t => t.estado === 'Inactivo').length} Inactivos
         </span>
       </div>
@@ -169,25 +169,25 @@ export const TecnicosView: React.FC = () => {
           return (
             <div
               key={tec.codigo_tec}
-              className="bg-white rounded-xl border border-slate-200 p-5 space-y-4 hover:border-slate-300 transition-all shadow-xs flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-5 space-y-4 hover:border-slate-300 dark:hover:border-slate-700 prodexus:hover:border-[#B9D2FA] transition-all shadow-xs flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                  <span className="font-mono text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] px-2 py-0.5 rounded">
                     {tec.codigo_tec}
                   </span>
                   <div className="flex items-center gap-1">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
                       tec.estado === 'Activo'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-slate-100 text-slate-500'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
+                        : 'bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]'
                     }`}>
                       {tec.estado}
                     </span>
                     {canEdit && (
                       <button
                         onClick={() => handleOpenEdit(tec)}
-                        className="p-1 text-slate-400 hover:text-blue-600 rounded"
+                        className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 prodexus:hover:text-[#2F7CF6] rounded"
                         title="Editar"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export const TecnicosView: React.FC = () => {
                     {canDelete && (
                       <button
                         onClick={() => handleDelete(tec)}
-                        className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                        className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded"
                         title="Eliminar"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -205,24 +205,24 @@ export const TecnicosView: React.FC = () => {
                   </div>
                 </div>
 
-                <h3 className="font-bold text-slate-900 text-sm mt-2">
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] text-sm mt-2">
                   {tec.nombre}
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                <p className="text-xs text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5 font-medium">
                   {tec.especialidad}
                 </p>
 
                 {(tec.correo || tec.telefono) && (
-                  <div className="mt-2.5 space-y-1 text-[11px] text-slate-600">
+                  <div className="mt-2.5 space-y-1 text-[11px] text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976]">
                     {tec.correo && (
                       <div className="flex items-center gap-1.5 truncate">
-                        <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                        <Mail className="w-3 h-3 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] shrink-0" />
                         <span className="truncate font-mono">{tec.correo}</span>
                       </div>
                     )}
                     {tec.telefono && (
                       <div className="flex items-center gap-1.5 truncate">
-                        <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                        <Phone className="w-3 h-3 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] shrink-0" />
                         <span className="truncate font-mono">{tec.telefono}</span>
                       </div>
                     )}
@@ -231,18 +231,18 @@ export const TecnicosView: React.FC = () => {
               </div>
 
               {/* KPI Performance Box */}
-              <div className="pt-3 border-t border-slate-100 space-y-2 text-xs">
-                <div className="flex justify-between items-center text-slate-500">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6] space-y-2 text-xs">
+                <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                   <span>Asignadas (MC + OT):</span>
-                  <span className="font-mono font-bold text-slate-900">{kpi?.asignadas_total || 0}</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{kpi?.asignadas_total || 0}</span>
                 </div>
-                <div className="flex justify-between items-center text-slate-500">
+                <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                   <span>Pendientes en curso:</span>
-                  <span className="font-mono font-bold text-amber-600">{kpi?.pendientes || 0}</span>
+                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400">{kpi?.pendientes || 0}</span>
                 </div>
-                <div className="flex justify-between items-center text-slate-500">
+                <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                   <span>Efectividad a tiempo:</span>
-                  <span className="font-mono font-bold text-emerald-600">
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                     {kpi ? `${kpi.cumplimiento_pct.toFixed(1)}%` : '0.0%'}
                   </span>
                 </div>
@@ -254,15 +254,15 @@ export const TecnicosView: React.FC = () => {
 
       {/* Modal Alta / Modificar */}
       {modalMode && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                 {modalMode === 'create' ? 'Registrar Nuevo Técnico' : `Modificar ${codigo}`}
               </h2>
               <button
                 onClick={() => setModalMode(null)}
-                className="text-slate-400 hover:text-slate-600 font-semibold p-1"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 prodexus:hover:text-[#132B36] font-semibold p-1"
               >
                 ✕
               </button>
@@ -271,7 +271,7 @@ export const TecnicosView: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Código Técnico *
                   </label>
                   <input
@@ -281,18 +281,18 @@ export const TecnicosView: React.FC = () => {
                     placeholder="TEC-01"
                     value={codigo}
                     onChange={(e) => setCodigo(e.target.value)}
-                    className="w-full font-mono font-semibold uppercase text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+                    className="w-full font-mono font-semibold uppercase text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] disabled:bg-slate-100 dark:disabled:bg-slate-800 prodexus:disabled:bg-[#F3F6F8]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Estado *
                   </label>
                   <select
                     value={estado}
                     onChange={(e) => setEstado(e.target.value as any)}
-                    className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                   >
                     <option value="Activo">Activo</option>
                     <option value="Inactivo">Inactivo</option>
@@ -301,7 +301,7 @@ export const TecnicosView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                   Nombre Completo *
                 </label>
                 <input
@@ -310,12 +310,12 @@ export const TecnicosView: React.FC = () => {
                   placeholder="Ej. Ing. Carlos Mendoza"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                   Especialidad Principal *
                 </label>
                 <input
@@ -324,13 +324,13 @@ export const TecnicosView: React.FC = () => {
                   placeholder="Ej. Mecánica Térmica, Refrigeración, HVAC, Electricidad..."
                   value={especialidad}
                   onChange={(e) => setEspecialidad(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Teléfono Móvil
                   </label>
                   <input
@@ -338,12 +338,12 @@ export const TecnicosView: React.FC = () => {
                     placeholder="+56 9 8450 1122"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Correo Electrónico
                   </label>
                   <input
@@ -351,22 +351,22 @@ export const TecnicosView: React.FC = () => {
                     placeholder="tecnico@empresa.com"
                     value={correo}
                     onChange={(e) => setCorreo(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                 <button
                   type="button"
                   onClick={() => setModalMode(null)}
-                  className="px-4 py-2 font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                  className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs"
+                  className="px-4 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
                 >
                   {modalMode === 'create' ? 'Guardar Técnico' : 'Actualizar Técnico'}
                 </button>

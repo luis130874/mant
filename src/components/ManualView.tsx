@@ -263,23 +263,23 @@ const ManualIllustration: React.FC<{
 
   return (
     <figure className="space-y-1.5">
-      <div className={`w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-50 p-1.5 shadow-2xs ${className}`}>
+      <div className={`w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] p-1.5 shadow-2xs ${className}`}>
         {!imgError ? (
           <img
             src={src}
             alt={alt}
             referrerPolicy="no-referrer"
             onError={() => setImgError(true)}
-            className="w-full h-full object-contain rounded-lg border border-slate-100 bg-white"
+            className="w-full h-full object-contain rounded-lg border border-slate-100 dark:border-slate-700 prodexus:border-[#D5E0E6] bg-white"
           />
         ) : (
-          <div className="w-full min-h-[200px] flex flex-col items-center justify-center gap-2 bg-slate-100 text-slate-500 p-4 text-center">
-            <ImageIcon className="w-7 h-7 text-slate-400" />
+          <div className="w-full min-h-[200px] flex flex-col items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] p-4 text-center">
+            <ImageIcon className="w-7 h-7 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]" />
             <span className="text-xs font-medium">{alt}</span>
           </div>
         )}
       </div>
-      <figcaption className="text-[11px] text-slate-500 leading-snug">
+      <figcaption className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] leading-snug">
         {caption}
       </figcaption>
     </figure>
@@ -344,9 +344,9 @@ export const ManualView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] no-print">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className="h-11 px-2.5 py-1 bg-white rounded-lg border border-slate-200 flex items-center justify-center shrink-0">
+          <div className="h-11 px-2.5 py-1 bg-white rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] flex items-center justify-center shrink-0">
             <img
               src="/assets/aistudio/prodexus_921c729e.jpeg"
               alt="Prodexus Logo"
@@ -354,11 +354,11 @@ export const ManualView: React.FC = () => {
             />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-blue-600 shrink-0" />
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] tracking-tight flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6] shrink-0" />
               <span>Manual de Uso del Programa</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
               Guía operativa ilustrada con capturas reales para operar todos los módulos de Prodexus CMMS.
             </p>
           </div>
@@ -368,9 +368,9 @@ export const ManualView: React.FC = () => {
           <button
             type="button"
             onClick={handlePrint}
-            className="min-h-[40px] px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+            className="min-h-[40px] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] transition-colors flex items-center gap-1.5 whitespace-nowrap"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
+            <Printer className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]" />
             <span>Imprimir</span>
           </button>
 
@@ -378,7 +378,7 @@ export const ManualView: React.FC = () => {
             type="button"
             onClick={handleDownloadPDF}
             disabled={isGeneratingPDF}
-            className="min-h-[40px] px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 rounded-lg transition-colors shadow-xs flex items-center gap-1.5 whitespace-nowrap"
+            className="min-h-[40px] px-4 py-2 text-xs font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] hover:bg-blue-700 prodexus:hover:bg-[#2566D1] disabled:opacity-60 rounded-lg transition-colors shadow-xs flex items-center gap-1.5 whitespace-nowrap"
           >
             {isGeneratingPDF ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -391,25 +391,25 @@ export const ManualView: React.FC = () => {
       </div>
 
       {/* Hero Overview + Quick Chapter Navigation */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 space-y-5 no-print">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-5 sm:p-6 space-y-5 no-print">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-blue-700">
+              <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 prodexus:text-[#2F7CF6]">
                 Documentación Operativa · 5 Capítulos Ilustrados · Exportable a PDF A4
               </p>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] leading-snug">
                 Domine el ciclo completo de mantenimiento preventivo, correctivo, inventario y metrología.
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] leading-relaxed">
                 Consulte cualquier sección en pantalla o descargue el manual completo en formato PDF A4 con portada corporativa, capturas técnicas e instrucciones detalladas para capacitar supervisores y técnicos.
               </p>
             </div>
 
             {/* Quick Order Taxonomy Strip */}
-            <div className="overflow-x-auto border border-slate-200 rounded-lg">
+            <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-lg">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] font-bold border-b border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6]">
                   <tr>
                     <th className="py-2 px-3">Tipo</th>
                     <th className="py-2 px-3">Documento</th>
@@ -417,13 +417,13 @@ export const ManualView: React.FC = () => {
                     <th className="py-2 px-3">Datos de Cierre</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E4ECF0] text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                   {QUICK_REFERENCE_TABLE.map(row => (
                     <tr key={row.codigo}>
-                      <td className="py-2 px-3 font-mono font-bold text-blue-700">{row.codigo}</td>
-                      <td className="py-2 px-3 font-semibold text-slate-900 whitespace-nowrap">{row.nombre}</td>
-                      <td className="py-2 px-3 text-slate-600">{row.origen}</td>
-                      <td className="py-2 px-3 text-slate-600">{row.cierre}</td>
+                      <td className="py-2 px-3 font-mono font-bold text-blue-700 dark:text-blue-400 prodexus:text-[#2F7CF6]">{row.codigo}</td>
+                      <td className="py-2 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] whitespace-nowrap">{row.nombre}</td>
+                      <td className="py-2 px-3 text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976]">{row.origen}</td>
+                      <td className="py-2 px-3 text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976]">{row.cierre}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -442,15 +442,15 @@ export const ManualView: React.FC = () => {
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="pt-4 border-t border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 rounded-lg">
+        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 prodexus:bg-[#E4ECF0] rounded-lg">
             <button
               type="button"
               onClick={() => setActiveChapterId('todos')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
                 activeChapterId === 'todos'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-slate-200 prodexus:hover:text-[#132B36]'
               }`}
             >
               Todos los capítulos (5)
@@ -462,8 +462,8 @@ export const ManualView: React.FC = () => {
                 onClick={() => setActiveChapterId(ch.id)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
                   activeChapterId === ch.id
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-slate-200 prodexus:hover:text-[#132B36]'
                 }`}
               >
                 {ch.numero}. {ch.titulo.split(',')[0]}
@@ -472,13 +472,13 @@ export const ManualView: React.FC = () => {
           </div>
 
           <div className="relative w-full lg:w-72 shrink-0">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar tema (ej. firma, terceros, CAL)..."
-              className="w-full pl-8 pr-3 py-2 text-xs font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-8 pr-3 py-2 text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
             />
           </div>
         </div>
@@ -487,12 +487,12 @@ export const ManualView: React.FC = () => {
       {/* Chapters Content (Interactive Screen View) */}
       <div className="space-y-6 no-print">
         {filteredChapters.length === 0 ? (
-          <div className="bg-white rounded-xl border border-slate-200 p-10 text-center space-y-2">
-            <BookOpen className="w-7 h-7 text-slate-300 mx-auto" />
-            <p className="text-sm font-bold text-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-10 text-center space-y-2">
+            <BookOpen className="w-7 h-7 text-slate-300 dark:text-slate-600 prodexus:text-[#4D6976] mx-auto" />
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
               No se encontraron temas que coincidan con "{searchQuery}"
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
               Pruebe con otro término o restablezca los filtros para ver los 5 capítulos completos.
             </p>
             <button
@@ -501,7 +501,7 @@ export const ManualView: React.FC = () => {
                 setSearchQuery('');
                 setActiveChapterId('todos');
               }}
-              className="mt-2 px-4 py-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+              className="mt-2 px-4 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] hover:bg-blue-100 dark:hover:bg-blue-900/60 prodexus:hover:bg-[#E4ECF0] rounded-lg transition-colors"
             >
               Mostrar Todo el Manual
             </button>
@@ -512,22 +512,22 @@ export const ManualView: React.FC = () => {
             return (
               <article
                 key={ch.id}
-                className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 space-y-5"
+                className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-5 sm:p-6 space-y-5"
               >
                 {/* Chapter Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] flex items-center justify-center shrink-0 mt-0.5">
                       <Icon className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-[11px] font-medium text-slate-500">
+                      <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                         Capítulo {ch.numero} · {ch.modulos}
                       </div>
-                      <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                      <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                         {ch.numero}. {ch.titulo}
                       </h2>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
                         {ch.subtitulo}
                       </p>
                     </div>
@@ -537,17 +537,17 @@ export const ManualView: React.FC = () => {
                 {/* Chapter Body: 2-Column Split */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                   <div className="lg:col-span-7 space-y-4">
-                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] leading-relaxed">
                       {ch.introduccion}
                     </p>
 
-                    <div className="divide-y divide-slate-100 border-t border-b border-slate-100">
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E4ECF0] border-t border-b border-slate-100 dark:border-slate-800 prodexus:border-[#E4ECF0]">
                       {ch.pasos.map((paso, idx) => (
                         <div key={idx} className="py-3 space-y-1">
-                          <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                             {paso.titulo}
                           </h3>
-                          <p className="text-xs text-slate-600 leading-relaxed">
+                          <p className="text-xs text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] leading-relaxed">
                             {paso.detalle}
                           </p>
                         </div>
@@ -563,15 +563,15 @@ export const ManualView: React.FC = () => {
                       className="w-full"
                     />
 
-                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 prodexus:text-[#1FB85C] shrink-0" />
                         <span>Buenas Prácticas Operativas</span>
                       </div>
-                      <ul className="space-y-1.5 text-xs text-slate-600 leading-relaxed">
+                      <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] leading-relaxed">
                         {ch.consejos.map((c, cIdx) => (
                           <li key={cIdx} className="flex items-start gap-2">
-                            <span className="font-mono text-slate-400 shrink-0">•</span>
+                            <span className="font-mono text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] shrink-0">•</span>
                             <span>{c}</span>
                           </li>
                         ))}

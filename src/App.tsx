@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MaintenanceProvider, useMaintenance } from './context/MaintenanceContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { LoginScreen } from './components/LoginScreen';
 import { TopBar } from './components/TopBar';
 import { Sidebar } from './components/Sidebar';
@@ -54,23 +55,23 @@ const ToastContainer: React.FC = () => {
             key={toast.id}
             className={`p-3.5 rounded-xl border shadow-lg flex items-start justify-between gap-3 text-xs animate-in fade-in slide-in-from-bottom-2 duration-200 ${
               isSuccess
-                ? 'bg-slate-900 text-white border-slate-800'
+                ? 'bg-slate-900 dark:bg-slate-800 prodexus:bg-[#132B36] text-white border-slate-800 dark:border-slate-700 prodexus:border-[#1E3F4E]'
                 : isWarning
-                ? 'bg-amber-50 text-amber-900 border-amber-300'
+                ? 'bg-amber-50 dark:bg-amber-950/90 text-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-800'
                 : isError
-                ? 'bg-rose-50 text-rose-900 border-rose-300'
-                : 'bg-white text-slate-900 border-slate-200'
+                ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-900 dark:text-rose-100 border-rose-300 dark:border-rose-800'
+                : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]'
             }`}
           >
             <div className="flex items-start gap-2.5">
-              {isSuccess && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />}
-              {isWarning && <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />}
-              {isError && <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />}
+              {isSuccess && <CheckCircle2 className="w-4 h-4 text-emerald-400 prodexus:text-[#1FB85C] shrink-0 mt-0.5" />}
+              {isWarning && <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />}
+              {isError && <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />}
               <span className="font-medium leading-relaxed">{toast.text}</span>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-slate-400 hover:text-slate-200 p-0.5 shrink-0"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 shrink-0"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -186,7 +187,7 @@ const MainLayout: React.FC = () => {
   const isCurrentTabAllowed = hasModuleAccess(userProfile, currentTab as ModuloKey);
 
   return (
-    <div className="print-app-root min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
+    <div className="print-app-root min-h-screen bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] flex flex-col font-sans text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] transition-colors duration-200">
       {/* 3-zone Top Bar Contract */}
       <TopBar
         currentTab={currentTab}
@@ -209,10 +210,10 @@ const MainLayout: React.FC = () => {
         {/* Main Viewport Content Area */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden min-w-0">
           {!isCurrentTabAllowed ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-8 text-center space-y-2">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-8 text-center space-y-2">
               <Lock className="w-8 h-8 text-slate-400 mx-auto" />
-              <h2 className="text-sm font-bold text-slate-900">Módulo No Habilitado</h2>
-              <p className="text-xs text-slate-500">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">Módulo No Habilitado</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Su perfil de acceso no tiene habilitado este módulo. Contacte al Administrador de su Empresa.
               </p>
             </div>
@@ -329,8 +330,10 @@ const AuthenticatedApp: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AuthenticatedApp />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

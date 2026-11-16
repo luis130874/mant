@@ -89,23 +89,23 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
   };
 
   return (
-    <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3.5 text-xs">
+    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-xl space-y-3.5 text-xs">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-blue-100 text-blue-700 rounded-md">
+          <div className="p-1.5 bg-blue-100 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] rounded-md">
             <Boxes className="w-3.5 h-3.5" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-900 text-xs">
+            <h4 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] text-xs">
               Consumo y Baja de Repuestos del Inventario (Stock)
             </h4>
-            <p className="text-[10.5px] text-slate-500">
+            <p className="text-[10.5px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
               Seleccione repuestos del almacén para descontar automáticamente al cerrar la orden, o ingrese ítems no registrados abajo.
             </p>
           </div>
         </div>
         {selectedItems.length > 0 && (
-          <span className="px-2 py-0.5 rounded bg-blue-600 text-white font-bold text-[10px] shrink-0">
+          <span className="px-2 py-0.5 rounded bg-blue-600 prodexus:bg-[#2F7CF6] text-white font-bold text-[10px] shrink-0">
             {selectedItems.length} por descontar
           </span>
         )}
@@ -116,7 +116,7 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
         <select
           value={pickedId}
           onChange={(e) => setPickedId(e.target.value)}
-          className="flex-1 font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">-- Seleccionar repuesto registrado en stock --</option>
           {availableRepuestos.map(rep => {
@@ -131,21 +131,21 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
         </select>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2 py-1">
-            <span className="text-[10px] font-bold text-slate-500">Cant:</span>
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 py-1">
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Cant:</span>
             <input
               type="number"
               min="1"
               value={pickedQty}
               onChange={(e) => setPickedQty(Math.max(1, Number(e.target.value) || 1))}
-              className="w-14 font-mono font-bold text-slate-900 text-center focus:outline-none"
+              className="w-14 font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-transparent text-center focus:outline-none"
             />
           </div>
           <button
             type="button"
             onClick={handleAddRepuesto}
             disabled={!pickedId}
-            className="flex items-center gap-1 px-3 py-2 font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-lg transition-colors shrink-0"
+            className="flex items-center gap-1 px-3 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] hover:bg-blue-700 prodexus:hover:bg-[#2566D1] disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg transition-colors shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Dar de baja</span>
@@ -166,25 +166,25 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
             return (
               <div
                 key={item.repuestoId}
-                className={`flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg border bg-white ${
-                  excedeStock ? 'border-rose-300 bg-rose-50/40' : 'border-slate-200'
+                className={`flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg border bg-white dark:bg-slate-900 ${
+                  excedeStock ? 'border-rose-300 dark:border-rose-800 bg-rose-50/40 dark:bg-rose-950/20' : 'border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6]'
                 }`}
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <PackageMinus className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                    <span className="font-mono font-bold text-slate-900">{rep.codigo_repuesto}</span>
-                    <span className="font-semibold text-slate-800 truncate">{rep.nombre}</span>
+                    <PackageMinus className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                    <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{rep.codigo_repuesto}</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36] truncate">{rep.nombre}</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-[10.5px] text-slate-500">
+                  <div className="flex items-center gap-2 mt-0.5 text-[10.5px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                     <span>
-                      Stock actual: <strong className="font-mono text-slate-800">{rep.stock_actual}</strong> → Nuevo saldo:{' '}
-                      <strong className={`font-mono ${quedaBajo ? 'text-rose-600' : 'text-emerald-700'}`}>
+                      Stock actual: <strong className="font-mono text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{rep.stock_actual}</strong> → Nuevo saldo:{' '}
+                      <strong className={`font-mono ${quedaBajo ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
                         {nuevoSaldo} {rep.unidad_medida}
                       </strong>
                     </span>
                     {excedeStock && (
-                      <span className="inline-flex items-center gap-1 text-rose-700 font-bold">
+                      <span className="inline-flex items-center gap-1 text-rose-700 dark:text-rose-400 font-bold">
                         <AlertTriangle className="w-3 h-3" /> Supera stock disponible (quedará en 0)
                       </span>
                     )}
@@ -192,18 +192,18 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <label className="text-[10px] font-bold text-slate-500">Cant:</label>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Cant:</label>
                   <input
                     type="number"
                     min="1"
                     value={item.cantidad}
                     onChange={(e) => handleUpdateQty(item.repuestoId, Number(e.target.value))}
-                    className="w-16 font-mono font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-16 font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemove(item.repuestoId)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded transition-colors"
                     title="Quitar de la lista de baja"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -216,8 +216,8 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
       )}
 
       {/* Manual Free-Text Field Preserved */}
-      <div className="pt-2 border-t border-slate-200">
-        <label className="block text-xs font-bold text-slate-700 mb-1">
+      <div className="pt-2 border-t border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6]">
+        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
           {manualLabel}
         </label>
         <input
@@ -225,7 +225,7 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
           placeholder={manualPlaceholder}
           value={manualText}
           onChange={(e) => onChangeManualText(e.target.value)}
-          className="w-full text-xs font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
     </div>

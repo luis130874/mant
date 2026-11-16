@@ -716,31 +716,31 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
 
   const tipoMeta =
     target.tipo === 'MP'
-      ? { title: 'Orden Preventiva Digital', accent: 'text-blue-700', bg: 'bg-blue-50', Icon: CheckSquare }
+      ? { title: 'Orden Preventiva Digital', accent: 'text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6]', bg: 'bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF]', Icon: CheckSquare }
       : target.tipo === 'MC'
-      ? { title: 'Orden Correctiva Digital', accent: 'text-amber-700', bg: 'bg-amber-50', Icon: AlertTriangle }
+      ? { title: 'Orden Correctiva Digital', accent: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-50 dark:bg-amber-950/60', Icon: AlertTriangle }
       : target.tipo === 'OT'
-      ? { title: 'Orden de Trabajo Digital', accent: 'text-slate-800', bg: 'bg-slate-100', Icon: ClipboardList }
-      : { title: 'Calibración Metrológica Digital', accent: 'text-indigo-700', bg: 'bg-indigo-50', Icon: Compass };
+      ? { title: 'Orden de Trabajo Digital', accent: 'text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]', bg: 'bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0]', Icon: ClipboardList }
+      : { title: 'Calibración Metrológica Digital', accent: 'text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]', bg: 'bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF]', Icon: Compass };
 
   const HeaderIcon = tipoMeta.Icon;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center sm:p-4 overflow-hidden no-print">
-      <div className="bg-slate-50 w-full max-w-2xl h-[94dvh] sm:h-auto sm:max-h-[92vh] rounded-t-3xl sm:rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-end sm:items-center justify-center sm:p-4 overflow-hidden no-print">
+      <div className="bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] w-full max-w-2xl h-[94dvh] sm:h-auto sm:max-h-[92vh] rounded-t-3xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] shadow-2xl flex flex-col overflow-hidden">
         {/* Sticky Compact Mobile-Friendly Header (<=15% viewport height) */}
-        <div className="bg-white px-4 sm:px-6 py-3.5 border-b border-slate-200 flex items-center justify-between gap-3 shrink-0">
+        <div className="bg-white dark:bg-slate-900 px-4 sm:px-6 py-3.5 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className={`w-10 h-10 rounded-xl ${tipoMeta.bg} ${tipoMeta.accent} flex items-center justify-center shrink-0`}>
               <HeaderIcon className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 text-[11px] text-slate-500">
-                <span className="font-semibold text-slate-700 truncate">{tipoMeta.title}</span>
+              <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
+                <span className="font-semibold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] truncate">{tipoMeta.title}</span>
                 <span aria-hidden="true">·</span>
-                <span className="font-mono font-bold text-slate-900">{resolvedCal?.id_ot || target.folio}</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{resolvedCal?.id_ot || target.folio}</span>
               </div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] truncate">
                 {target.nombreActivo}
               </h2>
             </div>
@@ -751,7 +751,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
               <button
                 type="button"
                 onClick={() => onOpenShare(target)}
-                className="min-h-[40px] min-w-[40px] px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center gap-1 text-xs font-semibold"
+                className="min-h-[40px] min-w-[40px] px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] flex items-center justify-center gap-1 text-xs font-semibold"
                 title="Compartir enlace"
               >
                 <Share2 className="w-4 h-4" />
@@ -761,7 +761,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] hover:bg-slate-100 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] hover:text-slate-900 dark:hover:text-slate-100 prodexus:hover:text-[#132B36]"
               aria-label="Cerrar"
             >
               <X className="w-5 h-5" />
@@ -772,22 +772,22 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {/* Asset Context Strip */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4 text-xs grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-4 text-xs grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <span className="text-[11px] text-slate-500 block">Planta / Empresa</span>
-              <span className="font-bold text-slate-900">{target.cliente}</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Planta / Empresa</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{target.cliente}</span>
             </div>
             <div>
-              <span className="text-[11px] text-slate-500 block">Código Activo</span>
-              <span className="font-mono font-bold text-slate-900">{target.codigoEq}</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Código Activo</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{target.codigoEq}</span>
             </div>
             <div>
-              <span className="text-[11px] text-slate-500 block">Fecha Programada</span>
-              <span className="font-mono font-semibold text-slate-800">{target.fechaProgramada || 'Inmediata'}</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Fecha Programada</span>
+              <span className="font-mono font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{target.fechaProgramada || 'Inmediata'}</span>
             </div>
             <div>
-              <span className="text-[11px] text-slate-500 block">Estado Actual</span>
-              <span className={`font-bold ${isCerrada ? 'text-emerald-700' : 'text-blue-700'}`}>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Estado Actual</span>
+              <span className={`font-bold ${isCerrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-blue-700 dark:text-blue-400 prodexus:text-[#2F7CF6]'}`}>
                 {isCerrada ? 'Ejecutada / Cerrada' : 'Pendiente de Ejecución'}
               </span>
             </div>
@@ -799,19 +799,19 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
               <div
                 className={`rounded-xl p-4 flex items-start gap-3 border ${
                   isPendingSupervisorValidation
-                    ? 'bg-amber-50 border-amber-200'
-                    : 'bg-emerald-50 border-emerald-200'
+                    ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/70'
+                    : 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/70'
                 }`}
               >
                 {isPendingSupervisorValidation ? (
-                  <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 ) : (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 )}
                 <div className="text-xs space-y-1">
                   <p
                     className={`font-bold text-sm ${
-                      isPendingSupervisorValidation ? 'text-amber-900' : 'text-emerald-900'
+                      isPendingSupervisorValidation ? 'text-amber-900 dark:text-amber-200' : 'text-emerald-900 dark:text-emerald-200'
                     }`}
                   >
                     {isPendingSupervisorValidation
@@ -820,7 +820,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                       ? 'Orden Completada y Validada por Supervisión'
                       : 'Orden Completada y Registrada'}
                   </p>
-                  <p className={isPendingSupervisorValidation ? 'text-amber-800' : 'text-emerald-800'}>
+                  <p className={isPendingSupervisorValidation ? 'text-amber-800 dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-300'}>
                     Fecha real: <strong className="font-mono">{
                       liveHistorialMP?.fecha_real ||
                       liveCorrectivo?.fecha_real ||
@@ -836,8 +836,8 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                     }</strong>
                   </p>
                   {isValidadaSupervisor && (
-                    <p className="text-[11px] text-emerald-800 flex items-center gap-1.5 pt-0.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <p className="text-[11px] text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 pt-0.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span>
                         Validada por{' '}
                         <strong>
@@ -853,7 +853,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                     </p>
                   )}
                   {obsValidacionSup && (
-                    <p className="text-[11px] text-emerald-900 bg-white/70 border border-emerald-200 rounded-lg px-2.5 py-1.5 mt-1">
+                    <p className="text-[11px] text-emerald-900 dark:text-emerald-200 bg-white/70 dark:bg-slate-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded-lg px-2.5 py-1.5 mt-1">
                       <strong>Obs. Supervisión:</strong> {obsValidacionSup}
                     </p>
                   )}
@@ -861,20 +861,20 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
               </div>
 
               {/* Details summary */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 text-xs">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-4 space-y-3 text-xs">
                 {target.tipo === 'MP' && protocolSteps.length > 0 && (
                   <div className="space-y-1.5">
-                    <p className="font-bold text-slate-800">Protocolo de Tareas</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">Protocolo de Tareas</p>
                     <div className="space-y-1">
                       {protocolSteps.map((step, i) => {
                         const completedList = liveHistorialMP?.tareas_completadas || submittedSnapshot?.tareasCompletadas;
                         const wasChecked = completedList ? completedList.includes(step) : true;
                         return (
-                          <div key={i} className="flex items-start gap-2 py-1 border-b border-slate-100 last:border-b-0">
-                            <span className={`font-mono font-bold ${wasChecked ? 'text-emerald-700' : 'text-slate-400'}`}>
+                          <div key={i} className="flex items-start gap-2 py-1 border-b border-slate-100 dark:border-slate-800 prodexus:border-[#E4ECF0] last:border-b-0">
+                            <span className={`font-mono font-bold ${wasChecked ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]'}`}>
                               {wasChecked ? '[✓]' : '[ ]'}
                             </span>
-                            <span className="text-slate-700">{step}</span>
+                            <span className="text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">{step}</span>
                           </div>
                         );
                       })}
@@ -883,31 +883,31 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                 )}
 
                 {target.tipo === 'CAL' && resolvedCal && (
-                  <div className="grid grid-cols-2 gap-3 pb-2 border-b border-slate-100">
+                  <div className="grid grid-cols-2 gap-3 pb-2 border-b border-slate-100 dark:border-slate-800 prodexus:border-[#E4ECF0]">
                     <div>
-                      <span className="text-slate-500 block">Dictamen</span>
-                      <span className="font-bold text-slate-900">{resolvedCal.dictamen || 'Conforme'}</span>
+                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Dictamen</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{resolvedCal.dictamen || 'Conforme'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Error Máx. Hallado</span>
-                      <span className="font-mono font-bold text-slate-900">{resolvedCal.error_max_hallado || '-'}</span>
+                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Error Máx. Hallado</span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{resolvedCal.error_max_hallado || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">N° Certificado</span>
-                      <span className="font-mono font-bold text-indigo-700">{resolvedCal.numero_certificado || '-'}</span>
+                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">N° Certificado</span>
+                      <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]">{resolvedCal.numero_certificado || '-'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Próxima Calibración</span>
-                      <span className="font-mono font-semibold text-slate-800">{resolvedCal.proxima_calibracion || '-'}</span>
+                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Próxima Calibración</span>
+                      <span className="font-mono font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{resolvedCal.proxima_calibracion || '-'}</span>
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <span className="font-bold text-slate-700 block mb-1">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] block mb-1">
                     {target.tipo === 'MP' ? 'Hallazgos & Observaciones' : target.tipo === 'CAL' ? 'Observaciones Metrológicas' : 'Acciones Realizadas'}
                   </span>
-                  <p className="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <p className="text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                     {liveHistorialMP?.comentarios ||
                       liveCorrectivo?.acciones_realizadas ||
                       liveOT?.acciones_realizadas ||
@@ -923,8 +923,8 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                   resolvedCal?.repuestos_utilizados ||
                   submittedSnapshot?.repuestos) && (
                   <div>
-                    <span className="font-bold text-slate-700 block mb-1">Repuestos / Materiales Utilizados</span>
-                    <p className="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span className="font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] block mb-1">Repuestos / Materiales Utilizados</span>
+                    <p className="text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                       {liveHistorialMP?.repuestos_utilizados ||
                         liveCorrectivo?.repuestos_utilizados ||
                         liveOT?.materiales_utilizados ||
@@ -940,10 +940,10 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                   liveOT?.firma_tecnico ||
                   resolvedCal?.firma_tecnico ||
                   submittedSnapshot?.firmaTecnico) && (
-                  <div className="pt-2 border-t border-slate-200">
-                    <p className="font-bold text-slate-800 mb-2">Firmas Digitales Registradas</p>
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
+                    <p className="font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36] mb-2">Firmas Digitales Registradas</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="border border-slate-200 rounded-xl p-3 bg-white text-center">
+                      <div className="border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-xl p-3 bg-white text-center">
                         <img
                           src={
                             liveHistorialMP?.firma_tecnico ||
@@ -974,7 +974,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                         liveOT?.firma_supervisor ||
                         resolvedCal?.firma_supervisor ||
                         submittedSnapshot?.firmaSupervisor) && (
-                        <div className="border border-slate-200 rounded-xl p-3 bg-white text-center">
+                        <div className="border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-xl p-3 bg-white text-center">
                           <img
                             src={
                               liveHistorialMP?.firma_supervisor ||
@@ -1008,24 +1008,24 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                 <form
                   id="supervisor-validation-form"
                   onSubmit={handleValidateBySupervisor}
-                  className="bg-white rounded-xl border-2 border-amber-300 p-4 space-y-3.5 text-xs shadow-xs"
+                  className="bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-300 dark:border-amber-700 p-4 space-y-3.5 text-xs shadow-xs"
                 >
-                  <div className="flex items-start gap-2.5 pb-2 border-b border-amber-100">
-                    <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                  <div className="flex items-start gap-2.5 pb-2 border-b border-amber-100 dark:border-amber-900/60">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
                       <ClipboardCheck className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 text-sm">
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] text-sm">
                         Validación y Firma Digital del Supervisor
                       </h3>
-                      <p className="text-[11px] text-slate-600">
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976]">
                         Revise el trabajo ejecutado y firme para aprobar oficialmente el cierre digital en planta.
                       </p>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                       Nombre del Supervisor Validador *
                     </label>
                     <input
@@ -1034,12 +1034,12 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                       value={valSupervisorName}
                       onChange={(e) => setValSupervisorName(e.target.value)}
                       placeholder="Nombre completo del supervisor"
-                      className="w-full min-h-[42px] font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full min-h-[42px] font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                       Observaciones de Supervisión (Opcional)
                     </label>
                     <textarea
@@ -1047,7 +1047,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                       value={valSupervisorObs}
                       onChange={(e) => setValSupervisorObs(e.target.value)}
                       placeholder="Comentarios de conformidad, verificación en terreno o notas de auditoría..."
-                      className="w-full text-slate-900 bg-white border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
 
@@ -1062,10 +1062,10 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
               )}
             </div>
           ) : !canClose ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center space-y-2 text-xs">
-              <Lock className="w-7 h-7 text-amber-600 mx-auto" />
-              <h3 className="font-bold text-amber-900 text-sm">Vista de Solo Lectura</h3>
-              <p className="text-amber-800 leading-relaxed">
+            <div className="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 rounded-xl p-5 text-center space-y-2 text-xs">
+              <Lock className="w-7 h-7 text-amber-600 dark:text-amber-400 mx-auto" />
+              <h3 className="font-bold text-amber-900 dark:text-amber-200 text-sm">Vista de Solo Lectura</h3>
+              <p className="text-amber-800 dark:text-amber-300 leading-relaxed">
                 Su usuario no posee el permiso <strong>Cerrar / Completar Órdenes</strong> para firmar y cerrar esta orden digitalmente. Solicite acceso a su Administrador de Empresa.
               </p>
             </div>
@@ -1074,54 +1074,54 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
             <form id="digital-exec-form" onSubmit={handleSubmitDigitalClose} className="space-y-4 text-xs">
               {/* Order Context Description for MC / OT / CAL */}
               {target.tipo === 'MC' && liveCorrectivo && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-1">
-                  <span className="font-bold text-amber-900 block">Falla Reportada</span>
-                  <p className="text-amber-900 leading-relaxed">{liveCorrectivo.falla_reportada}</p>
+                <div className="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 rounded-xl p-4 space-y-1">
+                  <span className="font-bold text-amber-900 dark:text-amber-200 block">Falla Reportada</span>
+                  <p className="text-amber-900 dark:text-amber-300 leading-relaxed">{liveCorrectivo.falla_reportada}</p>
                 </div>
               )}
 
               {target.tipo === 'OT' && liveOT && (
-                <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1">
-                  <span className="font-bold text-slate-900 block">Alcance del Trabajo Solicitado</span>
-                  <p className="text-slate-700 leading-relaxed">{liveOT.trabajo_solicitado}</p>
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] rounded-xl p-4 space-y-1">
+                  <span className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] block">Alcance del Trabajo Solicitado</span>
+                  <p className="text-slate-700 dark:text-slate-300 prodexus:text-[#4D6976] leading-relaxed">{liveOT.trabajo_solicitado}</p>
                 </div>
               )}
 
               {target.tipo === 'CAL' && liveCal && (
-                <div className="bg-white border border-slate-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <div>
-                    <span className="text-[11px] text-slate-500 block">Variable</span>
-                    <span className="font-bold text-slate-900">{liveCal.variable_medicion}</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Variable</span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{liveCal.variable_medicion}</span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-slate-500 block">Rango</span>
-                    <span className="font-mono font-semibold text-slate-800">{liveCal.rango_operacion}</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Rango</span>
+                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{liveCal.rango_operacion}</span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-slate-500 block">EMP Permitido</span>
-                    <span className="font-mono font-bold text-indigo-700">{liveCal.tolerancia_emp}</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">EMP Permitido</span>
+                    <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]">{liveCal.tolerancia_emp}</span>
                   </div>
                 </div>
               )}
 
               {/* MP Checklist */}
               {target.tipo === 'MP' && protocolSteps.length > 0 && (
-                <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-4 space-y-3">
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <h3 className="font-bold text-slate-900 text-sm">Lista de Verificación del Protocolo</h3>
-                      <p className="text-[11px] text-slate-500">Toque cada paso realizado en terreno</p>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] text-sm">Lista de Verificación del Protocolo</h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Toque cada paso realizado en terreno</p>
                     </div>
                     <button
                       type="button"
                       onClick={handleSelectAllTasks}
-                      className="min-h-[36px] px-3 py-1.5 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors shrink-0"
+                      className="min-h-[36px] px-3 py-1.5 text-[11px] font-bold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] hover:bg-blue-100 dark:hover:bg-blue-900/60 prodexus:hover:bg-[#E4ECF0] rounded-lg transition-colors shrink-0"
                     >
                       Marcar Todas
                     </button>
                   </div>
 
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E4ECF0]">
                     {protocolSteps.map((step, idx) => {
                       const checked = Boolean(checkedMap[idx]);
                       return (
@@ -1129,16 +1129,16 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                           key={idx}
                           type="button"
                           onClick={() => setCheckedMap(prev => ({ ...prev, [idx]: !prev[idx] }))}
-                          className="w-full min-h-[46px] py-2.5 px-2 text-left flex items-start gap-3 hover:bg-slate-50 rounded-lg transition-colors"
+                          className="w-full min-h-[46px] py-2.5 px-2 text-left flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 prodexus:hover:bg-[#F3F6F8] rounded-lg transition-colors"
                         >
                           <div className={`w-6 h-6 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                             checked
-                              ? 'bg-emerald-600 border-emerald-600 text-white'
-                              : 'bg-white border-slate-300 text-transparent'
+                              ? 'bg-emerald-600 prodexus:bg-[#1FB85C] border-emerald-600 prodexus:border-[#1FB85C] text-white'
+                              : 'bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] text-transparent'
                           }`}>
                             <Check className="w-4 h-4" />
                           </div>
-                          <span className={`text-xs leading-snug ${checked ? 'text-slate-900 font-semibold' : 'text-slate-700'}`}>
+                          <span className={`text-xs leading-snug ${checked ? 'text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] font-semibold' : 'text-slate-700 dark:text-slate-300 prodexus:text-[#4D6976]'}`}>
                             {step}
                           </span>
                         </button>
@@ -1149,11 +1149,11 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
               )}
 
               {/* Execution Date & Responsible Technician */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-                <h3 className="font-bold text-slate-900 text-sm">Datos de Ejecución</h3>
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-4 space-y-3">
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] text-sm">Datos de Ejecución</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                       Fecha Real de Ejecución *
                     </label>
                     <input
@@ -1161,12 +1161,12 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                       required
                       value={fechaReal}
                       onChange={(e) => setFechaReal(e.target.value)}
-                      className="w-full min-h-[44px] font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full min-h-[44px] font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                       {target.tipo === 'CAL' ? 'Metrólogo / Laboratorio *' : 'Técnico Ejecutor *'}
                     </label>
                     {activeTecnicos.length > 0 ? (
@@ -1177,7 +1177,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                           setTecnico(e.target.value);
                           setFirmadoPor(e.target.value);
                         }}
-                        className="w-full min-h-[44px] font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full min-h-[44px] font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                       >
                         <option value="">-- Seleccionar Responsable --</option>
                         {activeTecnicos.map(t => (
@@ -1198,7 +1198,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                           setTecnico(e.target.value);
                           setFirmadoPor(e.target.value);
                         }}
-                        className="w-full min-h-[44px] font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full min-h-[44px] font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                       />
                     )}
                   </div>
@@ -1206,7 +1206,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
 
                 {target.tipo === 'MP' && (
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                       Duración de la Intervención (Horas)
                     </label>
                     <input
@@ -1215,7 +1215,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                       min="0.5"
                       value={duracionHoras}
                       onChange={(e) => setDuracionHoras(Number(e.target.value))}
-                      className="w-full min-h-[44px] font-mono font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full min-h-[44px] font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                     />
                   </div>
                 )}
@@ -1224,11 +1224,11 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                   <div className="space-y-3 pt-1">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">Dictamen Metrológico *</label>
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">Dictamen Metrológico *</label>
                         <select
                           value={calDictamen}
                           onChange={(e) => setCalDictamen(e.target.value as any)}
-                          className="w-full min-h-[44px] font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full min-h-[44px] font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6]"
                         >
                           <option value="Conforme">Conforme (Apto para uso)</option>
                           <option value="Ajustado y Conforme">Ajustado y Conforme</option>
@@ -1236,58 +1236,58 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                         </select>
                       </div>
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">Error Máximo Hallado *</label>
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">Error Máximo Hallado *</label>
                         <input
                           type="text"
                           required
                           value={calErrorMax}
                           onChange={(e) => setCalErrorMax(e.target.value)}
                           placeholder="Ej. +0.20% FS"
-                          className="w-full min-h-[44px] font-mono font-bold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full min-h-[44px] font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6]"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">Patrón de Referencia *</label>
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">Patrón de Referencia *</label>
                         <input
                           type="text"
                           required
                           value={calPatron}
                           onChange={(e) => setCalPatron(e.target.value)}
-                          className="w-full min-h-[44px] text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full min-h-[44px] text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6]"
                         />
                       </div>
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">N° Certificado Emitido</label>
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">N° Certificado Emitido</label>
                         <input
                           type="text"
                           value={calCertNo}
                           onChange={(e) => setCalCertNo(e.target.value)}
-                          className="w-full min-h-[44px] font-mono font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full min-h-[44px] font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6]"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Certificado de Trazabilidad del Patrón</label>
+                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">Certificado de Trazabilidad del Patrón</label>
                       <input
                         type="text"
                         placeholder="Ej. CERT-TRAZ-INN-2026-104"
                         value={calTrazabilidad}
                         onChange={(e) => setCalTrazabilidad(e.target.value)}
-                        className="w-full min-h-[44px] text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full min-h-[44px] text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6]"
                       />
                     </div>
 
                     {/* Points table */}
-                    <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2">
-                      <span className="font-bold text-slate-800 block">Puntos de Contraste</span>
+                    <div className="border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-xl p-3 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] space-y-2">
+                      <span className="font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36] block">Puntos de Contraste</span>
                       <div className="overflow-x-auto">
                         <table className="w-full text-[11px]">
                           <thead>
-                            <tr className="text-slate-500 border-b border-slate-200">
+                            <tr className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] border-b border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6]">
                               <th className="py-1.5 px-1.5 text-left">Punto</th>
                               <th className="py-1.5 px-1.5 text-left">Patrón</th>
                               <th className="py-1.5 px-1.5 text-left">Instrumento</th>
@@ -1296,8 +1296,8 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                           </thead>
                           <tbody>
                             {calPuntos.map((p, idx) => (
-                              <tr key={idx} className="border-b border-slate-100 last:border-b-0">
-                                <td className="py-1.5 px-1.5 font-mono font-semibold">{p.punto_nominal}</td>
+                              <tr key={idx} className="border-b border-slate-100 dark:border-slate-700/60 prodexus:border-[#E4ECF0] last:border-b-0">
+                                <td className="py-1.5 px-1.5 font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{p.punto_nominal}</td>
                                 <td className="py-1.5 px-1.5">
                                   <input
                                     type="text"
@@ -1306,7 +1306,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                                       const val = e.target.value;
                                       setCalPuntos(prev => prev.map((it, i) => i === idx ? { ...it, lectura_patron: val } : it));
                                     }}
-                                    className="w-20 min-h-[36px] bg-white border border-slate-300 rounded-lg px-2 font-mono"
+                                    className="w-20 min-h-[36px] bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 font-mono"
                                   />
                                 </td>
                                 <td className="py-1.5 px-1.5">
@@ -1317,7 +1317,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                                       const val = e.target.value;
                                       setCalPuntos(prev => prev.map((it, i) => i === idx ? { ...it, lectura_instrumento: val } : it));
                                     }}
-                                    className="w-20 min-h-[36px] bg-white border border-slate-300 rounded-lg px-2 font-mono"
+                                    className="w-20 min-h-[36px] bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 font-mono"
                                   />
                                 </td>
                                 <td className="py-1.5 px-1.5">
@@ -1328,7 +1328,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                                       const val = e.target.value;
                                       setCalPuntos(prev => prev.map((it, i) => i === idx ? { ...it, error_calculado: val } : it));
                                     }}
-                                    className="w-20 min-h-[36px] bg-white border border-slate-300 rounded-lg px-2 font-mono font-bold text-emerald-700"
+                                    className="w-20 min-h-[36px] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 font-mono font-bold text-emerald-700 dark:text-emerald-400"
                                   />
                                 </td>
                               </tr>
@@ -1341,7 +1341,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                 )}
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     {target.tipo === 'MP'
                       ? 'Hallazgos, Mediciones y Observaciones'
                       : target.tipo === 'CAL'
@@ -1360,13 +1360,13 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                     }
                     value={notasAcciones}
                     onChange={(e) => setNotasAcciones(e.target.value)}
-                    className="w-full text-slate-900 bg-white border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                   />
                 </div>
               </div>
 
               {/* Spare Parts Consumption */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-4">
                 <RepuestosConsumoSelector
                   clienteNombre={target.cliente}
                   equipoCodigo={target.codigoEq}
@@ -1380,14 +1380,14 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
               </div>
 
               {/* Touch Digital Signature Section */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-4 space-y-4">
                 <div className="flex items-center gap-2">
-                  <PenTool className="w-4 h-4 text-blue-600" />
-                  <h3 className="font-bold text-slate-900 text-sm">Firmas Digitales de Conformidad</h3>
+                  <PenTool className="w-4 h-4 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] text-sm">Firmas Digitales de Conformidad</h3>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Nombre Completo quien Firma (Ejecutor) *
                   </label>
                   <input
@@ -1396,7 +1396,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                     value={firmadoPor}
                     onChange={(e) => setFirmadoPor(e.target.value)}
                     placeholder="Nombre del técnico / metrólogo"
-                    className="w-full min-h-[44px] font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full min-h-[44px] font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                   />
                 </div>
 
@@ -1408,7 +1408,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                   required
                 />
 
-                <div className="pt-2 border-t border-slate-100 space-y-3">
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6] space-y-3">
                   <label className="flex items-center gap-2.5 min-h-[40px] cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -1416,7 +1416,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                       onChange={(e) => setIncludeSupervisorSign(e.target.checked)}
                       className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="font-semibold text-slate-800">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
                       Agregar firma de recepción / supervisor de planta ahora (opcional)
                     </span>
                   </label>
@@ -1424,7 +1424,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                   {includeSupervisorSign && (
                     <div className="space-y-3 pt-1">
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                           Nombre del Supervisor / Receptor en Planta
                         </label>
                         <input
@@ -1432,7 +1432,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                           value={firmadoSupervisorPor}
                           onChange={(e) => setFirmadoSupervisorPor(e.target.value)}
                           placeholder="Nombre y cargo de quien recibe conforme"
-                          className="w-full min-h-[44px] font-semibold text-slate-900 bg-white border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full min-h-[44px] font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                         />
                       </div>
 
@@ -1451,13 +1451,13 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
         </div>
 
         {/* Bottom Sticky Ergonomic CTA Bar */}
-        <div className="bg-white border-t border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between gap-2.5 shrink-0">
+        <div className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] px-4 sm:px-6 py-3 flex items-center justify-between gap-2.5 shrink-0">
           {isCerrada ? (
             <>
               <button
                 type="button"
                 onClick={onClose}
-                className="min-h-[44px] px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="min-h-[44px] px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] transition-colors"
               >
                 Cerrar
               </button>
@@ -1466,7 +1466,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                   <button
                     type="button"
                     onClick={() => onOpenPrint(buildPrintDocFromCurrentState())}
-                    className="min-h-[44px] px-4 py-2.5 rounded-xl font-bold text-xs text-slate-800 bg-white border border-slate-300 hover:bg-slate-50 flex items-center justify-center gap-2 transition-colors shadow-xs"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl font-bold text-xs text-slate-800 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] hover:bg-slate-50 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] flex items-center justify-center gap-2 transition-colors shadow-xs"
                   >
                     <Printer className="w-4 h-4" />
                     <span className="hidden sm:inline">Ver / Descargar PDF</span>
@@ -1490,7 +1490,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
               <button
                 type="button"
                 onClick={onClose}
-                className="min-h-[44px] px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="min-h-[44px] px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] transition-colors"
               >
                 Cancelar
               </button>
@@ -1498,7 +1498,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                 <button
                   type="submit"
                   form="digital-exec-form"
-                  className="flex-1 min-h-[46px] px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  className="flex-1 min-h-[46px] px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 prodexus:bg-[#1FB85C] hover:bg-emerald-700 prodexus:hover:bg-[#189B4C] flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Completar y Firmar Orden Digitalmente</span>

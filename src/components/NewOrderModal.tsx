@@ -106,16 +106,16 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-blue-600" />
+    <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] max-w-md w-full p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] flex items-center gap-2">
+            <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
             Nueva Orden de Mantenimiento & Metrología
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 font-semibold p-1"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-semibold p-1"
           >
             <X className="w-4 h-4" />
           </button>
@@ -128,11 +128,11 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
             onClick={() => { setTipo('MC'); setDiasTolerancia(2); }}
             className={`p-2.5 rounded-lg border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
               tipo === 'MC'
-                ? 'border-amber-500 bg-amber-50 text-amber-900 shadow-xs'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 shadow-xs'
+                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             <span>Correctivo</span>
           </button>
 
@@ -141,11 +141,11 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
             onClick={() => { setTipo('CAL'); setDiasTolerancia(7); }}
             className={`p-2.5 rounded-lg border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
               tipo === 'CAL'
-                ? 'border-indigo-500 bg-indigo-50 text-indigo-900 shadow-xs'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-900 dark:text-indigo-200 shadow-xs'
+                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
-            <Compass className="w-4 h-4 text-indigo-600" />
+            <Compass className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span>Calibración</span>
           </button>
 
@@ -154,11 +154,11 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
             onClick={() => { setTipo('OT'); setDiasTolerancia(5); }}
             className={`p-2.5 rounded-lg border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
               tipo === 'OT'
-                ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-xs'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'border-blue-500 prodexus:border-[#2F7CF6] bg-blue-50 dark:bg-blue-950/50 prodexus:bg-[#EBF3FF] text-blue-900 dark:text-blue-200 prodexus:text-[#132B36] shadow-xs'
+                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
-            <ClipboardList className="w-4 h-4 text-blue-600" />
+            <ClipboardList className="w-4 h-4 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
             <span>Trabajo/OT</span>
           </button>
 
@@ -167,24 +167,24 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
             onClick={() => { setTipo('MP'); setDiasTolerancia(0); }}
             className={`p-2.5 rounded-lg border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
               tipo === 'MP'
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-xs'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'border-emerald-500 prodexus:border-[#1FB85C] bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200 shadow-xs'
+                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
-            <FileCheck2 className="w-4 h-4 text-emerald-600" />
+            <FileCheck2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 prodexus:text-[#1FB85C]" />
             <span>Preventivo</span>
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           <div>
-            <label className="block font-bold text-slate-700 mb-1">
+            <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
               Equipo Asociado *
             </label>
             <select
               value={equipoCode}
               onChange={(e) => setEquipoCode(e.target.value)}
-              className="w-full font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="">-- Toda la Planta / Ubicación General --</option>
               {Array.from(
@@ -199,7 +199,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
+              <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                 Fecha Compromiso
               </label>
               <input
@@ -207,12 +207,12 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
                 value={fechaTentativa}
                 onChange={(e) => setFechaTentativa(e.target.value)}
                 required
-                className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
+              <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                 Tolerancia (Días)
               </label>
               <input
@@ -220,19 +220,19 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
                 min="0"
                 value={diasTolerancia}
                 onChange={(e) => setDiasTolerancia(Number(e.target.value))}
-                className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">
+            <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
               Técnico Asignado
             </label>
             <select
               value={tecnico}
               onChange={(e) => setTecnico(e.target.value)}
-              className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Por asignar / Cuadrilla de turno --</option>
               {tecnicos.filter(t => t.estado === 'Activo').map(t => (
@@ -244,7 +244,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">
+            <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
               Descripción / Tareas a Realizar *
             </label>
             <textarea
@@ -253,21 +253,21 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
               placeholder="Describa el requerimiento, síntomas observados o trabajo a ejecutar..."
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              className="w-full text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+              className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs"
+              className="px-4 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
             >
               Crear Orden
             </button>

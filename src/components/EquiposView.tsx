@@ -346,13 +346,13 @@ export const EquiposView: React.FC = () => {
     <div className="space-y-6">
       <div className={showListadoModal ? 'space-y-6 no-print' : 'space-y-6'}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <Cpu className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] tracking-tight flex items-center gap-2">
+            <Cpu className="w-6 h-6 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
             Parque de Equipos & Maquinaria Industrial
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
             Registro técnico de activos protegidos, gestión de múltiples frecuencias por equipo e historial de intervenciones.
           </p>
         </div>
@@ -361,16 +361,16 @@ export const EquiposView: React.FC = () => {
           {canPrint && (
             <button
               onClick={() => setShowListadoModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-2xs"
             >
-              <Printer className="w-3.5 h-3.5 text-blue-600" />
+              <Printer className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
               <span>Emitir Listado</span>
             </button>
           )}
           {canEdit && (
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Nuevo Equipo / Frecuencia</span>
@@ -380,25 +380,25 @@ export const EquiposView: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Buscar por código, nombre, marca o frecuencia..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+              className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
             />
           </div>
 
           <div className="flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
             <select
               value={selectedSistema}
               onChange={(e) => setSelectedSistema(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2.5 text-xs font-medium text-slate-800 focus:outline-none"
+              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg py-1.5 px-2.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none"
             >
               <option value="Todos">Todos los Sistemas</option>
               {sistemas.map(s => (
@@ -411,12 +411,12 @@ export const EquiposView: React.FC = () => {
 
           {isTercerosViewEnabled && (
             <div className="flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-blue-600" />
+              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
               <select
                 value={selectedEmpresa}
                 onChange={(e) => setSelectedEmpresa(e.target.value)}
                 aria-label="Filtrar equipos por empresa"
-                className="bg-blue-50 border border-blue-200 rounded-lg py-1.5 px-2.5 text-xs font-semibold text-blue-900 focus:outline-none"
+                className="bg-blue-50 dark:bg-blue-950/50 prodexus:bg-[#EEF5FF] border border-blue-200 dark:border-blue-800 prodexus:border-[#B9D2FA] rounded-lg py-1.5 px-2.5 text-xs font-semibold text-blue-900 dark:text-blue-200 prodexus:text-[#132B36] focus:outline-none"
               >
                 <option value="Todas">Todas las Empresas</option>
                 {empresasTercerosDisponibles.map(empName => (
@@ -432,16 +432,16 @@ export const EquiposView: React.FC = () => {
           )}
         </div>
 
-        <span className="text-xs font-semibold text-slate-500">
+        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
           Mostrando {equiposFiltrados.length} planes registrados
         </span>
       </div>
 
       {/* Equipment Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
               <tr>
                 <th className="py-3 px-4">Código (ID)</th>
                 <th className="py-3 px-4">Equipo & Planta</th>
@@ -454,10 +454,10 @@ export const EquiposView: React.FC = () => {
                 <th className="py-3 px-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E6EEF2]">
               {equiposFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={isTercerosViewEnabled ? 9 : 8} className="py-12 text-center text-slate-500">
+                  <td colSpan={isTercerosViewEnabled ? 9 : 8} className="py-12 text-center text-slate-500 dark:text-slate-400">
                     No se encontraron equipos registrados para los criterios seleccionados.
                   </td>
                 </tr>
@@ -470,13 +470,13 @@ export const EquiposView: React.FC = () => {
                   const esMultiFrecuencia = planesMismoCodigo.length > 1;
 
                   return (
-                    <tr key={keyRow} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-slate-800">
+                    <tr key={keyRow} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                      <td className="py-3 px-4 font-mono font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
                         <div className="flex items-center gap-1.5">
                           <span>{eq.codigo_eq}</span>
                           {esMultiFrecuencia && (
                             <span
-                              className="font-sans text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 cursor-help"
+                              className="font-sans text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70 cursor-help"
                               title={`Equipo con ${planesMismoCodigo.length} frecuencias de mantenimiento registradas: ${planesMismoCodigo.map(p => p.frecuencia).join(', ')}`}
                             >
                               {planesMismoCodigo.length} planes
@@ -484,42 +484,42 @@ export const EquiposView: React.FC = () => {
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 font-bold text-slate-900">
+                      <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                         {eq.nombre}
-                        <span className="block text-[10px] text-slate-400 font-normal">{eq.cliente}</span>
+                        <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-normal">{eq.cliente}</span>
                       </td>
                       {isTercerosViewEnabled && (
-                        <td className="py-3 px-4 font-semibold text-slate-800">
+                        <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">
                           {eq.empresa_tercero ? (
                             <span>{eq.empresa_tercero}</span>
                           ) : (
-                            <span className="text-slate-400 font-normal italic">Sin asignar</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-normal italic">Sin asignar</span>
                           )}
                         </td>
                       )}
-                      <td className="py-3 px-4 text-slate-600 font-medium">
+                      <td className="py-3 px-4 text-slate-600 dark:text-slate-300 font-medium">
                         {eq.sistema}
                       </td>
-                      <td className="py-3 px-4 text-slate-500">
+                      <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
                         {eq.marca} · {eq.modelo}
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-slate-100 text-slate-800 border border-slate-200 shadow-2xs">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-2xs">
                           {eq.frecuencia}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                           eq.criticidad === 'Alta'
-                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                            ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/70'
                             : eq.criticidad === 'Media'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : 'bg-slate-50 text-slate-700'
+                            ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70'
+                            : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                         }`}>
                           {eq.criticidad || 'Media'}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-600">
+                      <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
                         {eq.tecnico || 'Sin asignar'}
                       </td>
                       <td className="py-3 px-4 text-right">
@@ -527,7 +527,7 @@ export const EquiposView: React.FC = () => {
                           {canEdit && (
                             <button
                               onClick={() => handleOpenAddFrequency(eq)}
-                              className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                              className="p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded transition-colors"
                               title={`Agregar otra frecuencia de mantenimiento a ${eq.codigo_eq}`}
                             >
                               <CalendarPlus className="w-3.5 h-3.5" />
@@ -536,7 +536,7 @@ export const EquiposView: React.FC = () => {
                           {canEdit && (
                             <button
                               onClick={() => handleOpenEdit(eq)}
-                              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded transition-colors"
                               title="Modificar este registro"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -545,7 +545,7 @@ export const EquiposView: React.FC = () => {
                           {canDelete && (
                             <button
                               onClick={() => handleDelete(eq)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                              className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded transition-colors"
                               title={`Eliminar plan ${eq.frecuencia} de ${eq.codigo_eq}`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -564,24 +564,24 @@ export const EquiposView: React.FC = () => {
 
       {/* Modal Alta / Modificar */}
       {modalMode && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#E2ECF1]">
               <div>
-                <h2 className="text-base font-bold text-slate-900">
+                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                   {modalMode === 'create'
                     ? (existingMatches.length > 0
                         ? `Registrar Nueva Frecuencia para ${formId}`
                         : 'Registrar Equipo / Plan de Mantenimiento')
                     : `Modificar Plan ${formFrecuencia} (${formId})`}
                 </h2>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                   Los equipos pueden tener múltiples frecuencias complementarias (ej. Mensual y Anual).
                 </p>
               </div>
               <button
                 onClick={() => setModalMode(null)}
-                className="text-slate-400 hover:text-slate-600 font-semibold p-1"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-semibold p-1"
               >
                 ✕
               </button>
@@ -589,8 +589,8 @@ export const EquiposView: React.FC = () => {
 
             {/* Selector de apoyo para cargar un equipo ya registrado */}
             {modalMode === 'create' && equiposUnicosPlanta.length > 0 && (
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
-                <label className="block font-bold text-slate-700 text-[11px]">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-lg space-y-1.5">
+                <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] text-[11px]">
                   ¿Desea agregar otra frecuencia a un equipo ya registrado? (Opcional):
                 </label>
                 <select
@@ -600,7 +600,7 @@ export const EquiposView: React.FC = () => {
                     );
                     if (match) handleSelectExistingForFrequency(match);
                   }}
-                  className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   defaultValue=""
                 >
                   <option value="">-- Seleccionar de equipos existentes en esta planta --</option>
@@ -621,21 +621,21 @@ export const EquiposView: React.FC = () => {
 
             {/* Banner informativo si se detecta que el equipo ya existe con otras frecuencias */}
             {modalMode === 'create' && existingMatches.length > 0 && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2.5">
-                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/70 rounded-lg flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div className="text-[11px] space-y-1">
-                  <p className="text-blue-950 font-bold">
+                  <p className="text-blue-950 dark:text-blue-100 font-bold">
                     Equipo existente detectado: {existingMatches[0].nombre} ({existingMatches[0].marca} {existingMatches[0].modelo})
                   </p>
-                  <p className="text-blue-800">
+                  <p className="text-blue-800 dark:text-blue-300">
                     Frecuencias ya registradas:{' '}
                     {existingFreqs.map((f, fIdx) => (
-                      <span key={`${f}_${fIdx}`} className="inline-block bg-white text-blue-800 font-bold px-1.5 py-0.5 rounded border border-blue-200 mr-1 text-[10px]">
+                      <span key={`${f}_${fIdx}`} className="inline-block bg-white dark:bg-slate-900 text-blue-800 dark:text-blue-300 font-bold px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800 mr-1 text-[10px]">
                         {f}
                       </span>
                     ))}
                   </p>
-                  <p className="text-blue-600 text-[10.5px]">
+                  <p className="text-blue-600 dark:text-blue-400 text-[10.5px]">
                     Puede registrar esta nueva frecuencia seleccionando una periodicidad complementaria (ej. Semestral o Anual).
                   </p>
                 </div>
@@ -644,8 +644,8 @@ export const EquiposView: React.FC = () => {
 
             {/* Aviso si la frecuencia seleccionada ya está registrada para este equipo */}
             {modalMode === 'create' && isSelectedFreqDuplicate && (
-              <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-amber-800 text-[11px]">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <div className="p-2.5 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 rounded-lg flex items-center gap-2 text-amber-800 dark:text-amber-300 text-[11px]">
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>
                   La frecuencia <strong>"{formFrecuencia}"</strong> ya está registrada para el equipo {formId}. Elija una frecuencia complementaria diferente.
                 </span>
@@ -655,7 +655,7 @@ export const EquiposView: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Código de Equipo (ID) *
                   </label>
                   <input
@@ -665,12 +665,12 @@ export const EquiposView: React.FC = () => {
                     placeholder="Ej. CH-01"
                     value={formId}
                     onChange={(e) => handleCodeChange(e.target.value)}
-                    className="w-full font-mono font-semibold uppercase text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+                    className="w-full font-mono font-semibold uppercase text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 dark:disabled:bg-slate-800"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Planta / Cliente *
                   </label>
                   <select
@@ -678,7 +678,7 @@ export const EquiposView: React.FC = () => {
                     onChange={(e) => setFormCliente(e.target.value)}
                     disabled={!isSuperAdmin}
                     required
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 dark:disabled:bg-slate-800"
                   >
                     {clientes.map(c => (
                       <option key={c.codigo} value={c.nombre}>
@@ -690,7 +690,7 @@ export const EquiposView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                   Nombre del Equipo *
                 </label>
                 <input
@@ -699,13 +699,13 @@ export const EquiposView: React.FC = () => {
                   placeholder="Ej. Chiller Centrífugo Trane 350 TR"
                   value={formNombre}
                   onChange={(e) => setFormNombre(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {isFormTercerosEnabled && (
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Empresa
                   </label>
                   <input
@@ -714,7 +714,7 @@ export const EquiposView: React.FC = () => {
                     placeholder="Nombre de la empresa cliente a la que pertenece el equipo"
                     value={formEmpresaTercero}
                     onChange={(e) => setFormEmpresaTercero(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {formEmpresasSugeridas.length > 0 && (
                     <datalist id="empresas-terceros-sugerencias">
@@ -728,14 +728,14 @@ export const EquiposView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Sistema *
                   </label>
                   <select
                     value={formSistema}
                     onChange={(e) => setFormSistema(e.target.value)}
                     required
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {sistemas.map(s => (
                       <option key={s.codigo_sis} value={s.nombre}>
@@ -746,17 +746,17 @@ export const EquiposView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Frecuencia de Mantenimiento *
                   </label>
                   <select
                     value={formFrecuencia}
                     onChange={(e) => setFormFrecuencia(e.target.value)}
                     required
-                    className={`w-full font-medium text-slate-900 bg-white border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       isSelectedFreqDuplicate && modalMode === 'create'
-                        ? 'border-amber-400 bg-amber-50/50'
-                        : 'border-slate-300'
+                        ? 'border-amber-400 dark:border-amber-600 bg-amber-50/50 dark:bg-amber-950/30'
+                        : 'border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE]'
                     }`}
                   >
                     {frecuencias.map(f => {
@@ -779,7 +779,7 @@ export const EquiposView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Marca
                   </label>
                   <input
@@ -787,12 +787,12 @@ export const EquiposView: React.FC = () => {
                     placeholder="Ej. Trane, Atlas Copco"
                     value={formMarca}
                     onChange={(e) => setFormMarca(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Modelo
                   </label>
                   <input
@@ -800,20 +800,20 @@ export const EquiposView: React.FC = () => {
                     placeholder="Ej. CVHE-350"
                     value={formModelo}
                     onChange={(e) => setFormModelo(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Criticidad Operacional
                   </label>
                   <select
                     value={formCriticidad}
                     onChange={(e) => setFormCriticidad(e.target.value as any)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Alta">Alta (Crítico para producción)</option>
                     <option value="Media">Media (Impacto moderado)</option>
@@ -822,13 +822,13 @@ export const EquiposView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Técnico Responsable Habitual
                   </label>
                   <select
                     value={formTecnico}
                     onChange={(e) => setFormTecnico(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">-- Sin asignar --</option>
                     {tecnicos.filter(t => t.estado === 'Activo').map(t => (
@@ -841,7 +841,7 @@ export const EquiposView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                   Fecha Primer Mantenimiento Programado *
                 </label>
                 <input
@@ -849,12 +849,12 @@ export const EquiposView: React.FC = () => {
                   required
                   value={formFechaProxima}
                   onChange={(e) => setFormFechaProxima(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                   Protocolo de Tareas Específicas para esta Frecuencia ({formFrecuencia}) *
                 </label>
                 <textarea
@@ -863,22 +863,22 @@ export const EquiposView: React.FC = () => {
                   placeholder="Escriba las tareas específicas a ejecutar en este plan preventivo..."
                   value={formTareas}
                   onChange={(e) => setFormTareas(e.target.value)}
-                  className="w-full font-mono text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed text-[11px]"
+                  className="w-full font-mono text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed text-[11px]"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setModalMode(null)}
-                  className="px-4 py-2 font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                  className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={modalMode === 'create' && isSelectedFreqDuplicate}
-                  className="px-4 py-2 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs"
+                  className="px-4 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs"
                 >
                   {modalMode === 'create'
                     ? (existingMatches.length > 0 ? 'Registrar Frecuencia Complementaria' : 'Guardar Equipo')

@@ -990,25 +990,25 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
     <div className="space-y-6">
       <div className={showInstListadoModal ? 'space-y-6 no-print' : 'space-y-6'}>
       {/* View Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] no-print">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <Compass className="w-6 h-6 text-indigo-600" />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] tracking-tight flex items-center gap-2">
+            <Compass className="w-6 h-6 text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]" />
             Plan & Certificación de Calibración Metrológica
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
             Control de instrumentos de medición, cronograma anual de calibración, patrones de referencia y emisión de certificados ISO/IEC 17025.
           </p>
         </div>
 
         {/* Navigation Subtabs */}
-        <div className="inline-flex p-1 bg-slate-100 rounded-lg shrink-0 self-start sm:self-auto">
+        <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/80 prodexus:bg-[#E4ECF0] rounded-lg shrink-0 self-start sm:self-auto flex-wrap">
           <button
             onClick={() => setActiveTab('plan')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeTab === 'plan'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Plan Anual {selectedAnio}
@@ -1017,13 +1017,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
             onClick={() => setActiveTab('instrumentos')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 ${
               activeTab === 'instrumentos'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             <span>Padrón de Instrumentos</span>
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-              activeTab === 'instrumentos' ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-slate-200 text-slate-700'
+              activeTab === 'instrumentos' ? 'bg-indigo-100 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] font-bold' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200'
             }`}>
               {instrumentosActivos.length}
             </span>
@@ -1032,8 +1032,8 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
             onClick={() => setActiveTab('emision')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeTab === 'emision'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Emitir Orden (CAL)
@@ -1042,8 +1042,8 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
             onClick={() => setActiveTab('cierre')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeTab === 'cierre'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Cerrar & Certificar ({closeableCalItems.length})
@@ -1052,8 +1052,8 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
             onClick={() => setActiveTab('historial')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeTab === 'historial'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Certificados ({cerradasList.length})
@@ -1065,15 +1065,15 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
       {activeTab === 'plan' && (
         <div className="space-y-6">
           {/* Controls & Legend */}
-          <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs no-print">
+          <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs no-print">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="font-bold text-slate-800">
+              <span className="font-bold text-slate-800 dark:text-slate-100 prodexus:text-[#132B36]">
                 Plan Matriz de Calibración {selectedAnio} ({planCalibracionRows.length} instrumentos bajo control metrológico)
               </span>
               <select
                 value={selectedAnio}
                 onChange={(e) => setSelectedAnio(Number(e.target.value))}
-                className="bg-indigo-50 border border-indigo-200 rounded-lg py-1 px-2.5 text-xs font-bold text-indigo-900 focus:outline-none"
+                className="bg-indigo-50 dark:bg-indigo-950/50 prodexus:bg-[#EEF5FF] border border-indigo-200 dark:border-indigo-800 prodexus:border-[#B9D2FA] rounded-lg py-1 px-2.5 text-xs font-bold text-indigo-900 dark:text-indigo-200 prodexus:text-[#132B36] focus:outline-none"
               >
                 {availableYears.map(yr => (
                   <option key={yr} value={yr}>
@@ -1084,9 +1084,9 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2.5 text-[11px] font-medium text-slate-500">
+              <div className="flex items-center gap-2.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> Conforme
+                  <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 prodexus:bg-[#1FB85C]"></span> Conforme
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-sm bg-amber-500"></span> Fuera de Fecha
@@ -1095,16 +1095,16 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   <span className="w-2.5 h-2.5 rounded-sm bg-rose-500"></span> No Conforme / Vencido
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-blue-100 border border-blue-300"></span> Programado
+                  <span className="w-2.5 h-2.5 rounded-sm bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700"></span> Programado
                 </span>
               </div>
 
               {canPrint && (
-                <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
+                <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-3">
                   <button
                     onClick={handleDownloadPlanPDF}
                     disabled={isGeneratingPDF}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors shadow-xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] disabled:opacity-50 rounded-lg transition-colors shadow-xs"
                   >
                     {isGeneratingPDF ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1115,7 +1115,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   </button>
                   <button
                     onClick={handlePrintPlan}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-xs"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors shadow-xs"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Imprimir Plan</span>
@@ -1128,7 +1128,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
           {/* Official Calibration Multi-Sheet Paginated Document */}
           <div ref={planCalibPrintRef} className="space-y-8 print-container">
             {planCalibracionRows.length === 0 ? (
-              <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-12 text-center text-slate-500 dark:text-slate-400">
                 No hay instrumentos programados en el Plan de Calibración {selectedAnio} para esta planta.
               </div>
             ) : (
@@ -1381,77 +1381,77 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
         <div className="space-y-6">
           {/* Top KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] shadow-xs flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase text-slate-400">Total Instrumentos</span>
-                <p className="text-2xl font-black text-slate-900 mt-1">{instrumentosCliente.length}</p>
-                <span className="text-[11px] text-slate-500">Padrón metrológico registrado</span>
+                <span className="text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">Total Instrumentos</span>
+                <p className="text-2xl font-black text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] mt-1">{instrumentosCliente.length}</p>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Padrón metrológico registrado</span>
               </div>
-              <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] rounded-xl text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]">
                 <Gauge className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] shadow-xs flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase text-slate-400">Activos en Servicio</span>
-                <p className="text-2xl font-black text-emerald-600 mt-1">{instrumentosActivos.length}</p>
-                <span className="text-[11px] text-emerald-700 font-medium">Incluidos en Plan Anual {selectedAnio}</span>
+                <span className="text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">Activos en Servicio</span>
+                <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{instrumentosActivos.length}</p>
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">Incluidos en Plan Anual {selectedAnio}</span>
               </div>
-              <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 rounded-xl text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] shadow-xs flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase text-slate-400">Dados de Baja / Retirados</span>
-                <p className="text-2xl font-black text-rose-600 mt-1">{instrumentosBaja.length}</p>
-                <span className="text-[11px] text-rose-600 font-medium">Fuera de servicio con trazabilidad</span>
+                <span className="text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">Dados de Baja / Retirados</span>
+                <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{instrumentosBaja.length}</p>
+                <span className="text-[11px] text-rose-600 dark:text-rose-400 font-medium">Fuera de servicio con trazabilidad</span>
               </div>
-              <div className="p-3 bg-rose-50 rounded-xl text-rose-600">
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/60 rounded-xl text-rose-600 dark:text-rose-400">
                 <AlertOctagon className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] shadow-xs flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase text-slate-400">Calibraciones {selectedAnio}</span>
-                <p className="text-2xl font-black text-indigo-700 mt-1">
+                <span className="text-[11px] font-bold uppercase text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">Calibraciones {selectedAnio}</span>
+                <p className="text-2xl font-black text-indigo-700 dark:text-indigo-400 prodexus:text-[#2F7CF6] mt-1">
                   {calibracionesCliente.filter(c => {
                     const d = parseFecha(c.fecha_programada || c.fecha_real || c.fecha_emision);
                     return d && d.getFullYear() === selectedAnio;
                   }).length}
                 </p>
-                <span className="text-[11px] text-slate-500">Órdenes y certificados ({calibracionesCliente.length} hist.)</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Órdenes y certificados ({calibracionesCliente.length} hist.)</span>
               </div>
-              <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] rounded-xl text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]">
                 <Award className="w-6 h-6" />
               </div>
             </div>
           </div>
 
           {/* Action and Filter Bar */}
-          <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex flex-wrap items-center gap-2.5">
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Buscar por código, nombre, marca, serie..."
                   value={instSearchQuery}
                   onChange={(e) => setInstSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
+                  className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
                 />
               </div>
 
-              <div className="inline-flex p-0.5 bg-slate-100 rounded-lg">
+              <div className="inline-flex p-0.5 bg-slate-100 dark:bg-slate-800/80 prodexus:bg-[#E4ECF0] rounded-lg">
                 <button
                   onClick={() => setInstFilterEstado('Activo')}
                   className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
                     instFilterEstado === 'Activo'
-                      ? 'bg-white text-emerald-700 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-slate-100'
                   }`}
                 >
                   Activos ({instrumentosActivos.length})
@@ -1460,8 +1460,8 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   onClick={() => setInstFilterEstado('Baja')}
                   className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
                     instFilterEstado === 'Baja'
-                      ? 'bg-white text-rose-700 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-slate-100'
                   }`}
                 >
                   Dados de Baja ({instrumentosBaja.length})
@@ -1470,8 +1470,8 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   onClick={() => setInstFilterEstado('Todos')}
                   className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
                     instFilterEstado === 'Todos'
-                      ? 'bg-white text-slate-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-slate-100'
                   }`}
                 >
                   Todos ({instrumentosCliente.length})
@@ -1485,16 +1485,16 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowInstListadoModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-2xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors shadow-2xs"
                   >
-                    <Printer className="w-3.5 h-3.5 text-indigo-600" />
+                    <Printer className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]" />
                     <span>Emitir Listado</span>
                   </button>
                 )}
                 {canEdit && (
                   <button
                     onClick={handleOpenCreateInst}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg transition-colors shadow-xs"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Ingresar Instrumento</span>
@@ -1505,10 +1505,10 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
           </div>
 
           {/* Instruments Table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-900 text-slate-200 uppercase font-mono text-[10px] tracking-wider">
+                <thead className="bg-slate-900 prodexus:bg-[#132B36] text-slate-200 uppercase font-mono text-[10px] tracking-wider">
                   <tr>
                     <th className="py-2.5 px-3">Código</th>
                     <th className="py-2.5 px-3">Instrumento / Modelo</th>
@@ -1520,13 +1520,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     <th className="py-2.5 px-3 text-right">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 text-slate-700">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 prodexus:divide-[#D5E0E6] text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                   {instrumentosListado.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-slate-400">
-                        <Gauge className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                        <p className="font-semibold text-slate-600">No se encontraron instrumentos con los filtros seleccionados.</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Haga clic en "Ingresar Instrumento" para dar de alta uno nuevo en el padrón.</p>
+                      <td colSpan={8} className="py-12 text-center text-slate-400 dark:text-slate-500">
+                        <Gauge className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                        <p className="font-semibold text-slate-600 dark:text-slate-300 prodexus:text-[#132B36]">No se encontraron instrumentos con los filtros seleccionados.</p>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] mt-0.5">Haga clic en &ldquo;Ingresar Instrumento&rdquo; para dar de alta uno nuevo en el padrón.</p>
                       </td>
                     </tr>
                   ) : (
@@ -1535,72 +1535,72 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       return (
                         <tr
                           key={inst.codigo_inst}
-                          className={`hover:bg-slate-50/80 transition-colors ${
-                            !isActivo ? 'bg-rose-50/25 opacity-90' : ''
+                          className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 prodexus:hover:bg-[#F3F6F8] transition-colors ${
+                            !isActivo ? 'bg-rose-50/25 dark:bg-rose-950/20 opacity-90' : ''
                           }`}
                         >
-                          <td className="py-3 px-3 font-mono font-bold text-indigo-700 whitespace-nowrap">
-                            <span className="bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded text-[11px]">
+                          <td className="py-3 px-3 font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] whitespace-nowrap">
+                            <span className="bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] px-2 py-0.5 rounded text-[11px]">
                               {inst.codigo_inst}
                             </span>
                           </td>
                           <td className="py-3 px-3">
-                            <div className="font-bold text-slate-900 leading-snug">{inst.nombre}</div>
-                            <div className="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-1.5">
-                              {inst.marca && <span>Marca: <strong className="text-slate-700">{inst.marca}</strong></span>}
+                            <div className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] leading-snug">{inst.nombre}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5 flex flex-wrap items-center gap-1.5">
+                              {inst.marca && <span>Marca: <strong className="text-slate-700 dark:text-slate-200 prodexus:text-[#132B36]">{inst.marca}</strong></span>}
                               {inst.modelo && <span>· Modelo: {inst.modelo}</span>}
                               {inst.numero_serie && <span>· S/N: <span className="font-mono">{inst.numero_serie}</span></span>}
                             </div>
                           </td>
                           <td className="py-3 px-3">
-                            <div className="font-medium text-slate-800">{inst.cliente}</div>
-                            <div className="text-[11px] text-slate-500 mt-0.5">
+                            <div className="font-medium text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{inst.cliente}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
                               {inst.equipo_asociado ? (
-                                <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
+                                <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] px-1.5 py-0.2 rounded border border-blue-200 dark:border-blue-800/70 prodexus:border-[#B9D2FA]">
                                   Equipo: {inst.equipo_asociado}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 italic">Sin equipo vinculado</span>
+                                <span className="text-slate-400 dark:text-slate-500 italic">Sin equipo vinculado</span>
                               )}
                               {inst.ubicacion && <span className="ml-1 text-[10px]">· {inst.ubicacion}</span>}
                             </div>
                           </td>
                           <td className="py-3 px-3">
-                            <div className="font-medium text-slate-900">{inst.variable_medicion}</div>
-                            <div className="font-mono text-[11px] text-slate-500 mt-0.5">Rango: {inst.rango_operacion}</div>
+                            <div className="font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{inst.variable_medicion}</div>
+                            <div className="font-mono text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">Rango: {inst.rango_operacion}</div>
                           </td>
                           <td className="py-3 px-3">
-                            <span className="font-mono font-semibold text-slate-800 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[10.5px]">
+                            <span className="font-mono font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] px-1.5 py-0.5 rounded text-[10.5px]">
                               {inst.tolerancia_emp}
                             </span>
                           </td>
-                          <td className="py-3 px-3 font-medium text-slate-700">
+                          <td className="py-3 px-3 font-medium text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                             <div>{inst.frecuencia}</div>
                             {inst.fecha_proxima && (
-                              <div className="text-[10px] text-indigo-700 font-mono mt-0.5">
+                              <div className="text-[10px] text-indigo-700 dark:text-indigo-400 prodexus:text-[#2F7CF6] font-mono mt-0.5">
                                 Inicio: {toFullDateDDMMYYYY(inst.fecha_proxima)}
                               </div>
                             )}
                           </td>
                           <td className="py-3 px-3 whitespace-nowrap">
                             {isActivo ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                                 ACTIVO
                               </span>
                             ) : (
                               <div>
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                                  <AlertOctagon className="w-3 h-3 text-rose-600" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/70">
+                                  <AlertOctagon className="w-3 h-3 text-rose-600 dark:text-rose-400" />
                                   DADO DE BAJA
                                 </span>
                                 {inst.fecha_baja && (
-                                  <div className="text-[9.5px] text-rose-700 mt-0.5 font-medium">
+                                  <div className="text-[9.5px] text-rose-700 dark:text-rose-400 mt-0.5 font-medium">
                                     Baja: {inst.fecha_baja}
                                   </div>
                                 )}
                                 {inst.motivo_baja && (
-                                  <div className="text-[9.5px] text-slate-500 italic max-w-[180px] truncate" title={inst.motivo_baja}>
+                                  <div className="text-[9.5px] text-slate-500 dark:text-slate-400 italic max-w-[180px] truncate" title={inst.motivo_baja}>
                                     Motivo: {inst.motivo_baja}
                                   </div>
                                 )}
@@ -1615,7 +1615,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     <button
                                       onClick={() => handleEmitirParaInstrumento(inst)}
                                       title="Emitir Orden de Calibración"
-                                      className="p-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md transition-colors"
+                                      className="p-1.5 text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded-md transition-colors"
                                     >
                                       <Compass className="w-3.5 h-3.5" />
                                     </button>
@@ -1624,7 +1624,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     <button
                                       onClick={() => handleOpenEditInst(inst)}
                                       title="Editar Instrumento"
-                                      className="p-1.5 text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-md transition-colors"
+                                      className="p-1.5 text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#F3F6F8] hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-md transition-colors"
                                     >
                                       <Edit2 className="w-3.5 h-3.5" />
                                     </button>
@@ -1633,7 +1633,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     <button
                                       onClick={() => handleOpenBaja(inst)}
                                       title="Dar de Baja Técnica (Desincorporar del Plan)"
-                                      className="p-1.5 text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition-colors flex items-center gap-1 text-[11px] font-semibold px-2"
+                                      className="p-1.5 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/70 border border-amber-200 dark:border-amber-800/70 rounded-md transition-colors flex items-center gap-1 text-[11px] font-semibold px-2"
                                     >
                                       <AlertOctagon className="w-3.5 h-3.5" />
                                       <span>Dar de Baja</span>
@@ -1643,7 +1643,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     <button
                                       onClick={() => handleDeleteInst(inst.codigo_inst, inst.nombre)}
                                       title="Eliminar del Sistema"
-                                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition-colors"
+                                      className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-colors"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -1655,7 +1655,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     <button
                                       onClick={() => handleReactivar(inst.codigo_inst)}
                                       title="Reactivar Instrumento a Servicio"
-                                      className="p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md transition-colors flex items-center gap-1 text-[11px] font-semibold px-2"
+                                      className="p-1.5 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded-md transition-colors flex items-center gap-1 text-[11px] font-semibold px-2"
                                     >
                                       <RotateCcw className="w-3.5 h-3.5" />
                                       <span>Reactivar</span>
@@ -1665,7 +1665,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     <button
                                       onClick={() => handleOpenEditInst(inst)}
                                       title="Editar Instrumento"
-                                      className="p-1.5 text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-md transition-colors"
+                                      className="p-1.5 text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#F3F6F8] hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-md transition-colors"
                                     >
                                       <Edit2 className="w-3.5 h-3.5" />
                                     </button>
@@ -1674,7 +1674,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     <button
                                       onClick={() => handleDeleteInst(inst.codigo_inst, inst.nombre)}
                                       title="Eliminar permanentemente"
-                                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition-colors"
+                                      className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-colors"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -1717,13 +1717,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
         return (
           <div className="space-y-4">
             {/* Monthly Controls Bar (Matching MP Emisión UX) */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="text-xs font-bold text-slate-600">Mes de Emisión:</span>
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976]">Mes de Emisión:</span>
                 <select
                   value={selectedMesEmit}
                   onChange={(e) => setSelectedMesEmit(Number(e.target.value))}
-                  className="text-xs font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg py-1.5 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {MESES_L.map((m, idx) => (
                     <option key={m} value={idx + 1}>
@@ -1734,7 +1734,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 <select
                   value={selectedAnio}
                   onChange={(e) => setSelectedAnio(Number(e.target.value))}
-                  className="text-xs font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 rounded-lg py-1.5 px-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="text-xs font-bold text-indigo-900 dark:text-indigo-200 prodexus:text-[#132B36] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded-lg py-1.5 px-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {availableYears.map(yr => (
                     <option key={yr} value={yr}>
@@ -1742,7 +1742,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     </option>
                   ))}
                 </select>
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="text-xs text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">
                   ({ordenesMesEmit.length} emitidas en {mesNombre} {selectedAnio} · {dueForBatchCodes.length} proyectadas sin emitir)
                 </span>
               </div>
@@ -1753,7 +1753,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     <button
                       type="button"
                       onClick={() => handlePrintBatchCalibraciones(ordenesMesEmit)}
-                      className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-xs"
+                      className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       <span>Imprimir / PDF Todas las CAL de {mesNombre} {selectedAnio} ({ordenesMesEmit.length})</span>
@@ -1765,15 +1765,15 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Left Panel: Mode Switch (Emisión Masiva del Mes vs Individual) */}
-              <div className="lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 space-y-4">
-                <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-lg text-xs font-semibold">
+              <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] space-y-4">
+                <div className="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-800/80 prodexus:bg-[#E4ECF0] rounded-lg text-xs font-semibold">
                   <button
                     type="button"
                     onClick={() => setEmisionMode('masiva')}
                     className={`py-1.5 px-2 rounded-md transition-all ${
                       emisionMode === 'masiva'
-                        ? 'bg-white text-indigo-700 font-bold shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] font-bold shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-slate-100'
                     }`}
                   >
                     Emisión Masiva ({mesNombre})
@@ -1783,8 +1783,8 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     onClick={() => setEmisionMode('individual')}
                     className={`py-1.5 px-2 rounded-md transition-all ${
                       emisionMode === 'individual'
-                        ? 'bg-white text-indigo-700 font-bold shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] font-bold shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-slate-100'
                     }`}
                   >
                     Emisión Individual
@@ -1794,17 +1794,17 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 {emisionMode === 'masiva' ? (
                   <form onSubmit={handleEmitirLoteMes} className="space-y-3.5 text-xs">
                     <div>
-                      <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                      <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider">
                         Emitir Órdenes del Mes: {mesNombre} {selectedAnio}
                       </h2>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
                         Calculado automáticamente desde fecha de inicio, frecuencia y última calibración real ejecutada.
                       </p>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2.5">
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                           F. Base *
                         </label>
                         <input
@@ -1812,11 +1812,11 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           required
                           value={batchFechaProg}
                           onChange={(e) => setBatchFechaProg(e.target.value)}
-                          className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                           Fecha Límite *
                         </label>
                         <input
@@ -1824,11 +1824,11 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           required
                           value={batchFechaTent}
                           onChange={(e) => setBatchFechaTent(e.target.value)}
-                          className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                           Tol. (Días)
                         </label>
                         <input
@@ -1836,12 +1836,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           min="0"
                           value={batchTolDias}
                           onChange={(e) => setBatchTolDias(Number(e.target.value))}
-                          className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                     </div>
 
-                    <label className="flex items-center gap-2 p-2 rounded-lg bg-indigo-50/70 border border-indigo-200 cursor-pointer text-[11px] text-indigo-900 font-semibold">
+                    <label className="flex items-center gap-2 p-2 rounded-lg bg-indigo-50/70 dark:bg-indigo-950/50 prodexus:bg-[#EEF5FF] border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] cursor-pointer text-[11px] text-indigo-900 dark:text-indigo-200 prodexus:text-[#132B36] font-semibold">
                       <input
                         type="checkbox"
                         checked={respectProjectedDates}
@@ -1852,7 +1852,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     </label>
 
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                         Metrólogo / Laboratorio por Defecto
                       </label>
                       <input
@@ -1860,35 +1860,35 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         placeholder="Se usa si el instrumento no tiene uno asignado"
                         value={batchMetrologoDefault}
                         onChange={(e) => setBatchMetrologoDefault(e.target.value)}
-                        className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
 
                     {/* Selection toolbar */}
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-bold text-slate-700">
+                        <span className="font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                           Instrumentos Activos ({selectedBatchInsts.length} selec.)
                         </span>
                         <div className="flex items-center gap-1.5 text-[11px]">
                           <button
                             type="button"
                             onClick={() => setSelectedBatchInsts(dueForBatchCodes)}
-                            className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold border border-indigo-200"
+                            className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 font-semibold border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA]"
                           >
                             Programados ({dueForBatchCodes.length})
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedBatchInsts(availableForBatch.map(i => i.codigo_inst))}
-                            className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold border border-slate-200"
+                            className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 prodexus:bg-[#F3F6F8] text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE]"
                           >
                             Todos ({availableForBatch.length})
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedBatchInsts([])}
-                            className="px-2 py-0.5 rounded bg-white text-slate-500 hover:text-slate-800 border border-slate-200"
+                            className="px-2 py-0.5 rounded bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-800 dark:hover:text-slate-100 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE]"
                           >
                             Limpiar
                           </button>
@@ -1896,11 +1896,11 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       </div>
 
                       {instrumentosActivos.length === 0 ? (
-                        <div className="p-4 text-center bg-slate-50 rounded-lg border border-slate-200 text-slate-500">
+                        <div className="p-4 text-center bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                           No hay instrumentos activos en esta planta. Agregue instrumentos en la pestaña &ldquo;Padrón de Instrumentos&rdquo;.
                         </div>
                       ) : availableForBatch.length === 0 ? (
-                        <div className="p-4 text-center bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-800 font-medium">
+                        <div className="p-4 text-center bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300 font-medium">
                           Todos los instrumentos activos de esta planta ya tienen orden emitida en {mesNombre} {selectedAnio}.
                         </div>
                       ) : (
@@ -1915,10 +1915,10 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                 key={inst.codigo_inst}
                                 className={`flex items-start gap-2.5 p-2.5 rounded-lg border transition-colors ${
                                   alreadyEmitted
-                                    ? 'bg-emerald-50/50 border-emerald-200 opacity-75 cursor-not-allowed'
+                                    ? 'bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/70 opacity-75 cursor-not-allowed'
                                     : checked
-                                    ? 'bg-indigo-50/60 border-indigo-300 cursor-pointer'
-                                    : 'bg-white border-slate-200 hover:border-slate-300 cursor-pointer'
+                                    ? 'bg-indigo-50/60 dark:bg-indigo-950/50 prodexus:bg-[#EEF5FF] border-indigo-300 dark:border-indigo-700 prodexus:border-[#2F7CF6] cursor-pointer'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer'
                                 }`}
                               >
                                 <input
@@ -1937,26 +1937,26 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                 />
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center justify-between gap-2">
-                                    <span className="font-mono font-bold text-slate-900">
+                                    <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                                       {inst.codigo_inst}
                                     </span>
                                     {alreadyEmitted ? (
-                                      <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-emerald-100 text-emerald-800">
+                                      <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300">
                                         Ya emitida en {mesNombre.slice(0, 3)}
                                       </span>
                                     ) : projOcc ? (
-                                      <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-indigo-100 text-indigo-800">
+                                      <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-indigo-100 dark:bg-indigo-950/70 prodexus:bg-[#EEF5FF] text-indigo-800 dark:text-indigo-300 prodexus:text-[#2F7CF6]">
                                         {projOcc.projectedFromReal ? 'Proy. fecha real: ' : 'Prog: '}
                                         {formatFechaDDMMYYYY(projOcc.fecha)}
                                       </span>
                                     ) : (
-                                      <span className="px-1.5 py-0.5 rounded text-[9.5px] font-medium bg-slate-100 text-slate-500">
+                                      <span className="px-1.5 py-0.5 rounded text-[9.5px] font-medium bg-slate-100 dark:bg-slate-800 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                                         {inst.frecuencia}
                                       </span>
                                     )}
                                   </div>
-                                  <p className="font-semibold text-slate-800 truncate">{inst.nombre}</p>
-                                  <p className="text-[10px] text-slate-500">
+                                  <p className="font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36] truncate">{inst.nombre}</p>
+                                  <p className="text-[10px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                                     {inst.variable_medicion} · EMP: <span className="font-mono">{inst.tolerancia_emp}</span>
                                   </p>
                                 </div>
@@ -1971,25 +1971,25 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       <button
                         type="submit"
                         disabled={selectedBatchInsts.length === 0}
-                        className="w-full py-2.5 px-4 font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors shadow-xs"
+                        className="w-full py-2.5 px-4 font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors shadow-xs"
                       >
                         Emitir Todas las Órdenes de {mesNombre} {selectedAnio} ({selectedBatchInsts.length})
                       </button>
                     ) : (
-                      <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium text-center">
+                      <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[11px] font-medium text-center">
                         Sin permiso para emitir órdenes de calibración.
                       </div>
                     )}
                   </form>
                 ) : (
                   <>
-                    <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider">
                       Nueva Orden de Calibración Individual (CAL)
                     </h2>
 
                     <form onSubmit={handleEmitirSubmit} className="space-y-3.5 text-xs">
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                           Instrumento del Padrón Metrológico (o Equipo Asociado)
                         </label>
                         <select
@@ -2003,7 +2003,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                               handleSelectEquipForCalibration(code);
                             }
                           }}
-                          className="w-full font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         >
                           <option value="">-- Seleccionar Instrumento del Padrón --</option>
                           <optgroup label="Instrumentos del Padrón Metrológico">
@@ -2021,13 +2021,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             ))}
                           </optgroup>
                         </select>
-                        <p className="text-[10.5px] text-slate-500 mt-1">
+                        <p className="text-[10.5px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-1">
                           Al seleccionar un instrumento registrado, se autocompletan sus tolerancias EMP, rango y variables.
                         </p>
                       </div>
 
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                           Nombre del Instrumento / Manómetro / Sensor *
                         </label>
                         <input
@@ -2036,13 +2036,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           placeholder="Ej. Manómetro Digital Evaporador Chiller Trane"
                           value={formNombreInst}
                           onChange={(e) => setFormNombreInst(e.target.value)}
-                          className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">
+                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                             Variable de Medición *
                           </label>
                           <input
@@ -2051,12 +2051,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             placeholder="Ej. Presión, Temperatura, Caudal..."
                             value={formVariable}
                             onChange={(e) => setFormVariable(e.target.value)}
-                            className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">
+                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                             Rango de Operación *
                           </label>
                           <input
@@ -2065,14 +2065,14 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             placeholder="Ej. 0 a 300 PSI, -50 a 150 °C"
                             value={formRango}
                             onChange={(e) => setFormRango(e.target.value)}
-                            className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">
+                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                             Error Máximo Permisible (EMP) *
                           </label>
                           <input
@@ -2081,18 +2081,18 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             placeholder="Ej. ± 0.5% FS, ± 1.0 PSI"
                             value={formEMP}
                             onChange={(e) => setFormEMP(e.target.value)}
-                            className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">
+                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                             Frecuencia de Calibración *
                           </label>
                           <select
                             value={formFrecuencia}
                             onChange={(e) => setFormFrecuencia(e.target.value)}
-                            className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           >
                             <option value="Mensual">Mensual (Cada 1 mes)</option>
                             <option value="Trimestral">Trimestral (Cada 3 meses)</option>
@@ -2105,7 +2105,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
                       <div className="grid grid-cols-3 gap-3">
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">
+                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                             Fecha Programada *
                           </label>
                           <input
@@ -2113,12 +2113,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             required
                             value={formFechaProg}
                             onChange={(e) => setFormFechaProg(e.target.value)}
-                            className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">
+                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                             Fecha Límite *
                           </label>
                           <input
@@ -2126,12 +2126,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             required
                             value={formFechaTent}
                             onChange={(e) => setFormFechaTent(e.target.value)}
-                            className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
 
                         <div>
-                          <label className="block font-bold text-slate-700 mb-1">
+                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                             Tolerancia (Días)
                           </label>
                           <input
@@ -2139,13 +2139,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             min="0"
                             value={formTolDias}
                             onChange={(e) => setFormTolDias(Number(e.target.value))}
-                            className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                           Metrólogo / Laboratorio Responsable
                         </label>
                         <input
@@ -2153,12 +2153,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           placeholder="Ej. Ing. Carlos Mendoza (Metrología Interna) o Laboratorio Externo"
                           value={formMetrologo}
                           onChange={(e) => setFormMetrologo(e.target.value)}
-                          className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
 
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                           Notas de Calibración & Procedimiento
                         </label>
                         <textarea
@@ -2166,19 +2166,19 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           placeholder="Instrucciones para prueba: puntos de contraste, verificación de histéresis, estanqueidad..."
                           value={formObs}
                           onChange={(e) => setFormObs(e.target.value)}
-                          className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
 
                       {canEmit ? (
                         <button
                           type="submit"
-                          className="w-full py-2.5 px-4 font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-xs"
+                          className="w-full py-2.5 px-4 font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
                         >
                           Emitir Orden de Calibración (CAL)
                         </button>
                       ) : (
-                        <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium text-center">
+                        <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[11px] font-medium text-center">
                           Sin permiso para emitir órdenes de calibración.
                         </div>
                       )}
@@ -2193,19 +2193,19 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   const batchOrders = calibraciones.filter(c => lastBatchFolios.includes(c.id_ot));
                   if (!batchOrders.length) return null;
                   return (
-                    <div className="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 flex flex-wrap items-center justify-between gap-3">
+                    <div className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/50 flex flex-wrap items-center justify-between gap-3">
                       <div className="text-xs">
-                        <p className="font-bold text-emerald-900">
+                        <p className="font-bold text-emerald-900 dark:text-emerald-200">
                           Lote emitido: {batchOrders.length} {batchOrders.length === 1 ? 'orden generada' : 'órdenes generadas'} para {mesNombre} {selectedAnio}
                         </p>
-                        <p className="text-[11px] text-emerald-700 font-mono">
+                        <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-mono">
                           {batchOrders.map(b => b.id_ot).join(', ')}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => handlePrintBatchCalibraciones(batchOrders)}
-                        className="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg flex items-center gap-1.5 shadow-xs"
+                        className="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg flex items-center gap-1.5 shadow-xs"
                       >
                         <Printer className="w-3.5 h-3.5" />
                         <span>Imprimir / PDF Lote ({batchOrders.length})</span>
@@ -2218,19 +2218,19 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   const justEmitted = calibraciones.find(c => c.id_ot === lastEmittedCalFolio);
                   if (!justEmitted) return null;
                   return (
-                    <div className="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 flex flex-wrap items-center justify-between gap-3">
+                    <div className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/50 flex flex-wrap items-center justify-between gap-3">
                       <div className="text-xs">
-                        <p className="font-bold text-emerald-900">
+                        <p className="font-bold text-emerald-900 dark:text-emerald-200">
                           Orden {justEmitted.id_ot} emitida correctamente
                         </p>
-                        <p className="text-[11px] text-emerald-700">
+                        <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
                           {justEmitted.instrumento_nombre} · Programada: {justEmitted.fecha_programada}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => handlePrintCertificate(justEmitted)}
-                        className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg flex items-center gap-1.5 shadow-xs"
+                        className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg flex items-center gap-1.5 shadow-xs"
                       >
                         <Printer className="w-3.5 h-3.5" />
                         <span>Imprimir / Descargar PDF</span>
@@ -2240,14 +2240,14 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 })()}
 
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider">
                     Órdenes de {mesNombre} {selectedAnio} ({ordenesMesEmit.length})
                   </h2>
                   {ordenesMesEmit.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handlePrintBatchCalibraciones(ordenesMesEmit)}
-                      className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md flex items-center gap-1"
+                      className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded-md flex items-center gap-1"
                     >
                       <FileDown className="w-3.5 h-3.5" />
                       <span>PDF del Mes ({ordenesMesEmit.length})</span>
@@ -2256,7 +2256,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 </div>
 
                 {ordenesMesEmit.length === 0 ? (
-                  <div className="bg-white p-8 text-center rounded-xl border border-slate-200 text-slate-500 text-xs">
+                  <div className="bg-white dark:bg-slate-900 p-8 text-center rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] text-xs">
                     No hay órdenes de calibración emitidas para {mesNombre} {selectedAnio}. Seleccione los instrumentos en el panel izquierdo y presione &ldquo;Emitir Todas las Órdenes de {mesNombre} {selectedAnio}&rdquo;.
                   </div>
                 ) : (
@@ -2267,34 +2267,34 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       return (
                         <div
                           key={cal.id_ot}
-                          className={`bg-white rounded-xl border p-4 space-y-2.5 shadow-xs transition-all ${
+                          className={`bg-white dark:bg-slate-900 rounded-xl border p-4 space-y-2.5 shadow-xs transition-all ${
                             isHighlighted
-                              ? 'border-indigo-400 ring-2 ring-indigo-200'
+                              ? 'border-indigo-400 dark:border-indigo-500 prodexus:border-[#2F7CF6] ring-2 ring-indigo-200 dark:ring-indigo-900/50'
                               : isPendiente
-                              ? 'border-indigo-200'
-                              : 'border-emerald-200 bg-emerald-50/20'
+                              ? 'border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA]'
+                              : 'border-emerald-200 dark:border-emerald-800/70 bg-emerald-50/20 dark:bg-emerald-950/20'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-mono font-bold text-sm text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                                <span className="font-mono font-bold text-sm text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA]">
                                   {cal.id_ot}
                                 </span>
-                                <span className="text-xs font-bold text-slate-900 truncate">
+                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] truncate">
                                   {cal.instrumento_nombre}
                                 </span>
-                                <span className="px-1.5 py-0.5 rounded font-mono text-[10px] font-semibold bg-slate-100 text-slate-700">
+                                <span className="px-1.5 py-0.5 rounded font-mono text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 prodexus:bg-[#F3F6F8] text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                                   {cal.codigo_eq}
                                 </span>
                                 {!isPendiente && (
-                                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300">
                                     Certificada ({cal.fecha_real})
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[11px] text-slate-500 mt-1">
-                                Programada: <strong className="text-slate-800">{cal.fecha_programada}</strong> · Límite: <strong className="text-slate-800">{cal.fecha_tentativa}</strong> (±{cal.dias_tolerancia}d tol.) · EMP: <strong className="font-mono text-indigo-700">{cal.tolerancia_emp}</strong>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-1">
+                                Programada: <strong className="text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{cal.fecha_programada}</strong> · Límite: <strong className="text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{cal.fecha_tentativa}</strong> (±{cal.dias_tolerancia}d tol.) · EMP: <strong className="font-mono text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]">{cal.tolerancia_emp}</strong>
                               </p>
                             </div>
 
@@ -2303,7 +2303,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => onShareOrder(buildDigitalTargetCAL(cal))}
-                                  className="px-2 py-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md flex items-center gap-1"
+                                  className="px-2 py-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded-md flex items-center gap-1"
                                   title="Enviar enlace o WhatsApp al metrólogo / técnico"
                                 >
                                   <Share2 className="w-3.5 h-3.5" />
@@ -2314,7 +2314,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => onOpenDigitalExecution(buildDigitalTargetCAL(cal))}
-                                  className="px-2 py-1.5 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md flex items-center gap-1"
+                                  className="px-2 py-1.5 text-[11px] font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] hover:bg-blue-100 dark:hover:bg-blue-900/70 border border-blue-200 dark:border-blue-800/70 prodexus:border-[#B9D2FA] rounded-md flex items-center gap-1"
                                   title={isPendiente ? 'Ejecutar y firmar digitalmente' : 'Ver certificado digital'}
                                 >
                                   <Smartphone className="w-3.5 h-3.5" />
@@ -2325,7 +2325,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handlePrintCertificate(cal)}
-                                  className="px-2.5 py-1.5 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-md flex items-center gap-1 shadow-2xs"
+                                  className="px-2.5 py-1.5 text-[11px] font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-md flex items-center gap-1 shadow-2xs"
                                   title="Vista Previa, Imprimir o Descargar PDF de la Orden"
                                 >
                                   <Printer className="w-3.5 h-3.5" />
@@ -2341,7 +2341,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     setCierreCertNo(`CAL-CERT-${selectedAnio}-${cal.id_ot.replace(/CAL-\d+-/g, '')}`);
                                     setActiveTab('cierre');
                                   }}
-                                  className="px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md"
+                                  className="px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded-md"
                                   title="Ir a Certificar y Cerrar"
                                 >
                                   Certificar
@@ -2361,7 +2361,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                       deleteOrdenCalibracion(cal.id_ot);
                                     }
                                   }}
-                                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded"
+                                  className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 rounded"
                                   title="Eliminar Orden"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -2370,16 +2370,16 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             </div>
                           </div>
 
-                          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-1.5 border-t border-slate-100">
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] pt-1.5 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                             <span>
-                              Variable: <strong className="text-slate-700">{cal.variable_medicion}</strong> ({cal.rango_operacion})
+                              Variable: <strong className="text-slate-700 dark:text-slate-200 prodexus:text-[#132B36]">{cal.variable_medicion}</strong> ({cal.rango_operacion})
                             </span>
                             <span>
-                              Metrólogo: <strong className="text-slate-700">{cal.metrologo_laboratorio}</strong>
+                              Metrólogo: <strong className="text-slate-700 dark:text-slate-200 prodexus:text-[#132B36]">{cal.metrologo_laboratorio}</strong>
                             </span>
                           </div>
                           {cal.observaciones && (
-                            <p className="text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100">
+                            <p className="text-[11px] text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] px-2.5 py-1.5 rounded border border-slate-100 dark:border-slate-700 prodexus:border-[#D5E0E6]">
                               {cal.observaciones}
                             </p>
                           )}
@@ -2393,13 +2393,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 {pendientesOtrosMeses.length > 0 && (
                   <div className="pt-2 space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      <h3 className="text-xs font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] uppercase tracking-wider">
                         Otras Órdenes Pendientes de Otros Meses ({pendientesOtrosMeses.length})
                       </h3>
                       <button
                         type="button"
                         onClick={() => handlePrintBatchCalibraciones(pendientesOtrosMeses)}
-                        className="px-2 py-1 text-[10.5px] font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-md flex items-center gap-1"
+                        className="px-2 py-1 text-[10.5px] font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-md flex items-center gap-1"
                       >
                         <Printer className="w-3 h-3" />
                         <span>Imprimir / PDF Pendientes</span>
@@ -2409,15 +2409,15 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       {pendientesOtrosMeses.map(cal => (
                         <div
                           key={cal.id_ot}
-                          className="bg-white rounded-lg border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-2 text-xs"
+                          className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-3 flex flex-wrap items-center justify-between gap-2 text-xs"
                         >
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-indigo-700">{cal.id_ot}</span>
-                              <span className="font-semibold text-slate-900 truncate">{cal.instrumento_nombre}</span>
+                              <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]">{cal.id_ot}</span>
+                              <span className="font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] truncate">{cal.instrumento_nombre}</span>
                             </div>
-                            <p className="text-[10.5px] text-slate-500">
-                              Programada: <strong className="text-slate-700">{cal.fecha_programada}</strong> · EMP: {cal.tolerancia_emp}
+                            <p className="text-[10.5px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
+                              Programada: <strong className="text-slate-700 dark:text-slate-200 prodexus:text-[#132B36]">{cal.fecha_programada}</strong> · EMP: {cal.tolerancia_emp}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 flex-wrap justify-end shrink-0">
@@ -2425,7 +2425,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => onShareOrder(buildDigitalTargetCAL(cal))}
-                                className="px-2 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded flex items-center gap-1"
+                                className="px-2 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded flex items-center gap-1"
                               >
                                 <Share2 className="w-3 h-3" />
                                 <span>Compartir</span>
@@ -2435,7 +2435,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => onOpenDigitalExecution(buildDigitalTargetCAL(cal))}
-                                className="px-2 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded flex items-center gap-1"
+                                className="px-2 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] hover:bg-blue-100 dark:hover:bg-blue-900/70 border border-blue-200 dark:border-blue-800/70 prodexus:border-[#B9D2FA] rounded flex items-center gap-1"
                               >
                                 <Smartphone className="w-3 h-3" />
                                 <span>Digital</span>
@@ -2444,7 +2444,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             <button
                               type="button"
                               onClick={() => handlePrintCertificate(cal)}
-                              className="px-2 py-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded flex items-center gap-1"
+                              className="px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded flex items-center gap-1"
                             >
                               <Printer className="w-3 h-3" />
                               <span>Imprimir / PDF</span>
@@ -2457,7 +2457,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                 setCierreCertNo(`CAL-CERT-${selectedAnio}-${cal.id_ot.replace(/CAL-\d+-/g, '')}`);
                                 setActiveTab('cierre');
                               }}
-                              className="px-2 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded"
+                              className="px-2 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded"
                             >
                               Certificar
                             </button>
@@ -2468,26 +2468,26 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   </div>
                 )}
 
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2">
-                  <h3 className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
-                    <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
+                <div className="bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] p-4 rounded-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] text-xs space-y-2">
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] flex items-center gap-1.5 text-xs">
+                    <SlidersHorizontal className="w-4 h-4 text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]" />
                     Criterios de Aceptación Metrológica (ISO 17025)
                   </h3>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] leading-relaxed">
                     Puede emitir todas las órdenes de un mes en bloque y descargarlas en un solo archivo PDF o imprimir el lote completo desde el botón superior.
                   </p>
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 text-[11px]">
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] text-[11px]">
                     <div>
-                      <span className="text-slate-500 block">Puntos estándar:</span>
-                      <span className="font-semibold text-slate-800">0%, 25%, 50%, 75%, 100%</span>
+                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Puntos estándar:</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">0%, 25%, 50%, 75%, 100%</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Histéresis:</span>
-                      <span className="font-semibold text-slate-800">Subida y Bajada</span>
+                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Histéresis:</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">Subida y Bajada</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Dictamen Conforme:</span>
-                      <span className="font-semibold text-emerald-700">Error ≤ EMP</span>
+                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Dictamen Conforme:</span>
+                      <span className="font-semibold text-emerald-700 dark:text-emerald-400">Error ≤ EMP</span>
                     </div>
                   </div>
                 </div>
@@ -2499,25 +2499,25 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
       {/* TAB 3: CIERRE & CERTIFICACIÓN METROLÓGICA */}
       {activeTab === 'cierre' && (
-        <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl border border-slate-200 space-y-5 text-xs">
+        <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] space-y-5 text-xs">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
               Certificación de Calibración & Dictamen de Conformidad
             </h2>
-            <p className="text-slate-500 mt-0.5">
+            <p className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
               Ingrese los valores de los puntos medidos contra el patrón para calcular el error y emitir el certificado.
             </p>
           </div>
 
           {closeableCalItems.length === 0 ? (
-            <div className="p-8 text-center bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-800 font-medium">
+            <div className="p-8 text-center bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-200 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300 font-medium">
               No hay órdenes de calibración pendientes o proyectadas para cerrar en {selectedAnio}. Todos los instrumentos se encuentran al día.
             </div>
           ) : (
             <form onSubmit={handleCierreSubmit} className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block font-bold text-slate-700">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                     Seleccione Orden o Calibración Programada Pendiente *
                   </label>
                   {selectedCalToClose && (() => {
@@ -2527,7 +2527,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handlePrintCertificate(match.order)}
-                        className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md flex items-center gap-1"
+                        className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded-md flex items-center gap-1"
                       >
                         <Printer className="w-3 h-3" />
                         <span>Imprimir / PDF Orden</span>
@@ -2551,7 +2551,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     }
                   }}
                   required
-                  className="w-full font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 >
                   <option value="">-- Seleccionar Orden / Programación Pendiente ({closeableCalItems.length}) --</option>
                   {closeableCalItems.map(item => (
@@ -2566,7 +2566,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                         Fecha Real de Calibración *
                       </label>
                       <input
@@ -2574,18 +2574,18 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         required
                         value={cierreFechaReal}
                         onChange={(e) => setCierreFechaReal(e.target.value)}
-                        className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                         Dictamen Metrológico *
                       </label>
                       <select
                         value={cierreDictamen}
                         onChange={(e) => setCierreDictamen(e.target.value as any)}
-                        className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="Conforme">Conforme (Apto para uso operacional)</option>
                         <option value="Ajustado y Conforme">Ajustado y Conforme (Requiere ajuste de cero/span)</option>
@@ -2596,7 +2596,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                         Patrón de Referencia Utilizado *
                       </label>
                       <input
@@ -2605,12 +2605,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         placeholder="Ej. Balanza de Pesos Muertos Ametek, Horno Fluke 9142"
                         value={cierrePatron}
                         onChange={(e) => setCierrePatron(e.target.value)}
-                        className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                         N° Certificado de Trazabilidad del Patrón *
                       </label>
                       <input
@@ -2619,14 +2619,14 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         placeholder="Ej. CERT-MET-INT-2025-441 (Laboratorio INN/NIST)"
                         value={cierreTrazabilidad}
                         onChange={(e) => setCierreTrazabilidad(e.target.value)}
-                        className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                         Error Máximo Hallado *
                       </label>
                       <input
@@ -2635,12 +2635,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         placeholder="Ej. +0.21% FS"
                         value={cierreErrorMax}
                         onChange={(e) => setCierreErrorMax(e.target.value)}
-                        className="w-full font-semibold font-mono text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full font-semibold font-mono text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                         N° de Certificado Oficial Emitido *
                       </label>
                       <input
@@ -2649,20 +2649,20 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         placeholder="Ej. CAL-CERT-2026-0089"
                         value={cierreCertNo}
                         onChange={(e) => setCierreCertNo(e.target.value)}
-                        className="w-full font-semibold font-mono text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full font-semibold font-mono text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                   </div>
 
                   {/* Calibration Test Points Table */}
-                  <div className="border border-slate-200 rounded-lg p-3.5 bg-slate-50 space-y-2">
-                    <span className="font-bold text-[11px] uppercase tracking-wider text-slate-700">
+                  <div className="border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-lg p-3.5 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] space-y-2">
+                    <span className="font-bold text-[11px] uppercase tracking-wider text-slate-700 dark:text-slate-200 prodexus:text-[#132B36]">
                       Puntos de Calibración (Lectura Patrón vs Instrumento)
                     </span>
                     <div className="overflow-x-auto">
                       <table className="w-full text-[11px]">
                         <thead>
-                          <tr className="text-slate-500 font-bold border-b border-slate-200">
+                          <tr className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold border-b border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6]">
                             <th className="py-1 px-2 text-left">Punto Nominal</th>
                             <th className="py-1 px-2 text-left">Lectura Patrón</th>
                             <th className="py-1 px-2 text-left">Lectura Instrumento</th>
@@ -2671,8 +2671,8 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         </thead>
                         <tbody>
                           {cierrePuntos.map((p, pIdx) => (
-                            <tr key={pIdx} className="border-b border-slate-100">
-                              <td className="py-1 px-2 font-mono">{p.punto_nominal}</td>
+                            <tr key={pIdx} className="border-b border-slate-100 dark:border-slate-700/70 prodexus:border-[#D5E0E6]">
+                              <td className="py-1 px-2 font-mono text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{p.punto_nominal}</td>
                               <td className="py-1 px-2">
                                 <input
                                   type="text"
@@ -2681,7 +2681,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     const val = e.target.value;
                                     setCierrePuntos(prev => prev.map((item, i) => i === pIdx ? { ...item, lectura_patron: val } : item));
                                   }}
-                                  className="w-24 bg-white border border-slate-300 rounded px-1.5 py-0.5 font-mono"
+                                  className="w-24 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded px-1.5 py-0.5 font-mono"
                                 />
                               </td>
                               <td className="py-1 px-2">
@@ -2692,10 +2692,10 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                     const val = e.target.value;
                                     setCierrePuntos(prev => prev.map((item, i) => i === pIdx ? { ...item, lectura_instrumento: val } : item));
                                   }}
-                                  className="w-24 bg-white border border-slate-300 rounded px-1.5 py-0.5 font-mono"
+                                  className="w-24 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded px-1.5 py-0.5 font-mono"
                                 />
                               </td>
-                              <td className="py-1 px-2 font-mono font-bold text-emerald-700">{p.error_calculado}</td>
+                              <td className="py-1 px-2 font-mono font-bold text-emerald-700 dark:text-emerald-400">{p.error_calculado}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -2720,7 +2720,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   })()}
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                       Observaciones Metrológicas & Precintos Aplicados
                     </label>
                     <textarea
@@ -2728,19 +2728,19 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       placeholder="Indique etiqueta adherida, precinto de seguridad, condiciones ambientales (Temperatura 20°C, Humedad 45%)..."
                       value={cierreObs}
                       onChange={(e) => setCierreObs(e.target.value)}
-                      className="w-full text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
                   {canClose ? (
                     <button
                       type="submit"
-                      className="w-full py-2.5 px-4 font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-xs"
+                      className="w-full py-2.5 px-4 font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
                     >
                       Certificar Calibración & Emitir Certificado Oficial
                     </button>
                   ) : (
-                    <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium text-center">
+                    <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[11px] font-medium text-center">
                       Su perfil no tiene permiso para cerrar ni certificar calibraciones.
                     </div>
                   )}
@@ -2753,25 +2753,25 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
       {/* TAB 4: HISTORIAL DE CERTIFICADOS */}
       {activeTab === 'historial' && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden space-y-4 p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden space-y-4 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Buscar por certificado, instrumento o folio..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
+                className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
               />
             </div>
 
-            <div className="inline-flex p-0.5 bg-slate-100 rounded-lg text-xs">
+            <div className="inline-flex p-0.5 bg-slate-100 dark:bg-slate-800/80 prodexus:bg-[#E4ECF0] rounded-lg text-xs">
               <button
                 type="button"
                 onClick={() => setHistorialAnioMode('all')}
                 className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
-                  historialAnioMode === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+                  historialAnioMode === 'all' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs' : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976]'
                 }`}
               >
                 Todos los Años ({cerradasList.length})
@@ -2780,7 +2780,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 type="button"
                 onClick={() => setHistorialAnioMode('selected')}
                 className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
-                  historialAnioMode === 'selected' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600'
+                  historialAnioMode === 'selected' ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] shadow-xs' : 'text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976]'
                 }`}
               >
                 Año {selectedAnio}
@@ -2790,7 +2790,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6]">
                 <tr>
                   <th className="py-2.5 px-3">Certificado / Folio</th>
                   <th className="py-2.5 px-3">Instrumento</th>
@@ -2802,7 +2802,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   <th className="py-2.5 px-3 text-right">Acción</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#D5E0E6]">
                 {cerradasList
                   .filter(c => {
                     if (historialAnioMode === 'selected') {
@@ -2816,43 +2816,43 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       c.codigo_eq.toLowerCase().includes(searchQuery.toLowerCase());
                   })
                   .map(row => (
-                    <tr key={row.id_ot} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2.5 px-3 font-mono font-bold text-indigo-700">
+                    <tr key={row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 prodexus:hover:bg-[#F3F6F8] transition-colors">
+                      <td className="py-2.5 px-3 font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]">
                         {row.numero_certificado || row.id_ot}
-                        <span className="block text-[10px] text-slate-400 font-normal">{row.id_ot}</span>
+                        <span className="block text-[10px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] font-normal">{row.id_ot}</span>
                       </td>
-                      <td className="py-2.5 px-3 font-semibold text-slate-900">
+                      <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                         {row.instrumento_nombre}
-                        <span className="block text-[10px] text-slate-400 font-normal">Activo: {row.codigo_eq}</span>
+                        <span className="block text-[10px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] font-normal">Activo: {row.codigo_eq}</span>
                       </td>
-                      <td className="py-2.5 px-3 text-slate-600">
+                      <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 prodexus:text-[#132B36]">
                         <div>{row.variable_medicion}</div>
-                        <div className="font-mono text-[10px] text-slate-400">{row.rango_operacion}</div>
+                        <div className="font-mono text-[10px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">{row.rango_operacion}</div>
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700">
+                      <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700 dark:text-emerald-400">
                         {row.fecha_real}
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                           row.dictamen === 'Conforme'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
                             : row.dictamen === 'Ajustado y Conforme'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : 'bg-rose-50 text-rose-700 border border-rose-200'
+                            ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70'
+                            : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/70'
                         }`}>
                           {row.dictamen || 'Conforme'}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-800">
+                      <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
                         {row.error_max_hallado || '-'}
                       </td>
-                      <td className="py-2.5 px-3 font-medium text-slate-700">
+                      <td className="py-2.5 px-3 font-medium text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                         {row.metrologo_laboratorio}
                       </td>
                       <td className="py-2.5 px-3 text-right">
                         <button
                           onClick={() => handlePrintCertificate(row)}
-                          className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded flex items-center gap-1 ml-auto"
+                          className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-800 prodexus:bg-[#F3F6F8] hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded flex items-center gap-1 ml-auto"
                           title="Imprimir Certificado"
                         >
                           <Printer className="w-3.5 h-3.5" />
@@ -2872,17 +2872,17 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
         const ord = selectedCellInfo.order;
         const isProj = !!selectedCellInfo.isProjectedOnly;
         return (
-          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-            <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4 text-xs">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+          <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] max-w-lg w-full p-6 space-y-4 text-xs">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                 <div className="flex items-center gap-2">
-                  <Compass className="w-5 h-5 text-indigo-600" />
+                  <Compass className="w-5 h-5 text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]" />
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                       Certificado & Control Metrológico
                     </h3>
                     {isProj && (
-                      <span className="inline-block text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded mt-0.5">
+                      <span className="inline-block text-[10px] font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] px-1.5 py-0.5 rounded mt-0.5">
                         Programación Automática Proyectada ({selectedAnio})
                       </span>
                     )}
@@ -2890,59 +2890,59 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 </div>
                 <button
                   onClick={() => setSelectedCellInfo(null)}
-                  className="text-slate-400 hover:text-slate-600 font-semibold p-1"
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 prodexus:hover:text-[#132B36] font-semibold p-1"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+              <div className="bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] p-3 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Folio de Calibración:</span>
-                  <span className="font-mono font-bold text-indigo-600">{ord.id_ot}</span>
+                  <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">Folio de Calibración:</span>
+                  <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]">{ord.id_ot}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Instrumento:</span>
-                  <span className="font-bold text-slate-900">{ord.instrumento_nombre}</span>
+                  <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">Instrumento:</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{ord.instrumento_nombre}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Variable & Rango:</span>
-                  <span className="text-slate-800">{ord.variable_medicion} ({ord.rango_operacion})</span>
+                  <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">Variable & Rango:</span>
+                  <span className="text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{ord.variable_medicion} ({ord.rango_operacion})</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Error Máximo Permisible:</span>
-                  <span className="font-semibold text-slate-800">{ord.tolerancia_emp}</span>
+                  <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">Error Máximo Permisible:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{ord.tolerancia_emp}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Fecha Programada</span>
-                  <p className="text-sm font-mono font-bold text-slate-900 mt-0.5">{ord.fecha_programada}</p>
+                <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">Fecha Programada</span>
+                  <p className="text-sm font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] mt-0.5">{ord.fecha_programada}</p>
                 </div>
-                <div className="p-3 rounded-lg border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Fecha Real Calibrada</span>
-                  <p className="text-sm font-mono font-bold text-emerald-600 mt-0.5">{ord.fecha_real || 'Pendiente'}</p>
+                <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">Fecha Real Calibrada</span>
+                  <p className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{ord.fecha_real || 'Pendiente'}</p>
                 </div>
               </div>
 
               {ord.numero_certificado && (
-                <div className="p-3 rounded-lg border border-indigo-200 bg-indigo-50/40 space-y-1">
+                <div className="p-3 rounded-lg border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] bg-indigo-50/40 dark:bg-indigo-950/30 prodexus:bg-[#EEF5FF] space-y-1">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-slate-700">N° Certificado:</span>
-                    <span className="font-mono font-bold text-indigo-800">{ord.numero_certificado}</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">N° Certificado:</span>
+                    <span className="font-mono font-bold text-indigo-800 dark:text-indigo-300 prodexus:text-[#2F7CF6]">{ord.numero_certificado}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-semibold text-slate-700">Dictamen:</span>
-                    <span className="font-bold text-emerald-700">{ord.dictamen}</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">Dictamen:</span>
+                    <span className="font-bold text-emerald-700 dark:text-emerald-400">{ord.dictamen}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-semibold text-slate-700">Error Máximo Encontrado:</span>
-                    <span className="font-mono font-bold text-slate-900">{ord.error_max_hallado}</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">Error Máximo Encontrado:</span>
+                    <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{ord.error_max_hallado}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-semibold text-slate-700">Patrón de Referencia:</span>
-                    <span className="text-slate-700 truncate max-w-[240px]">{ord.patron_utilizado}</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">Patrón de Referencia:</span>
+                    <span className="text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] truncate max-w-[240px]">{ord.patron_utilizado}</span>
                   </div>
                 </div>
               )}
@@ -2964,7 +2964,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           setSelectedCellInfo(null);
                           if (canPrint) handlePrintCertificate(createdOrder);
                         }}
-                        className="px-3.5 py-1.5 font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] transition-colors flex items-center gap-1.5"
                       >
                         <Printer className="w-3.5 h-3.5" />
                         <span>{canPrint ? 'Emitir e Imprimir / PDF Orden CAL' : 'Emitir Orden CAL'}</span>
@@ -2974,7 +2974,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     canPrint && (
                       <button
                         onClick={() => handlePrintCertificate(ord)}
-                        className="px-3.5 py-1.5 font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] transition-colors flex items-center gap-1.5"
                       >
                         <Printer className="w-3.5 h-3.5" />
                         <span>
@@ -2997,7 +2997,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           })
                         )
                       }
-                      className="px-3 py-1.5 font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg flex items-center gap-1.5"
+                      className="px-3 py-1.5 font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-lg flex items-center gap-1.5"
                     >
                       <Share2 className="w-3.5 h-3.5" />
                       <span>Compartir</span>
@@ -3015,7 +3015,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         setSelectedCellInfo(null);
                         onOpenDigitalExecution(t);
                       }}
-                      className="px-3 py-1.5 font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg flex items-center gap-1.5"
+                      className="px-3 py-1.5 font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] hover:bg-blue-100 dark:hover:bg-blue-900/60 prodexus:hover:bg-[#E4ECF0] border border-blue-200 dark:border-blue-800/70 prodexus:border-[#B9D2FA] rounded-lg flex items-center gap-1.5"
                     >
                       <Smartphone className="w-3.5 h-3.5" />
                       <span>{ord.fecha_real ? 'Ver Digital' : 'Ejecutar Digital'}</span>
@@ -3025,7 +3025,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
                 <button
                   onClick={() => setSelectedCellInfo(null)}
-                  className="px-4 py-1.5 font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors ml-auto"
+                  className="px-4 py-1.5 font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] transition-colors ml-auto"
                 >
                   Cerrar
                 </button>
@@ -3037,25 +3037,25 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
       {/* Modal: Ingresar / Editar Instrumento Metrológico */}
       {instModalMode && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto no-print">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-2xl w-full p-6 space-y-4 my-8 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto no-print">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] max-w-2xl w-full p-6 space-y-4 my-8 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-2 bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6] rounded-lg">
                   <Gauge className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                     {instModalMode === 'create' ? 'Ingreso de Nuevo Instrumento Metrológico' : `Editar Instrumento ${editingInstCodigo}`}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                     Padrón de Instrumentación y Control Metrológico (ISO/IEC 17025)
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setInstModalMode(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold p-1 rounded-md"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 prodexus:hover:text-[#132B36] font-bold p-1 rounded-md"
               >
                 ✕
               </button>
@@ -3064,7 +3064,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
             <form onSubmit={handleSubmitInst} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Código de Instrumento / Tag *
                   </label>
                   <input
@@ -3073,19 +3073,19 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. MAN-CH01, TERM-02, TRAN-COMP01"
                     value={fInstCodigo}
                     onChange={(e) => setFInstCodigo(e.target.value.toUpperCase())}
-                    className="w-full font-mono font-bold text-indigo-700 bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Empresa / Planta Asignada *
                   </label>
                   <select
                     value={fInstCliente}
                     onChange={(e) => setFInstCliente(e.target.value)}
                     disabled={!isSuperAdmin}
-                    className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-slate-100"
+                    className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none disabled:bg-slate-100 dark:disabled:bg-slate-800 prodexus:disabled:bg-[#F3F6F8]"
                   >
                     {clientes.map(c => (
                       <option key={c.codigo} value={c.nombre}>
@@ -3097,7 +3097,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                   Nombre Descriptivo del Instrumento *
                 </label>
                 <input
@@ -3106,19 +3106,19 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   placeholder="Ej. Manómetro Digital Presión Alta Chiller Trane"
                   value={fInstNombre}
                   onChange={(e) => setFInstNombre(e.target.value)}
-                  className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Equipo o Máquina Principal Asociada
                   </label>
                   <select
                     value={fInstEquipoAsoc}
                     onChange={(e) => setFInstEquipoAsoc(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   >
                     <option value="">-- Sin equipo vinculado (Autónomo) --</option>
                     {Array.from(new Map(
@@ -3134,7 +3134,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Ubicación Física en Planta
                   </label>
                   <input
@@ -3142,14 +3142,14 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. Sala de Máquinas - Manifold Descarga"
                     value={fInstUbicacion}
                     onChange={(e) => setFInstUbicacion(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Variable de Medición *
                   </label>
                   <input
@@ -3158,12 +3158,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. Presión, Temperatura, Caudal"
                     value={fInstVariable}
                     onChange={(e) => setFInstVariable(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Rango de Operación *
                   </label>
                   <input
@@ -3172,12 +3172,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. 0 a 300 PSI, 0 a 400 °C"
                     value={fInstRango}
                     onChange={(e) => setFInstRango(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Error Máx. Permisible (EMP) *
                   </label>
                   <input
@@ -3186,20 +3186,20 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. ± 0.5% FS, ± 0.5 °C"
                     value={fInstEMP}
                     onChange={(e) => setFInstEMP(e.target.value)}
-                    className="w-full font-mono font-bold text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Frecuencia de Calibración *
                   </label>
                   <select
                     value={fInstFrecuencia}
                     onChange={(e) => setFInstFrecuencia(e.target.value)}
-                    className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   >
                     {frecuencias.map(f => (
                       <option key={f.nombre_freq} value={f.nombre_freq}>
@@ -3213,7 +3213,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Fecha Primera Calibración / Inicio *
                   </label>
                   <input
@@ -3221,14 +3221,14 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     required
                     value={fInstFechaInicio}
                     onChange={(e) => setFInstFechaInicio(e.target.value)}
-                    className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Marca
                   </label>
                   <input
@@ -3236,12 +3236,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. Ashcroft, WIKA, Fluke, Rosemount"
                     value={fInstMarca}
                     onChange={(e) => setFInstMarca(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Modelo / Serie
                   </label>
                   <input
@@ -3249,14 +3249,14 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. DG25 / S/N 88410"
                     value={fInstModelo}
                     onChange={(e) => setFInstModelo(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Patrón de Calibración Habitual
                   </label>
                   <input
@@ -3264,12 +3264,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. Balanza de Pesos Muertos Ametek / Bloque Seco"
                     value={fInstPatron}
                     onChange={(e) => setFInstPatron(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Metrólogo / Laboratorio Habitual
                   </label>
                   <input
@@ -3277,13 +3277,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     placeholder="Ej. Ing. Carlos Mendoza (Metrología Interna)"
                     value={fInstMetrologo}
                     onChange={(e) => setFInstMetrologo(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                   Notas Técnicas y Trazabilidad
                 </label>
                 <textarea
@@ -3291,21 +3291,21 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   placeholder="Detalles de instalación, clase de exactitud, certificados de fábrica..."
                   value={fInstNotas}
                   onChange={(e) => setFInstNotas(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none resize-none"
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setInstModalMode(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] rounded-lg transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-xs"
+                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg transition-colors shadow-xs"
                 >
                   {instModalMode === 'create' ? 'Dar de Alta Instrumento' : 'Guardar Cambios'}
                 </button>
@@ -3317,43 +3317,43 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
       {/* Modal: Dar de Baja Instrumento */}
       {bajaModalInst && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-          <div className="bg-white rounded-xl shadow-2xl border border-rose-200 max-w-lg w-full p-6 space-y-4 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-rose-100">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-rose-200 dark:border-rose-800/70 max-w-lg w-full p-6 space-y-4 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-rose-100 dark:border-rose-900/60">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-rose-50 text-rose-600 rounded-lg">
+                <div className="p-2 bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-lg">
                   <AlertOctagon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                     Dar de Baja Instrumento Metrológico
                   </h3>
-                  <p className="text-[11px] text-rose-600 font-semibold">
+                  <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold">
                     Desincorporación del Plan Anual de Calibración
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setBajaModalInst(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold p-1 rounded-md"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 prodexus:hover:text-[#132B36] font-bold p-1 rounded-md"
               >
                 ✕
               </button>
             </div>
 
             {/* Instrument summary box */}
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+            <div className="bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] p-3 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] space-y-1">
               <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Instrumento:</span>
-                <span className="font-mono font-bold text-indigo-700">{bajaModalInst.codigo_inst}</span>
+                <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">Instrumento:</span>
+                <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]">{bajaModalInst.codigo_inst}</span>
               </div>
-              <div className="font-bold text-slate-900">{bajaModalInst.nombre}</div>
-              <div className="text-slate-600 text-[11px]">{bajaModalInst.cliente} · {bajaModalInst.variable_medicion} ({bajaModalInst.rango_operacion})</div>
+              <div className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{bajaModalInst.nombre}</div>
+              <div className="text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] text-[11px]">{bajaModalInst.cliente} · {bajaModalInst.variable_medicion} ({bajaModalInst.rango_operacion})</div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                   Fecha de Baja *
                 </label>
                 <input
@@ -3361,12 +3361,12 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   required
                   value={bajaFecha}
                   onChange={(e) => setBajaFecha(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-rose-500 focus:outline-none"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-rose-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                   Motivo Técnico de la Baja *
                 </label>
                 <textarea
@@ -3375,20 +3375,20 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   placeholder="Ej. Deriva permanente fuera de tolerancia EMP / Rotura de fuelle mecánico / Reemplazado por nuevo transmisor digital..."
                   value={bajaMotivo}
                   onChange={(e) => setBajaMotivo(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-rose-500 focus:outline-none resize-none"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-rose-500 focus:outline-none resize-none"
                 />
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/60 rounded-lg border border-amber-200 dark:border-amber-800/70 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed">
               <strong>Nota de Auditoría ISO/IEC 17025:</strong> Al dar de baja este instrumento, dejará de figurar en el Plan Anual de Calibración activo, pero sus calibraciones pasadas y trazabilidad histórica permanecerán registradas en el sistema para consulta y auditorías.
             </div>
 
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-end gap-2.5">
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setBajaModalInst(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] rounded-lg transition-colors"
               >
                 Cancelar
               </button>

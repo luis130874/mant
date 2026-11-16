@@ -18,7 +18,28 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen">
+  <body class="bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] font-sans antialiased min-h-screen transition-colors duration-200">
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('prodexus_theme');
+          var root = document.documentElement;
+          if (t === 'dark') {
+            root.classList.add('dark');
+            root.setAttribute('data-theme', 'dark');
+            root.style.colorScheme = 'dark';
+          } else if (t === 'prodexus') {
+            root.classList.remove('dark');
+            root.setAttribute('data-theme', 'prodexus');
+            root.style.colorScheme = 'light';
+          } else {
+            root.classList.remove('dark');
+            root.setAttribute('data-theme', 'classic');
+            root.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
     <div id="root"></div>
     <script>
       (function () {

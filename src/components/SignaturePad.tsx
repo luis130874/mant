@@ -177,22 +177,22 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <label className="block text-xs font-bold text-slate-800">
-            {label} {required && <span className="text-rose-600">*</span>}
+          <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
+            {label} {required && <span className="text-rose-600 dark:text-rose-400">*</span>}
           </label>
           {sublabel && (
-            <p className="text-[11px] text-slate-500">{sublabel}</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">{sublabel}</p>
           )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           {hasSignature ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Capturada</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
+            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">
               <PenTool className="w-3 h-3" />
               <span>Pendiente</span>
             </span>
@@ -201,7 +201,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
             type="button"
             onClick={handleClear}
             disabled={disabled || !hasSignature}
-            className="min-h-[36px] px-2.5 py-1 text-[11px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 rounded-lg flex items-center gap-1 transition-colors"
+            className="min-h-[36px] px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#F3F6F8] hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg flex items-center gap-1 transition-colors"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Limpiar</span>
@@ -209,7 +209,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
         </div>
       </div>
 
-      <div className="relative rounded-xl border border-slate-300 bg-white overflow-hidden">
+      <div className="relative rounded-xl border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] bg-white overflow-hidden">
         <canvas
           ref={canvasRef}
           onPointerDown={handlePointerDown}

@@ -198,13 +198,13 @@ export const ClientesView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] tracking-tight flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
             {isSuperAdmin ? 'Plantas Industriales & Clientes' : 'Mi Empresa / Planta Industrial'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
             {isSuperAdmin
               ? 'Gestión global de empresas clientes, ubicaciones físicas y logotipos corporativos.'
               : 'Información corporativa y logotipo oficial de su planta asignada.'}
@@ -215,7 +215,7 @@ export const ClientesView: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Nueva Empresa</span>
@@ -225,18 +225,18 @@ export const ClientesView: React.FC = () => {
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs">
+      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex items-center justify-between gap-3 text-xs">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar por nombre, RUT o código..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+            className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] w-64"
           />
         </div>
-        <span className="text-xs font-semibold text-slate-500">
+        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
           {filteredClientes.length} Empresa{filteredClientes.length === 1 ? '' : 's'} Visible{filteredClientes.length === 1 ? '' : 's'}
         </span>
       </div>
@@ -248,13 +248,13 @@ export const ClientesView: React.FC = () => {
           return (
             <div
               key={c.codigo}
-              className="bg-white rounded-xl border border-slate-200 p-5 space-y-4 hover:border-slate-300 transition-all shadow-xs flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-5 space-y-4 hover:border-slate-300 dark:hover:border-slate-700 prodexus:hover:border-[#B9D2FA] transition-all shadow-xs flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-3 min-w-0">
                     {c.logo ? (
-                      <div className="w-16 h-12 bg-white rounded-lg border border-slate-200 p-1 flex items-center justify-center shrink-0 shadow-2xs">
+                      <div className="w-16 h-12 bg-white rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] p-1 flex items-center justify-center shrink-0 shadow-2xs">
                         <img
                           src={c.logo}
                           alt={`Logo ${c.nombre}`}
@@ -262,18 +262,18 @@ export const ClientesView: React.FC = () => {
                         />
                       </div>
                     ) : (
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                        <Building2 className="w-5 h-5 text-slate-400" />
+                      <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] flex items-center justify-center text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] shrink-0">
+                        <Building2 className="w-5 h-5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]" />
                       </div>
                     )}
                     <div className="min-w-0">
-                      <span className="font-mono text-[10.5px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                      <span className="font-mono text-[10.5px] font-bold text-blue-600 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] px-2 py-0.5 rounded">
                         {c.codigo}
                       </span>
-                      <h3 className="font-bold text-slate-900 text-sm mt-1 leading-snug truncate" title={c.nombre}>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] text-sm mt-1 leading-snug truncate" title={c.nombre}>
                         {c.nombre}
                       </h3>
-                      <p className="text-[11px] font-mono text-slate-500">RUT: {c.rut}</p>
+                      <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">RUT: {c.rut}</p>
                     </div>
                   </div>
 
@@ -281,7 +281,7 @@ export const ClientesView: React.FC = () => {
                     {canEditEmpresa && (
                       <button
                         onClick={() => handleOpenEdit(c)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 rounded transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 prodexus:hover:text-[#2F7CF6] rounded transition-colors"
                         title="Modificar"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -290,7 +290,7 @@ export const ClientesView: React.FC = () => {
                     {isSuperAdmin && (
                       <button
                         onClick={() => handleDelete(c)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded transition-colors"
                         title="Eliminar Empresa"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -299,29 +299,29 @@ export const ClientesView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-1.5 text-xs text-slate-600 pt-3 mt-3 border-t border-slate-100">
+                <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] shrink-0" />
                     <span className="truncate">{c.direccion || 'Dirección no especificada'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <Phone className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] shrink-0" />
                     <span>{c.telefono || 'Sin teléfono'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <Mail className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] shrink-0" />
                     <span className="truncate">{c.correo || 'Sin correo'}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
-                <span className="text-[11px] font-medium text-slate-500">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6] flex items-center justify-between text-xs gap-2">
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                   {c.trabaja_terceros ? 'Servicio: Mantenimiento a terceros' : 'Modalidad: Planta propia'}
                 </span>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-slate-500 font-medium">Equipos:</span>
-                  <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">{eqCount}</span>
+                  <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">Equipos:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] px-2 py-0.5 rounded">{eqCount}</span>
                 </div>
               </div>
             </div>
@@ -331,16 +331,16 @@ export const ClientesView: React.FC = () => {
 
       {/* Modal Alta / Modificar */}
       {modalMode && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4 my-8">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-600" />
+        <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] max-w-lg w-full p-6 space-y-4 my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
                 <span>{modalMode === 'create' ? 'Registrar Nueva Planta / Cliente' : `Modificar ${codigo}`}</span>
               </h2>
               <button
                 onClick={() => setModalMode(null)}
-                className="text-slate-400 hover:text-slate-600 font-semibold p-1"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 prodexus:hover:text-[#132B36] font-semibold p-1"
               >
                 ✕
               </button>
@@ -349,7 +349,7 @@ export const ClientesView: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Código *
                   </label>
                   <input
@@ -359,12 +359,12 @@ export const ClientesView: React.FC = () => {
                     placeholder="CLI-01"
                     value={codigo}
                     onChange={(e) => setCodigo(e.target.value)}
-                    className="w-full font-mono font-semibold uppercase text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+                    className="w-full font-mono font-semibold uppercase text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] disabled:bg-slate-100 dark:disabled:bg-slate-800 prodexus:disabled:bg-[#F3F6F8]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     RUT / Tax ID *
                   </label>
                   <input
@@ -373,13 +373,13 @@ export const ClientesView: React.FC = () => {
                     placeholder="76.452.190-8"
                     value={rut}
                     onChange={(e) => setRut(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                   Razón Social / Nombre de Planta *
                 </label>
                 <input
@@ -388,21 +388,21 @@ export const ClientesView: React.FC = () => {
                   placeholder="Ej. TermoIndustrial del Sur S.A."
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                 />
               </div>
 
               {/* Logotipo Oficial del Cliente */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] rounded-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="block font-bold text-slate-700">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                     Logotipo Oficial de la Planta / Empresa
                   </label>
                   {logo && (
                     <button
                       type="button"
                       onClick={handleRemoveLogo}
-                      className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1"
+                      className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 flex items-center gap-1"
                     >
                       <X className="w-3 h-3" />
                       Quitar logo
@@ -411,20 +411,20 @@ export const ClientesView: React.FC = () => {
                 </div>
 
                 {logo ? (
-                  <div className="flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-3 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6]">
                     <img
                       src={logo}
                       alt="Vista previa logo"
-                      className="h-12 max-w-[140px] object-contain rounded border border-slate-100 bg-slate-50 p-1"
+                      className="h-12 max-w-[140px] object-contain rounded border border-slate-100 bg-white p-1"
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="text-[11px] font-bold text-emerald-700 block">✓ Logo cargado</span>
-                      <span className="text-[10px] text-slate-500">Se incluirá en membretes de órdenes y planes.</span>
+                      <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 block">✓ Logo cargado</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Se incluirá en membretes de órdenes y planes.</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded transition-colors"
+                      className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] rounded transition-colors"
                     >
                       Cambiar
                     </button>
@@ -432,13 +432,13 @@ export const ClientesView: React.FC = () => {
                 ) : (
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-white p-3 rounded-lg text-center cursor-pointer transition-colors"
+                    className="border-2 border-dashed border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] hover:border-blue-500 prodexus:hover:border-[#2F7CF6] bg-white dark:bg-slate-950 p-3 rounded-lg text-center cursor-pointer transition-colors"
                   >
-                    <Upload className="w-5 h-5 text-slate-400 mx-auto mb-1" />
-                    <p className="text-[11px] font-semibold text-slate-700">
+                    <Upload className="w-5 h-5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] mx-auto mb-1" />
+                    <p className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                       Haga clic para cargar imagen de logotipo (PNG, JPG, SVG, WebP)
                     </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] mt-0.5">
                       Máx. 2.5 MB · Tamaño recomendado: rectangular horizontal
                     </p>
                   </div>
@@ -452,13 +452,13 @@ export const ClientesView: React.FC = () => {
                   className="hidden"
                 />
 
-                <p className="text-[10px] text-slate-500 leading-tight">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] leading-tight">
                   ℹ️ <strong>Trazabilidad Documental:</strong> Este logo aparecerá en el encabezado de todas las órdenes de mantenimiento (MP, MC, OT), certificados de calibración y hojas del Plan Maestro Anual correspondientes a este cliente.
                 </p>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                   Dirección
                 </label>
                 <input
@@ -466,13 +466,13 @@ export const ClientesView: React.FC = () => {
                   placeholder="Parque Industrial #120"
                   value={direccion}
                   onChange={(e) => setDireccion(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Teléfono
                   </label>
                   <input
@@ -480,12 +480,12 @@ export const ClientesView: React.FC = () => {
                     placeholder="+56 2 2840 9200"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
                     Correo Operaciones
                   </label>
                   <input
@@ -493,18 +493,18 @@ export const ClientesView: React.FC = () => {
                     placeholder="operaciones@empresa.com"
                     value={correo}
                     onChange={(e) => setCorreo(e.target.value)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6]"
                   />
                 </div>
               </div>
 
               {/* Opción de servicio a terceros */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] rounded-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] space-y-2">
                 <div>
-                  <label className="block font-bold text-slate-800">
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
                     ¿Trabaja para terceros?
                   </label>
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5 leading-snug">
                     Habilítelo si esta empresa vende servicios de mantenimiento a otras empresas clientes. Activará el campo y filtro <strong>Empresa</strong> en Equipos y en el Plan Maestro.
                   </p>
                 </div>
@@ -514,8 +514,8 @@ export const ClientesView: React.FC = () => {
                     onClick={() => setTrabajaTerceros(false)}
                     className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
                       !trabajaTerceros
-                        ? 'bg-white border-slate-900 text-slate-900 shadow-2xs'
-                        : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-white'
+                        ? 'bg-white dark:bg-slate-900 border-slate-900 dark:border-slate-300 prodexus:border-[#132B36] text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-2xs'
+                        : 'bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:bg-white dark:hover:bg-slate-700'
                     }`}
                   >
                     NO · Planta propia
@@ -525,8 +525,8 @@ export const ClientesView: React.FC = () => {
                     onClick={() => setTrabajaTerceros(true)}
                     className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
                       trabajaTerceros
-                        ? 'bg-blue-600 border-blue-600 text-white shadow-2xs'
-                        : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-white'
+                        ? 'bg-blue-600 prodexus:bg-[#2F7CF6] border-blue-600 prodexus:border-[#2F7CF6] text-white shadow-2xs'
+                        : 'bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976] hover:bg-white dark:hover:bg-slate-700'
                     }`}
                   >
                     SÍ · Mantenimiento a terceros
@@ -534,17 +534,17 @@ export const ClientesView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                 <button
                   type="button"
                   onClick={() => setModalMode(null)}
-                  className="px-4 py-2 font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                  className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs"
+                  className="px-4 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
                 >
                   {modalMode === 'create' ? 'Guardar Cliente' : 'Actualizar Cliente'}
                 </button>

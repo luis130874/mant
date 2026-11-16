@@ -265,13 +265,13 @@ export const PlanMaestroView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* View Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] no-print">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <CalendarDays className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] tracking-tight flex items-center gap-2">
+            <CalendarDays className="w-6 h-6 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
             Plan Maestro Anual {selectedAnio}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
             Cronograma anual integral de mantenimiento preventivo, folios MP y proyección futura basada en ejecución real.
           </p>
         </div>
@@ -282,7 +282,7 @@ export const PlanMaestroView: React.FC = () => {
             <button
               onClick={handleDownloadPDF}
               disabled={isGeneratingPDF}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] disabled:opacity-50 transition-colors shadow-xs"
             >
               {isGeneratingPDF ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -293,7 +293,7 @@ export const PlanMaestroView: React.FC = () => {
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Imprimir Plan</span>
@@ -303,25 +303,25 @@ export const PlanMaestroView: React.FC = () => {
       </div>
 
       {/* Filter and Legend Bar */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs no-print">
+      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs no-print">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Buscar por equipo o ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-60"
+              className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] w-48 sm:w-60"
             />
           </div>
 
           <div className="flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
             <select
               value={selectedSistema}
               onChange={(e) => setSelectedSistema(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2.5 text-xs font-medium text-slate-800 focus:outline-none"
+              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg py-1.5 px-2.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none"
             >
               <option value="Todos">Todos los Sistemas</option>
               {sistemas.map(s => (
@@ -334,12 +334,12 @@ export const PlanMaestroView: React.FC = () => {
 
           {isTercerosEnabled && (
             <div className="flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-blue-600" />
+              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
               <select
                 value={selectedEmpresa}
                 onChange={(e) => setSelectedEmpresa(e.target.value)}
                 aria-label="Filtrar plan por empresa"
-                className="bg-blue-50 border border-blue-200 rounded-lg py-1.5 px-2.5 text-xs font-semibold text-blue-900 focus:outline-none"
+                className="bg-blue-50 dark:bg-blue-950/50 prodexus:bg-[#EEF5FF] border border-blue-200 dark:border-blue-800 prodexus:border-[#B9D2FA] rounded-lg py-1.5 px-2.5 text-xs font-semibold text-blue-900 dark:text-blue-200 prodexus:text-[#132B36] focus:outline-none"
               >
                 <option value="Todas">Todas las Empresas</option>
                 {empresasTercerosDisponibles.map(empName => (
@@ -355,11 +355,11 @@ export const PlanMaestroView: React.FC = () => {
           )}
 
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-600">Año:</span>
+            <span className="font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#132B36]">Año:</span>
             <select
               value={selectedAnio}
               onChange={(e) => setSelectedAnio(Number(e.target.value))}
-              className="bg-blue-50 border border-blue-200 rounded-lg py-1.5 px-2.5 text-xs font-bold text-blue-900 focus:outline-none"
+              className="bg-blue-50 dark:bg-blue-950/50 prodexus:bg-[#EEF5FF] border border-blue-200 dark:border-blue-800 prodexus:border-[#B9D2FA] rounded-lg py-1.5 px-2.5 text-xs font-bold text-blue-900 dark:text-blue-200 prodexus:text-[#132B36] focus:outline-none"
             >
               {availableYears.map(yr => (
                 <option key={yr} value={yr}>
@@ -371,9 +371,9 @@ export const PlanMaestroView: React.FC = () => {
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 font-medium">
+        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">
           <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 prodexus:bg-[#1FB85C]"></span>
             <span>A Tiempo</span>
           </div>
           <div className="flex items-center gap-1">
@@ -385,7 +385,7 @@ export const PlanMaestroView: React.FC = () => {
             <span>Vencida Pendiente</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-sm bg-blue-100 border border-blue-300"></span>
+            <span className="w-2.5 h-2.5 rounded-sm bg-blue-100 dark:bg-blue-900/60 border border-blue-300 dark:border-blue-700"></span>
             <span>Programada</span>
           </div>
         </div>
@@ -394,7 +394,7 @@ export const PlanMaestroView: React.FC = () => {
       {/* Official Master Plan Multi-Sheet Paginated Document */}
       <div ref={planPrintRef} className="space-y-8 print-container">
         {matrixGroups.length === 0 ? (
-          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-12 text-center text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
             No se encontraron equipos para el filtro seleccionado.
           </div>
         ) : (
@@ -664,71 +664,71 @@ export const PlanMaestroView: React.FC = () => {
 
       {/* Detail Modal for Selected Cell */}
       {selectedCellInfo && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 no-print">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#E2ECF1]">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="text-base font-bold text-slate-900">
+                <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                   Detalle de Programación Preventiva
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedCellInfo(null)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-semibold p-1"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-semibold p-1"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+              <div className="bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] p-3 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Folio de Orden:</span>
-                  <span className="font-mono font-bold text-blue-600">{selectedCellInfo.folio}</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Folio de Orden:</span>
+                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]">{selectedCellInfo.folio}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Equipo:</span>
-                  <span className="font-semibold text-slate-800">{selectedCellInfo.equipo.nombre} ({selectedCellInfo.equipo.codigo_eq})</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Equipo:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-100 prodexus:text-[#132B36]">{selectedCellInfo.equipo.nombre} ({selectedCellInfo.equipo.codigo_eq})</span>
                 </div>
                 {isTercerosEnabled && selectedCellInfo.equipo.empresa_tercero && (
                   <div className="flex justify-between">
-                    <span className="text-slate-500 font-medium">Empresa:</span>
-                    <span className="font-semibold text-blue-800">{selectedCellInfo.equipo.empresa_tercero}</span>
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">Empresa:</span>
+                    <span className="font-semibold text-blue-800 dark:text-blue-300 prodexus:text-[#132B36]">{selectedCellInfo.equipo.empresa_tercero}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Sistema:</span>
-                  <span className="text-slate-700">{selectedCellInfo.equipo.sistema}</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Sistema:</span>
+                  <span className="text-slate-700 dark:text-slate-300">{selectedCellInfo.equipo.sistema}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Frecuencia:</span>
-                  <span className="text-slate-700">{selectedCellInfo.equipo.frecuencia}</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Frecuencia:</span>
+                  <span className="text-slate-700 dark:text-slate-300">{selectedCellInfo.equipo.frecuencia}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg border border-slate-200 bg-white">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Fecha Prevista</span>
-                  <p className="text-sm font-mono font-bold text-slate-900 mt-0.5">
+                <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] bg-white dark:bg-slate-800/40">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Fecha Prevista</span>
+                  <p className="text-sm font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] mt-0.5">
                     {selectedCellInfo.fechaPrev}
                   </p>
                 </div>
-                <div className="p-3 rounded-lg border border-slate-200 bg-white">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Fecha Real Ejecutada</span>
-                  <p className="text-sm font-mono font-bold text-emerald-600 mt-0.5">
+                <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] bg-white dark:bg-slate-800/40">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Fecha Real Ejecutada</span>
+                  <p className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400 prodexus:text-[#1FB85C] mt-0.5">
                     {selectedCellInfo.fechaReal || 'Pendiente de Cierre'}
                   </p>
                 </div>
               </div>
 
               {selectedCellInfo.comentarios && (
-                <div className="p-3 rounded-lg border border-slate-200 bg-slate-50">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Observaciones Técnicas</span>
-                  <p className="text-xs text-slate-700 mt-1 italic">
+                <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8]">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Observaciones Técnicas</span>
+                  <p className="text-xs text-slate-700 dark:text-slate-200 mt-1 italic">
                     "{selectedCellInfo.comentarios}"
                   </p>
-                  <p className="text-[11px] text-slate-500 mt-2 font-medium">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 font-medium">
                     Técnico ejecutor: {selectedCellInfo.tecnico}
                   </p>
                 </div>
@@ -738,7 +738,7 @@ export const PlanMaestroView: React.FC = () => {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedCellInfo(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               >
                 Cerrar Ventana
               </button>

@@ -19,10 +19,10 @@ interface SupervisorValidationBellProps {
 }
 
 const TIPO_BADGE_CLASS: Record<OrderTipo, string> = {
-  MP: 'bg-blue-100 text-blue-800 border-blue-200',
-  MC: 'bg-amber-100 text-amber-800 border-amber-200',
-  OT: 'bg-slate-100 text-slate-800 border-slate-200',
-  CAL: 'bg-indigo-100 text-indigo-800 border-indigo-200'
+  MP: 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800/70',
+  MC: 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/70',
+  OT: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700',
+  CAL: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/70'
 };
 
 export const SupervisorValidationBell: React.FC<SupervisorValidationBellProps> = ({
@@ -128,8 +128,8 @@ export const SupervisorValidationBell: React.FC<SupervisorValidationBellProps> =
         }
         className={`relative p-2 rounded-lg border transition-colors ${
           count > 0
-            ? 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100'
-            : 'border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+            ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60'
+            : 'border-slate-200 dark:border-slate-700 prodexus:border-[#295468] bg-white dark:bg-slate-800 prodexus:bg-[#1B3A48] text-slate-500 dark:text-slate-300 prodexus:text-slate-200 hover:text-slate-800 dark:hover:text-white prodexus:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700 prodexus:hover:bg-[#234A5C]'
         }`}
       >
         <Bell className="w-4 h-4" />
@@ -141,15 +141,15 @@ export const SupervisorValidationBell: React.FC<SupervisorValidationBellProps> =
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[340px] sm:w-[400px] bg-white rounded-xl border border-slate-200 shadow-2xl z-50 overflow-hidden">
-          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
+        <div className="absolute right-0 mt-2 w-[340px] sm:w-[400px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] shadow-2xl z-50 overflow-hidden">
+          <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] border-b border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <ShieldAlert className={`w-4 h-4 shrink-0 ${count > 0 ? 'text-amber-600' : 'text-slate-500'}`} />
+              <ShieldAlert className={`w-4 h-4 shrink-0 ${count > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`} />
               <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-900 truncate">
+                <p className="text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] truncate">
                   Validación de Cierres Digitales
                 </p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                   {count > 0
                     ? `${count} orden${count === 1 ? '' : 'es'} cerrada${count === 1 ? '' : 's'} por revisar`
                     : 'Bandeja al día'}
@@ -159,27 +159,27 @@ export const SupervisorValidationBell: React.FC<SupervisorValidationBellProps> =
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="p-1 text-slate-400 hover:text-slate-700 rounded-md"
+              className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-md"
               aria-label="Cerrar notificaciones"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100">
+          <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
             {pendingItems.length === 0 ? (
               <div className="p-6 text-center space-y-2">
-                <CheckCircle2 className="w-7 h-7 text-emerald-500 mx-auto" />
-                <p className="text-xs font-semibold text-slate-800">
+                <CheckCircle2 className="w-7 h-7 text-emerald-500 prodexus:text-[#1FB85C] mx-auto" />
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 prodexus:text-[#132B36]">
                   No hay órdenes digitales pendientes de validación
                 </p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                   Cuando un técnico cierre una orden desde su enlace digital, aparecerá aquí para su aprobación y firma.
                 </p>
               </div>
             ) : (
               pendingItems.map((item) => (
-                <div key={item.key} className="p-3.5 hover:bg-slate-50/90 transition-colors space-y-2">
+                <div key={item.key} className="p-3.5 hover:bg-slate-50/90 dark:hover:bg-slate-800/60 transition-colors space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 space-y-0.5">
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -188,29 +188,29 @@ export const SupervisorValidationBell: React.FC<SupervisorValidationBellProps> =
                         >
                           {item.tipo}
                         </span>
-                        <span className="font-mono text-xs font-bold text-slate-900">
+                        <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                           {item.folio}
                         </span>
                         <span className="text-[10px] text-slate-400">·</span>
-                        <span className="text-[11px] font-medium text-slate-600 truncate max-w-[140px]">
+                        <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 truncate max-w-[140px]">
                           {item.cliente}
                         </span>
                       </div>
-                      <p className="text-xs font-semibold text-slate-800 truncate">
+                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 prodexus:text-[#132B36] truncate">
                         {item.nombreActivo}{' '}
-                        <span className="font-mono text-[11px] text-slate-500">({item.codigoEq})</span>
+                        <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">({item.codigoEq})</span>
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-600 line-clamp-2 bg-slate-50 border border-slate-100 rounded-lg px-2.5 py-1.5">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 bg-slate-50 dark:bg-slate-800/70 prodexus:bg-[#F3F6F8] border border-slate-100 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-lg px-2.5 py-1.5">
                     {item.resumen}
                   </p>
 
                   <div className="flex items-center justify-between gap-2 pt-0.5">
-                    <div className="text-[10px] text-slate-500 truncate">
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                       <span>Técnico: </span>
-                      <strong className="text-slate-700">{item.tecnico}</strong>
+                      <strong className="text-slate-700 dark:text-slate-200">{item.tecnico}</strong>
                       <span> · {item.fechaFirmaDigital || item.fechaReal}</span>
                     </div>
                     <button

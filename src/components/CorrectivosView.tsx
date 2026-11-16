@@ -219,25 +219,25 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <AlertTriangle className="w-6 h-6 text-amber-600" />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] tracking-tight flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             Mantenimiento Correctivo (Averías & Reparaciones)
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
             Emisión de órdenes MC con fecha de compromiso, tolerancia de atraso y cálculo automático de efectividad.
           </p>
         </div>
 
         {/* Subtabs */}
-        <div className="inline-flex p-1 bg-slate-100 rounded-lg shrink-0 self-start sm:self-auto">
+        <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/80 prodexus:bg-[#E4ECF0] rounded-lg shrink-0 self-start sm:self-auto">
           <button
             onClick={() => setActiveSubTab('emitir')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeSubTab === 'emitir'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Emitir Avería / Orden MC
@@ -246,8 +246,8 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
             onClick={() => setActiveSubTab('cierre')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeSubTab === 'cierre'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Cierre de Correctivos ({pendientesList.length})
@@ -256,8 +256,8 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
             onClick={() => setActiveSubTab('historial')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeSubTab === 'historial'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Historial ({cerradosList.length})
@@ -269,21 +269,21 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
       {activeSubTab === 'emitir' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Form */}
-          <div className="lg:col-span-5 bg-white p-6 rounded-xl border border-slate-200 space-y-4">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] space-y-4">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider">
               Nueva Falla Reportada (MC)
             </h2>
 
             <form onSubmit={handleEmitirSubmit} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                   Equipo Afectado *
                 </label>
                 <select
                   value={selectedEquipoCode}
                   onChange={(e) => setSelectedEquipoCode(e.target.value)}
                   required
-                  className="w-full font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                 >
                   <option value="">-- Seleccionar Equipo --</option>
                   {Array.from(new Map(equiposCliente.map(e => [e.codigo_eq, e])).values()).map(eq => (
@@ -296,7 +296,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Fecha de Reporte *
                   </label>
                   <input
@@ -304,12 +304,12 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                     value={fechaEmision}
                     onChange={(e) => setFechaEmision(e.target.value)}
                     required
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Fecha Compromiso *
                   </label>
                   <input
@@ -317,14 +317,14 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                     value={fechaTentativa}
                     onChange={(e) => setFechaTentativa(e.target.value)}
                     required
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Tolerancia (Días)
                   </label>
                   <input
@@ -332,18 +332,18 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                     min="0"
                     value={diasTolerancia}
                     onChange={(e) => setDiasTolerancia(Number(e.target.value))}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
+                  <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Prioridad
                   </label>
                   <select
                     value={prioridad}
                     onChange={(e) => setPrioridad(e.target.value as any)}
-                    className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Urgente">Urgente (Parada de línea)</option>
                     <option value="Alta">Alta</option>
@@ -354,13 +354,13 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                   Técnico Asignado (Preliminar)
                 </label>
                 <select
                   value={tecnicoAsignado}
                   onChange={(e) => setTecnicoAsignado(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">-- Por asignar / Cuadrilla de turno --</option>
                   {tecnicos.filter(t => t.estado === 'Activo').map(t => (
@@ -372,7 +372,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                   Descripción de la Falla y Síntomas Observados *
                 </label>
                 <textarea
@@ -381,7 +381,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                   placeholder="Describa síntomas: ruidos, fuga de fluidos, temperatura elevada, código de alarma en panel, etc."
                   value={fallaReportada}
                   onChange={(e) => setFallaReportada(e.target.value)}
-                  className="w-full font-medium text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -393,7 +393,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                   Emitir Orden Correctiva (MC)
                 </button>
               ) : (
-                <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium text-center">
+                <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[11px] font-medium text-center">
                   Sin permiso para emitir nuevas órdenes correctivas.
                 </div>
               )}
@@ -403,13 +403,13 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
           {/* Pending List and Printable sheets */}
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider">
                 Órdenes Correctivas en Curso ({pendientesList.length})
               </h2>
             </div>
 
             {pendientesList.length === 0 ? (
-              <div className="bg-white p-8 text-center rounded-xl border border-slate-200 text-slate-500 text-xs">
+              <div className="bg-white dark:bg-slate-900 p-8 text-center rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] text-slate-500 dark:text-slate-400 text-xs">
                 No hay órdenes correctivas pendientes. Todos los equipos se encuentran operativos.
               </div>
             ) : (
@@ -419,20 +419,20 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                   return (
                     <div
                       key={c.id_ot}
-                      className="bg-white rounded-xl border border-amber-200 p-4 space-y-2.5 shadow-xs"
+                      className="bg-white dark:bg-slate-900 rounded-xl border border-amber-200 dark:border-amber-800/70 p-4 space-y-2.5 shadow-xs"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-sm text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                            <span className="font-mono font-bold text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800/70">
                               {c.id_ot}
                             </span>
-                            <span className="text-xs font-bold text-slate-900">
+                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                               {eq?.nombre || c.codigo_eq}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
-                            Reportada: {c.fecha_emision} · Compromiso: <strong className="text-slate-800">{c.fecha_tentativa}</strong> (±{c.dias_tolerancia}d tol.)
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            Reportada: {c.fecha_emision} · Compromiso: <strong className="text-slate-800 dark:text-slate-200">{c.fecha_tentativa}</strong> (±{c.dias_tolerancia}d tol.)
                           </p>
                         </div>
 
@@ -441,7 +441,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                             <button
                               type="button"
                               onClick={() => onShareOrder(buildDigitalTargetMC(c))}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md flex items-center gap-1"
+                              className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-md flex items-center gap-1"
                               title="Enviar enlace o WhatsApp al técnico"
                             >
                               <Share2 className="w-3.5 h-3.5" />
@@ -452,7 +452,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                             <button
                               type="button"
                               onClick={() => onOpenDigitalExecution(buildDigitalTargetMC(c))}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md flex items-center gap-1"
+                              className="px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/70 rounded-md flex items-center gap-1"
                               title="Completar y firmar digitalmente"
                             >
                               <Smartphone className="w-3.5 h-3.5" />
@@ -463,7 +463,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                             <button
                               type="button"
                               onClick={() => handlePrint(c)}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md flex items-center gap-1"
+                              className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md flex items-center gap-1"
                               title="Imprimir Orden en papel / PDF"
                             >
                               <Printer className="w-3.5 h-3.5" />
@@ -483,7 +483,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                                   deleteCorrectivo(c.id_ot);
                                 }
                               }}
-                              className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                              className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded"
                               title="Eliminar"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -492,13 +492,13 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                      <p className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 prodexus:border-[#E2ECF1]">
                         {c.falla_reportada}
                       </p>
 
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
-                        <span>Técnico: <strong className="text-slate-700">{c.tecnico}</strong></span>
-                        <span className="text-[10px] font-mono font-semibold text-amber-600">EN ATENCIÓN</span>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <span>Técnico: <strong className="text-slate-700 dark:text-slate-200">{c.tecnico}</strong></span>
+                        <span className="text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-400">EN ATENCIÓN</span>
                       </div>
                     </div>
                   );
@@ -511,24 +511,24 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
 
       {/* SUBTAB 2: Cierre de Correctivos */}
       {activeSubTab === 'cierre' && (
-        <div className="max-w-2xl mx-auto bg-white p-6 rounded-xl border border-slate-200 space-y-5">
+        <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] space-y-5">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
               Cierre y Certificación de Reparación (MC)
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
               El sistema evalúa automáticamente si la reparación se completó a tiempo según la tolerancia.
             </p>
           </div>
 
           {pendientesList.length === 0 ? (
-            <div className="p-8 text-center bg-emerald-50 rounded-lg border border-emerald-200 text-xs text-emerald-800 font-medium">
+            <div className="p-8 text-center bg-emerald-50 dark:bg-emerald-950/40 rounded-lg border border-emerald-200 dark:border-emerald-800/70 text-xs text-emerald-800 dark:text-emerald-300 font-medium">
               No hay órdenes correctivas pendientes de cierre.
             </div>
           ) : (
             <form onSubmit={handleCierreSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                   Seleccione Orden Correctiva Pendiente *
                 </label>
                 <select
@@ -540,7 +540,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                     if (match?.tecnico) setCierreTecnico(match.tecnico);
                   }}
                   required
-                  className="w-full font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   <option value="">-- Seleccionar Orden --</option>
                   {pendientesList.map(c => (
@@ -555,7 +555,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                         Fecha Real de Reparación *
                       </label>
                       <input
@@ -563,19 +563,19 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                         value={cierreFechaReal}
                         onChange={(e) => setCierreFechaReal(e.target.value)}
                         required
-                        className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full font-semibold text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">
+                      <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                         Técnico / Responsable *
                       </label>
                       <select
                         value={cierreTecnico}
                         onChange={(e) => setCierreTecnico(e.target.value)}
                         required
-                        className="w-full font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full font-semibold text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">-- Seleccionar Técnico --</option>
                         {tecnicos.filter(t => t.estado === 'Activo').map(t => (
@@ -604,7 +604,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                   })()}
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">
+                    <label className="block font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                       Acciones Realizadas y Pruebas Operativas de Arranque *
                     </label>
                     <textarea
@@ -613,19 +613,19 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                       placeholder="Describa el trabajo de desarme, calibración, componentes cambiados y parámetros finales de prueba..."
                       value={accionesRealizadas}
                       onChange={(e) => setAccionesRealizadas(e.target.value)}
-                      className="w-full text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
                   {canClose ? (
                     <button
                       type="submit"
-                      className="w-full py-2.5 px-4 font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-xs"
+                      className="w-full py-2.5 px-4 font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#189A4C] transition-colors shadow-xs"
                     >
                       Confirmar Cierre de Avería
                     </button>
                   ) : (
-                    <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium text-center">
+                    <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[11px] font-medium text-center">
                       Su perfil no tiene permiso para cerrar órdenes correctivas.
                     </div>
                   )}
@@ -638,23 +638,23 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
 
       {/* SUBTAB 3: Historial de Correctivos */}
       {activeSubTab === 'historial' && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden space-y-4 p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden space-y-4 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Buscar por folio, equipo o falla..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                 <tr>
                   <th className="py-2.5 px-3">Folio MC</th>
                   <th className="py-2.5 px-3">Equipo</th>
@@ -667,7 +667,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                   <th className="py-2.5 px-3 text-right">PDF</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E6EEF2]">
                 {cerradosList
                   .filter(c => {
                     if (!searchQuery) return true;
@@ -677,40 +677,40 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                       c.acciones_realizadas.toLowerCase().includes(searchQuery.toLowerCase());
                   })
                   .map(row => (
-                    <tr key={row.id_ot} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2.5 px-3 font-mono font-bold text-amber-700">
+                    <tr key={row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                      <td className="py-2.5 px-3 font-mono font-bold text-amber-700 dark:text-amber-400">
                         {row.id_ot}
                         {row.firma_tecnico && (
-                          <span className="block text-[9.5px] font-sans font-semibold text-emerald-700">
+                          <span className="block text-[9.5px] font-sans font-semibold text-emerald-700 dark:text-emerald-400">
                             Firmada Digital
                           </span>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 font-semibold text-slate-900">
+                      <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                         {row.codigo_eq}
                       </td>
-                      <td className="py-2.5 px-3 text-slate-700 max-w-xs truncate" title={row.falla_reportada}>
+                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-xs truncate" title={row.falla_reportada}>
                         {row.falla_reportada}
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono text-slate-600">
+                      <td className="py-2.5 px-3 text-center font-mono text-slate-600 dark:text-slate-300">
                         {row.fecha_emision}
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700">
+                      <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700 dark:text-emerald-400">
                         {row.fecha_real}
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                           row.estado.includes('A tiempo')
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
+                            : 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70'
                         }`}>
                           {row.estado}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 font-medium text-slate-700">
+                      <td className="py-2.5 px-3 font-medium text-slate-700 dark:text-slate-200">
                         {row.tecnico}
                       </td>
-                      <td className="py-2.5 px-3 text-slate-600 max-w-xs truncate" title={row.acciones_realizadas}>
+                      <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-xs truncate" title={row.acciones_realizadas}>
                         {row.acciones_realizadas}
                       </td>
                       <td className="py-2.5 px-3 text-right">
@@ -718,7 +718,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handlePrint(row)}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded inline-flex items-center gap-1"
+                            className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded inline-flex items-center gap-1"
                             title="Imprimir / PDF Orden Cerrada"
                           >
                             <Printer className="w-3.5 h-3.5" />

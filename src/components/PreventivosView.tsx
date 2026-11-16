@@ -292,25 +292,25 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileCheck2 className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] tracking-tight flex items-center gap-2">
+            <FileCheck2 className="w-6 h-6 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
             Gestión de Mantenimientos Preventivos (MP)
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
             Generación de protocolos de tareas, hojas de trabajo imprimibles y cierre con trazabilidad.
           </p>
         </div>
 
         {/* Subtabs */}
-        <div className="inline-flex p-1 bg-slate-100 rounded-lg shrink-0 self-start sm:self-auto">
+        <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800/80 prodexus:bg-[#E4ECF0] rounded-lg shrink-0 self-start sm:self-auto">
           <button
             onClick={() => setActiveSubTab('emision')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeSubTab === 'emision'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Emisión de Órdenes ({ocurrenciasMes.length})
@@ -319,8 +319,8 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
             onClick={() => setActiveSubTab('cierre')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeSubTab === 'cierre'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Cierre de Preventivos ({pendientesCierreList.length})
@@ -329,8 +329,8 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
             onClick={() => setActiveSubTab('historial')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeSubTab === 'historial'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
             }`}
           >
             Historial de Ejecución
@@ -342,13 +342,13 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
       {activeSubTab === 'emision' && (
         <div className="space-y-4">
           {/* Controls Bar */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="text-xs font-bold text-slate-600">Mes de Emisión:</span>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#132B36]">Mes de Emisión:</span>
               <select
                 value={selectedMes}
                 onChange={(e) => setSelectedMes(Number(e.target.value))}
-                className="text-xs font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 focus:outline-none"
+                className="text-xs font-bold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg py-1.5 px-3 focus:outline-none"
               >
                 {MESES_L.map((m, idx) => (
                   <option key={m} value={idx + 1}>
@@ -359,7 +359,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
               <select
                 value={selectedAnio}
                 onChange={(e) => setSelectedAnio(Number(e.target.value))}
-                className="text-xs font-bold text-blue-900 bg-blue-50 border border-blue-200 rounded-lg py-1.5 px-2.5 focus:outline-none"
+                className="text-xs font-bold text-blue-900 dark:text-blue-200 prodexus:text-[#132B36] bg-blue-50 dark:bg-blue-950/50 prodexus:bg-[#EEF5FF] border border-blue-200 dark:border-blue-800 prodexus:border-[#B9D2FA] rounded-lg py-1.5 px-2.5 focus:outline-none"
               >
                 {availableYears.map(yr => (
                   <option key={yr} value={yr}>
@@ -367,7 +367,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                   </option>
                 ))}
               </select>
-              <span className="text-xs text-slate-500 font-medium">
+              <span className="text-xs text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">
                 ({ocurrenciasMes.length} órdenes generadas)
               </span>
             </div>
@@ -375,7 +375,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
             {canPrint && ocurrenciasMes.length > 0 && (
               <button
                 onClick={handlePrintAllMonth}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs self-start sm:self-auto"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs self-start sm:self-auto"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Imprimir Todas las MP de {MESES_L[selectedMes - 1]} {selectedAnio}</span>
@@ -385,7 +385,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
 
           {/* List of Orders for Selected Month */}
           {ocurrenciasMes.length === 0 ? (
-            <div className="bg-white p-12 text-center rounded-xl border border-slate-200 text-slate-500 text-sm">
+            <div className="bg-white dark:bg-slate-900 p-12 text-center rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] text-slate-500 dark:text-slate-400 text-sm">
               No hay mantenimientos preventivos programados para {MESES_L[selectedMes - 1]} {selectedAnio} en esta planta.
             </div>
           ) : (
@@ -395,33 +395,33 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                 return (
                   <div
                     key={`${item.equipo.id || item.equipo.codigo_eq}_${item.equipo.nombre}_${item.folio}_${item.fechaStr}`}
-                    className={`bg-white rounded-xl border p-5 space-y-3 transition-all ${
+                    className={`bg-white dark:bg-slate-900 rounded-xl border p-5 space-y-3 transition-all ${
                       item.isCerrada
-                        ? 'border-emerald-200 bg-emerald-50/20'
-                        : 'border-slate-200 hover:border-blue-300'
+                        ? 'border-emerald-200 dark:border-emerald-800/70 bg-emerald-50/20 dark:bg-emerald-950/20 prodexus:border-[#B6E6CA]'
+                        : 'border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] hover:border-blue-300 dark:hover:border-blue-700 prodexus:hover:border-[#2F7CF6]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-sm text-blue-600">
+                          <span className="font-mono font-bold text-sm text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]">
                             {item.folio}
                           </span>
                           {item.isCerrada ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-transparent dark:border-emerald-800/70 flex items-center gap-1">
                               <CheckCircle className="w-3 h-3" /> Cerrada ({item.historialReg?.fecha_real})
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70">
                               Programada: {item.fechaStr}
                             </span>
                           )}
                         </div>
-                        <h3 className="font-bold text-slate-900 text-sm mt-1">
+                        <h3 className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] text-sm mt-1">
                           {item.equipo.nombre}
                         </h3>
-                        <p className="text-[11px] text-slate-500">
-                          {item.equipo.sistema} · Frecuencia: <span className="font-medium text-slate-700">{item.equipo.frecuencia}</span>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
+                          {item.equipo.sistema} · Frecuencia: <span className="font-medium text-slate-700 dark:text-slate-200">{item.equipo.frecuencia}</span>
                         </p>
                       </div>
 
@@ -430,7 +430,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                           <button
                             type="button"
                             onClick={() => onShareOrder(buildDigitalTargetMP(item))}
-                            className="px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md flex items-center gap-1 transition-colors"
+                            className="px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-md flex items-center gap-1 transition-colors"
                             title="Enviar enlace o WhatsApp al técnico"
                           >
                             <Share2 className="w-3.5 h-3.5" />
@@ -441,7 +441,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                           <button
                             type="button"
                             onClick={() => onOpenDigitalExecution(buildDigitalTargetMP(item))}
-                            className="px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md flex items-center gap-1 transition-colors"
+                            className="px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/70 rounded-md flex items-center gap-1 transition-colors"
                             title={item.isCerrada ? 'Ver orden completada / firmas' : 'Completar y firmar digitalmente'}
                           >
                             <Smartphone className="w-3.5 h-3.5" />
@@ -452,10 +452,10 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handlePrintSingle(item)}
-                            className="px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md flex items-center gap-1 transition-colors"
+                            className="px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-md flex items-center gap-1 transition-colors"
                             title="Imprimir protocolo en papel / PDF"
                           >
-                            <Printer className="w-3.5 h-3.5 text-slate-500" />
+                            <Printer className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                             <span>Imprimir</span>
                           </button>
                         )}
@@ -463,22 +463,22 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                     </div>
 
                     {/* Protocol Steps Box */}
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-xs">
-                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 mb-1.5">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] rounded-lg border border-slate-100 dark:border-slate-800 prodexus:border-[#E2ECF1] text-xs">
+                      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                         Protocolo de Tareas ({tasks.length} pasos):
                       </p>
-                      <ul className="space-y-1 text-slate-700 text-[11px]">
+                      <ul className="space-y-1 text-slate-700 dark:text-slate-300 text-[11px]">
                         {tasks.map((task, tIdx) => (
                           <li key={tIdx} className="flex items-start gap-1.5">
-                            <span className="text-slate-400 font-mono text-[10px] select-none shrink-0">•</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-mono text-[10px] select-none shrink-0">•</span>
                             <span className="line-clamp-2">{task}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
-                      <span>Técnico sugerido: <strong className="text-slate-700">{item.equipo.tecnico || 'Por asignar'}</strong></span>
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#E6EEF2]">
+                      <span>Técnico sugerido: <strong className="text-slate-700 dark:text-slate-200">{item.equipo.tecnico || 'Por asignar'}</strong></span>
                       <span className="font-mono text-[10px]">ID: {item.equipo.codigo_eq}</span>
                     </div>
                   </div>
@@ -492,21 +492,21 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
       {/* SUBTAB 2: Cierre de Preventivos */}
       {activeSubTab === 'cierre' && (
         <div className="space-y-4 max-w-3xl mx-auto">
-          <div className="bg-white p-6 rounded-xl border border-slate-200 space-y-5">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] space-y-5">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                 Registro y Cierre de Orden Preventiva
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                 Ingrese la fecha real de ejecución y observaciones para alimentar la auditoría del Plan Maestro.
               </p>
             </div>
 
             {pendientesCierreList.length === 0 ? (
-              <div className="p-8 text-center bg-emerald-50 rounded-lg border border-emerald-200">
-                <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                <h3 className="text-sm font-bold text-emerald-900">¡Al día con el Plan!</h3>
-                <p className="text-xs text-emerald-700 mt-1">
+              <div className="p-8 text-center bg-emerald-50 dark:bg-emerald-950/40 rounded-lg border border-emerald-200 dark:border-emerald-800/70">
+                <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400 prodexus:text-[#1FB85C] mx-auto mb-2" />
+                <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-200">¡Al día con el Plan!</h3>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
                   No existen órdenes preventivas vencidas o pendientes de cierre en el período actual.
                 </p>
               </div>
@@ -514,7 +514,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
               <form onSubmit={handleCierreSubmit} className="space-y-4">
                 {/* Select Order */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                     Seleccione Orden Preventiva Pendiente *
                   </label>
                   <select
@@ -529,7 +529,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                       setCheckedTasks({});
                     }}
                     required
-                    className="w-full text-xs font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full text-xs font-semibold text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
                   >
                     <option value="">-- Seleccionar de la lista ({pendientesCierreList.length} pendientes) --</option>
                     {pendientesCierreList.map(item => (
@@ -543,15 +543,15 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                 {selectedPendingItem && (
                   <>
                     {/* Protocol Checklist Verification */}
-                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-2">
-                      <span className="font-bold text-[11px] uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                        <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] text-xs space-y-2">
+                      <span className="font-bold text-[11px] uppercase tracking-wider text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] flex items-center gap-1.5">
+                        <CheckSquare className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
                         Verificación de Tareas del Protocolo
                       </span>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
                         Marque los pasos que fueron completados satisfactoriamente durante la mantención:
                       </p>
-                      <div className="space-y-2 mt-2 pt-2 border-t border-slate-200">
+                      <div className="space-y-2 mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
                         {selectedPendingItem.equipo.tareas.split('\n').filter(t => t.trim().length > 0).map((t, idx) => (
                           <label key={idx} className="flex items-start gap-2 cursor-pointer select-none">
                             <input
@@ -560,7 +560,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                               onChange={(e) => setCheckedTasks(prev => ({ ...prev, [idx]: e.target.checked }))}
                               className="mt-0.5 rounded text-blue-600 focus:ring-blue-500"
                             />
-                            <span className={`text-xs ${checkedTasks[idx] ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>
+                            <span className={`text-xs ${checkedTasks[idx] ? 'text-slate-900 dark:text-slate-100 font-medium' : 'text-slate-600 dark:text-slate-400'}`}>
                               {t}
                             </span>
                           </label>
@@ -570,7 +570,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                           Fecha Real de Ejecución *
                         </label>
                         <input
@@ -578,19 +578,19 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                           value={cierreFechaReal}
                           onChange={(e) => setCierreFechaReal(e.target.value)}
                           required
-                          className="w-full text-xs font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full text-xs font-semibold text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                           Técnico Ejecutor *
                         </label>
                         <select
                           value={cierreTecnico}
                           onChange={(e) => setCierreTecnico(e.target.value)}
                           required
-                          className="w-full text-xs font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full text-xs font-semibold text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">-- Seleccionar Técnico --</option>
                           {tecnicos.filter(t => t.estado === 'Activo').map(tec => (
@@ -603,7 +603,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                         Duración de la Intervención (Horas)
                       </label>
                       <input
@@ -612,7 +612,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                         min="0.5"
                         value={cierreHoras}
                         onChange={(e) => setCierreHoras(Number(e.target.value))}
-                        className="w-full text-xs font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full text-xs font-semibold text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
@@ -628,7 +628,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                     />
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] mb-1">
                         Hallazgos, Parámetros Medidos & Observaciones
                       </label>
                       <textarea
@@ -636,7 +636,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                         placeholder="Detalle parámetros relevantes: presiones, amperaje, temperatura, estado de correas, recomendaciones..."
                         value={cierreComentarios}
                         onChange={(e) => setCierreComentarios(e.target.value)}
-                        className="w-full text-xs text-slate-900 bg-white border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full text-xs text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
@@ -644,12 +644,12 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                       {canClose ? (
                         <button
                           type="submit"
-                          className="w-full py-2.5 px-4 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+                          className="w-full py-2.5 px-4 text-xs font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#189A4C] transition-colors shadow-sm"
                         >
                           Registrar Cierre y Sincronizar con Plan Maestro
                         </button>
                       ) : (
-                        <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium text-center">
+                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-xs font-medium text-center">
                           Su perfil no tiene permiso para cerrar órdenes preventivas (`cerrar_ordenes`).
                         </div>
                       )}
@@ -664,23 +664,23 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
 
       {/* SUBTAB 3: Historial */}
       {activeSubTab === 'historial' && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden space-y-4 p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden space-y-4 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Buscar en historial por equipo o folio..."
                 value={searchHistory}
                 onChange={(e) => setSearchHistory(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                 <tr>
                   <th className="py-2.5 px-3">Folio OT</th>
                   <th className="py-2.5 px-3">Equipo</th>
@@ -692,7 +692,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                   <th className="py-2.5 px-3 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E6EEF2]">
                 {historial
                   .filter(h => {
                     const eqMatch = equipos.find(e => e.codigo_eq === h.codigo_eq);
@@ -732,15 +732,15 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                       : null;
 
                     return (
-                      <tr key={row.id || row.id_ot} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-2.5 px-3 font-mono font-bold text-blue-600">
+                      <tr key={row.id || row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                        <td className="py-2.5 px-3 font-mono font-bold text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]">
                           {row.id_ot}
                           {row.firma_tecnico && (
                             <span
                               className={`block text-[9.5px] font-sans font-semibold ${
                                 row.validado_supervisor || row.firma_supervisor
-                                  ? 'text-emerald-700'
-                                  : 'text-amber-700'
+                                  ? 'text-emerald-700 dark:text-emerald-400'
+                                  : 'text-amber-700 dark:text-amber-400'
                               }`}
                             >
                               {row.validado_supervisor || row.firma_supervisor
@@ -749,23 +749,23 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                             </span>
                           )}
                         </td>
-                        <td className="py-2.5 px-3 font-semibold text-slate-900">
+                        <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                           {eqObj?.nombre || row.codigo_eq}
-                          <span className="block text-[10px] text-slate-400 font-normal">{row.codigo_eq}</span>
+                          <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-normal">{row.codigo_eq}</span>
                         </td>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-600">
+                        <td className="py-2.5 px-3 text-center font-mono text-slate-600 dark:text-slate-300">
                           {MESES_L[row.mes_n - 1] || row.mes_n}
                         </td>
-                        <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700">
+                        <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700 dark:text-emerald-400">
                           {row.fecha_real}
                         </td>
-                        <td className="py-2.5 px-3 font-medium text-slate-700">
+                        <td className="py-2.5 px-3 font-medium text-slate-700 dark:text-slate-200">
                           {row.tecnico}
                         </td>
-                        <td className="py-2.5 px-3 text-slate-600 max-w-xs truncate" title={row.comentarios}>
+                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-xs truncate" title={row.comentarios}>
                           {row.comentarios}
                         </td>
-                        <td className="py-2.5 px-3 text-slate-500 text-[11px]">
+                        <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400 text-[11px]">
                           {row.repuestos_utilizados || '-'}
                         </td>
                         <td className="py-2.5 px-3 text-right">
@@ -773,7 +773,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                             <button
                               type="button"
                               onClick={() => onPrintOrder(printHistoryDoc)}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded inline-flex items-center gap-1"
+                              className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded inline-flex items-center gap-1"
                               title="Imprimir / PDF Orden Cerrada"
                             >
                               <Printer className="w-3.5 h-3.5" />

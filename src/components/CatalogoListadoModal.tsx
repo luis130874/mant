@@ -470,22 +470,22 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
   );
 
   return (
-    <div className="print-modal-root fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-4 sm:p-6">
+    <div className="print-modal-root fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-4 sm:p-6">
       {/* Top Action Bar */}
-      <div className="sticky top-0 z-10 w-full max-w-6xl bg-white border border-slate-200 rounded-xl p-3 shadow-lg flex flex-wrap items-center justify-between gap-3 mb-4 no-print">
+      <div className="sticky top-0 z-10 w-full max-w-6xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-xl p-3 shadow-lg flex flex-wrap items-center justify-between gap-3 mb-4 no-print">
         <div className="flex items-center gap-2.5">
           {mode === 'equipos' ? (
-            <Cpu className="w-5 h-5 text-blue-600" />
+            <Cpu className="w-5 h-5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
           ) : (
-            <Gauge className="w-5 h-5 text-indigo-600" />
+            <Gauge className="w-5 h-5 text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]" />
           )}
           <div>
-            <span className="text-sm font-bold text-slate-900 block">
+            <span className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] block">
               {mode === 'equipos'
                 ? 'Emisión de Listado de Equipos'
                 : 'Emisión de Listado de Instrumentos'}
             </span>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
               {totalItemsCount} {mode === 'equipos' ? 'registros' : 'instrumentos'} · {totalPages}{' '}
               {totalPages === 1 ? 'hoja' : 'hojas'}
             </span>
@@ -494,13 +494,13 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
 
         <div className="flex flex-wrap items-center gap-2">
           {isTercerosEnabled && (
-            <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 text-[11px]">
-              <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+            <div className="flex items-center gap-1.5 bg-blue-50 dark:bg-slate-800 prodexus:bg-[#EBF3FF] border border-blue-200 dark:border-slate-700 prodexus:border-[#2F7CF6]/40 rounded-lg px-2 py-1 text-[11px]">
+              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6] shrink-0" />
               <select
                 value={selectedEmpresaModal}
                 onChange={(e) => setSelectedEmpresaModal(e.target.value)}
                 aria-label="Filtrar listado de equipos por empresa"
-                className="bg-transparent border-none font-bold text-blue-900 focus:outline-none cursor-pointer"
+                className="bg-transparent border-none font-bold text-blue-900 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none cursor-pointer"
               >
                 <option value="Todas">Todas las Empresas</option>
                 {empresasTercerosDisponibles.map(empName => (
@@ -516,14 +516,14 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
           )}
 
           {mode === 'equipos' && (
-            <div className="inline-flex p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-[11px] font-semibold mr-1">
+            <div className="inline-flex p-0.5 bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] font-semibold mr-1">
               <button
                 type="button"
                 onClick={() => setEquipoVistaModo('planes')}
                 className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 ${
                   equipoVistaModo === 'planes'
-                    ? 'bg-white text-blue-700 shadow-2xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 prodexus:text-[#2F7CF6] shadow-2xs font-bold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Layers className="w-3 h-3" />
@@ -534,8 +534,8 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
                 onClick={() => setEquipoVistaModo('consolidado')}
                 className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 ${
                   equipoVistaModo === 'consolidado'
-                    ? 'bg-white text-blue-700 shadow-2xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 prodexus:text-[#2F7CF6] shadow-2xs font-bold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Cpu className="w-3 h-3" />
@@ -547,7 +547,7 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
           <button
             type="button"
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/70 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
             <span>Excel (CSV)</span>
@@ -557,7 +557,7 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
             type="button"
             onClick={handleDownloadPDF}
             disabled={isGeneratingPDF}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-slate-900 rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-slate-900 dark:bg-slate-700 prodexus:bg-[#132B36] rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 prodexus:hover:bg-[#1B3A48] disabled:opacity-50 transition-colors shadow-xs"
           >
             {isGeneratingPDF ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -570,7 +570,7 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
           <button
             type="button"
             onClick={handleTriggerNativePrint}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Imprimir Listado</span>
@@ -579,7 +579,7 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-slate-500 hover:text-slate-800 rounded-lg"
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg"
             title="Cerrar Vista Previa"
           >
             <X className="w-5 h-5" />

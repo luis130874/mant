@@ -79,12 +79,12 @@ export const PrintModal: React.FC<PrintModalProps> = ({ documents, onClose }) =>
   };
 
   return (
-    <div className="print-modal-root fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-4 sm:p-6">
+    <div className="print-modal-root fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-4 sm:p-6">
       {/* Top Bar for Action (Hidden on Print) */}
-      <div className="sticky top-0 z-10 w-full max-w-4xl bg-white border border-slate-200 rounded-xl p-3 shadow-lg flex items-center justify-between gap-4 mb-4 no-print">
+      <div className="sticky top-0 z-10 w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] rounded-xl p-3 shadow-lg flex items-center justify-between gap-4 mb-4 no-print">
         <div className="flex items-center gap-2">
-          <Printer className="w-5 h-5 text-blue-600" />
-          <span className="text-sm font-bold text-slate-900">
+          <Printer className="w-5 h-5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
+          <span className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
             Vista Previa de Impresión ({documents.length} {documents.length === 1 ? 'orden' : 'órdenes'})
           </span>
         </div>
@@ -93,7 +93,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({ documents, onClose }) =>
           <button
             onClick={handleDownloadPDF}
             disabled={isGenerating}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 prodexus:hover:bg-[#F3F6F8] disabled:opacity-50 transition-colors shadow-xs"
           >
             {isGenerating ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -104,14 +104,14 @@ export const PrintModal: React.FC<PrintModalProps> = ({ documents, onClose }) =>
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Imprimir Orden</span>
           </button>
           <button
             onClick={onClose}
-            className="p-2 text-slate-500 hover:text-slate-800 rounded-lg"
+            className="p-2 text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] hover:text-slate-800 dark:hover:text-slate-100 rounded-lg"
           >
             <X className="w-5 h-5" />
           </button>
