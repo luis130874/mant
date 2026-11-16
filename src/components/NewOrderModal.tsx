@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, AlertTriangle, FileCheck2, ClipboardList, Plus, Compass, Sparkles } from 'lucide-react';
+import { X, AlertTriangle, FileCheck2, ClipboardList, Plus, Compass } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { formatFechaDDMMYYYY, parseFecha } from '../utils/maintenanceEngine';
 
@@ -26,7 +26,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
     addToast
   } = useMaintenance();
 
-  const [tipo, setTipo] = useState<'MC' | 'OT' | 'MM' | 'MP' | 'CAL'>('MC');
+  const [tipo, setTipo] = useState<'MC' | 'OT' | 'MP' | 'CAL'>('MC');
   const [equipoCode, setEquipoCode] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [fechaTentativa, setFechaTentativa] = useState(new Date().toISOString().slice(0, 10));
@@ -61,9 +61,8 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
         falla_reportada: descripcion,
         tecnico: tecnico || 'Por Cuadrilla'
       });
-    } else if (tipo === 'OT' || tipo === 'MM') {
+    } else if (tipo === 'OT') {
       crearOrdenTrabajo({
-        tipo_orden: tipo,
         codigo_eq: equipoCode || 'PLANTA-GEN',
         cliente: clienteName,
         fecha_emision: hoyStr,
@@ -123,70 +122,57 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Type Selector */}
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-4 gap-2">
           <button
             type="button"
             onClick={() => { setTipo('MC'); setDiasTolerancia(2); }}
-            className={`p-2 rounded-lg border text-[11px] font-semibold flex flex-col items-center gap-1 transition-all ${
+            className={`p-2.5 rounded-lg border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
               tipo === 'MC'
                 ? 'border-amber-500 bg-amber-50 text-amber-900 shadow-xs'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-            <span className="truncate">Correctivo</span>
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <span>Correctivo</span>
           </button>
 
           <button
             type="button"
             onClick={() => { setTipo('CAL'); setDiasTolerancia(7); }}
-            className={`p-2 rounded-lg border text-[11px] font-semibold flex flex-col items-center gap-1 transition-all ${
+            className={`p-2.5 rounded-lg border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
               tipo === 'CAL'
                 ? 'border-indigo-500 bg-indigo-50 text-indigo-900 shadow-xs'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            <Compass className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="truncate">Calibración</span>
+            <Compass className="w-4 h-4 text-indigo-600" />
+            <span>Calibración</span>
           </button>
 
           <button
             type="button"
             onClick={() => { setTipo('OT'); setDiasTolerancia(5); }}
-            className={`p-2 rounded-lg border text-[11px] font-semibold flex flex-col items-center gap-1 transition-all ${
+            className={`p-2.5 rounded-lg border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
               tipo === 'OT'
                 ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-xs'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            <ClipboardList className="w-3.5 h-3.5 text-blue-600" />
-            <span className="truncate">Trabajo/OT</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => { setTipo('MM'); setDiasTolerancia(5); }}
-            className={`p-2 rounded-lg border text-[11px] font-semibold flex flex-col items-center gap-1 transition-all ${
-              tipo === 'MM'
-                ? 'border-violet-500 bg-violet-50 text-violet-900 shadow-xs'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-violet-600" />
-            <span className="truncate">Mejorativo</span>
+            <ClipboardList className="w-4 h-4 text-blue-600" />
+            <span>Trabajo/OT</span>
           </button>
 
           <button
             type="button"
             onClick={() => { setTipo('MP'); setDiasTolerancia(0); }}
-            className={`p-2 rounded-lg border text-[11px] font-semibold flex flex-col items-center gap-1 transition-all ${
+            className={`p-2.5 rounded-lg border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
               tipo === 'MP'
                 ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-xs'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
-            <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="truncate">Preventivo</span>
+            <FileCheck2 className="w-4 h-4 text-emerald-600" />
+            <span>Preventivo</span>
           </button>
         </div>
 

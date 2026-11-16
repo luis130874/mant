@@ -25,8 +25,6 @@ import { canValidateDigitalOrder } from '../utils/rbac';
 import { getPendingSupervisorValidations } from '../utils/supervisorValidations';
 import {
   MESES_L,
-  IndicesIngenieriaPlanta,
-  calcularIndicesIngenieriaPlanta,
   calcularKpiMensual,
   calcularKpisTecnicos,
   generarMapaFoliosAnual
@@ -82,7 +80,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
 
   // Calculate Annual KPI Acumulado
   let anualProg = 0;
-  let anualCumplidas = 0;
   let anualEnFecha = 0;
   let anualFueraFecha = 0;
   let anualPendientes = 0;
@@ -90,35 +87,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
   for (let m = 1; m <= 12; m++) {
     const k = calcularKpiMensual(equiposFiltrados, historial, frecuencias, m, selectedAnio, mapaFolios);
     anualProg += k.total_programados;
-    anualCumplidas += k.cumplidas;
     anualEnFecha += k.en_fecha;
     anualFueraFecha += k.fuera_fecha;
     anualPendientes += k.pendientes_vencidos;
   }
-  // Tasa de cumplimiento MP = N° MP cumplidas / N° MP programadas
-  const pctAnual = anualProg > 0 ? (anualCumplidas / anualProg) * 100 : 0;
-
-  const indicesMensuales = calcularIndicesIngenieriaPlanta({
-    equipos: equiposFiltrados,
-    historial,
-    frecuencias,
-    correctivos: correctivosFiltrados,
-    ordenesTrabajo: ordenesFiltradas,
-    anio: selectedAnio,
-    mesIdx: mesKpiSel,
-    mapaFolios
-  });
-
-  const indicesAnuales = calcularIndicesIngenieriaPlanta({
-    equipos: equiposFiltrados,
-    historial,
-    frecuencias,
-    correctivos: correctivosFiltrados,
-    ordenesTrabajo: ordenesFiltradas,
-    anio: selectedAnio,
-    mesIdx: null,
-    mapaFolios
-  });
+  const pctAnual = anualProg > 0 ? (anualEnFecha / anualProg) * 100 : 0;
 
   // 12-Month Data for Bar Chart
   const evolutionData = MESES_L.map((mLabel, idx) => {
@@ -127,7 +100,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
       mes: mLabel,
       pct: Math.round(k.porcentaje_cumplimiento),
       programados: k.total_programados,
-      cumplidas: k.cumplidas,
       enFecha: k.en_fecha,
       fueraFecha: k.fuera_fecha,
       vencidos: k.pendientes_vencidos
@@ -265,7 +237,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Cumplimiento MP {MESES_L[mesKpiSel - 1]}</span>
+            <span>Cumplimiento {MESES_L[mesKpiSel - 1]}</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -273,17 +245,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
               {kpiMes.porcentaje_cumplimiento.toFixed(1)}%
             </span>
             <span className="text-xs font-medium text-slate-500 font-mono tabular-nums">
-              ({kpiMes.cumplidas}/{kpiMes.total_programados})
+              ({kpiMes.en_fecha}/{kpiMes.total_programados})
             </span>
           </div>
           <p className="text-[11px] text-slate-500 mt-2">
-            MP cumplidas / programadas · En fecha: <span className="font-semibold text-slate-700">{kpiMes.en_fecha}</span>
+            {kpiMes.fuera_fecha} cerrados fuera de tolerancia · {kpiMes.pendientes_vencidos} vencidos
           </p>
         </div>
 
         <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Cumplimiento MP Anual {selectedAnio}</span>
+            <span>Cumplimiento Anual {selectedAnio}</span>
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -291,11 +263,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
               {pctAnual.toFixed(1)}%
             </span>
             <span className="text-xs font-medium text-slate-500 font-mono tabular-nums">
-              ({anualCumplidas}/{anualProg})
+              ({anualEnFecha}/{anualProg})
             </span>
           </div>
           <p className="text-[11px] text-slate-500 mt-2">
-            MP cumplidas / programadas · En fecha: <span className="font-semibold text-slate-700">{anualEnFecha}</span>
+            Meta corporativa SLA: 95.0% puntualidad
           </p>
         </div>
 
@@ -428,18 +400,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
               <div className="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 text-center relative overflow-hidden">
                 <div className="max-w-md mx-auto">
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                    Tasa de Cumplimiento MP · {MESES_L[mesKpiSel - 1]} {selectedAnio}
+                    Cumplimiento Preventivo Mensual · {MESES_L[mesKpiSel - 1]} {selectedAnio}
                   </span>
                   <div className="text-5xl sm:text-6xl font-black text-emerald-600 font-mono mt-3 tabular-nums">
                     {kpiMes.porcentaje_cumplimiento.toFixed(1)}%
                   </div>
                   <p className="text-xs text-slate-500 mt-3">
-                    N° MP cumplidas ({kpiMes.cumplidas}) / N° MP programadas ({kpiMes.total_programados}) · Puntualidad en tolerancia: {kpiMes.porcentaje_puntualidad.toFixed(1)}%
+                    {kpiMes.en_fecha} de {kpiMes.total_programados} mantenimientos preventivos completados dentro de ventana de tolerancia.
                   </p>
                 </div>
               </div>
-
-              <PlantEngineeringIndicesCard indices={indicesMensuales} />
             </div>
           )}
 
@@ -475,17 +445,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
 
               <div className="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 text-center">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                  Tasa de Cumplimiento MP Consolidada {selectedAnio}
+                  Cumplimiento Preventivo Consolidado {selectedAnio}
                 </span>
                 <div className="text-5xl sm:text-6xl font-black text-blue-600 font-mono mt-3 tabular-nums">
                   {pctAnual.toFixed(1)}%
                 </div>
                 <p className="text-xs text-slate-500 mt-3">
-                  N° MP cumplidas ({anualCumplidas}) / N° MP programadas ({anualProg}) · En fecha: {anualEnFecha}
+                  Basado en {anualProg} intervenciones anuales planificadas en el calendario maestro.
                 </p>
               </div>
-
-              <PlantEngineeringIndicesCard indices={indicesAnuales} />
             </div>
           )}
 
@@ -680,13 +648,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
               >
                 <div>
                   <div className="flex items-center gap-2 font-mono font-semibold text-slate-900">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                      o.tipo_orden === 'MM'
-                        ? 'bg-violet-100 text-violet-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {o.tipo_orden === 'MM' ? 'MM' : 'OT'}
-                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px]">OT</span>
                     <span>{o.id_ot}</span>
                     <span className="text-slate-400">·</span>
                     <span className="text-slate-600 font-sans font-normal">{o.codigo_eq}</span>
@@ -702,143 +664,5 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
         </div>
       )}
     </div>
-  );
-};
-
-const PlantEngineeringIndicesCard: React.FC<{ indices: IndicesIngenieriaPlanta }> = ({ indices }) => {
-  const total = indices.totalIntervenciones;
-  const distributionItems = [
-    {
-      code: 'IMP',
-      label: 'Mant. Preventivos',
-      value: indices.imp,
-      count: indices.nMP,
-      barColor: 'bg-emerald-600',
-      textColor: 'text-emerald-700',
-      formula: 'N° MP / (MP + MC + MM + OT)'
-    },
-    {
-      code: 'IMM',
-      label: 'Mant. Mejorativos',
-      value: indices.imm,
-      count: indices.nMM,
-      barColor: 'bg-violet-600',
-      textColor: 'text-violet-700',
-      formula: 'N° MM / (MP + MC + MM + OT)'
-    },
-    {
-      code: 'IOT',
-      label: 'Órdenes de Trabajo',
-      value: indices.iot,
-      count: indices.nOT,
-      barColor: 'bg-blue-600',
-      textColor: 'text-blue-700',
-      formula: 'N° OT / (MP + MC + MM + OT)'
-    },
-    {
-      code: 'IMC',
-      label: 'Mant. Correctivos',
-      value: indices.imc,
-      count: indices.nMC,
-      barColor: 'bg-amber-600',
-      textColor: 'text-amber-700',
-      formula: 'N° MC / (MP + MC + MM + OT)'
-    }
-  ];
-
-  return (
-    <section className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-        <div>
-          <h3 className="text-sm font-bold text-slate-900">
-            Indicadores de Ingeniería de Planta · {indices.periodoLabel}
-          </h3>
-          <p className="text-xs text-slate-500">
-            Tasas de cumplimiento y distribución proporcional de intervenciones del periodo.
-          </p>
-        </div>
-        <div className="text-xs text-slate-600 font-mono tabular-nums">
-          Total periodo: <strong className="text-slate-900">{total}</strong> intervenciones
-        </div>
-      </div>
-
-      {/* Compliance Rates: OT & MP */}
-      <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200 border border-slate-200 rounded-xl">
-        <div className="p-4 space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold text-slate-700">Tasa de Cumplimiento OT</span>
-            <span className="text-[11px] font-mono tabular-nums text-slate-500">
-              {indices.otCerradas} / {indices.otAbiertas}
-            </span>
-          </div>
-          <div className="text-2xl font-extrabold text-blue-700 font-mono tabular-nums">
-            {indices.tasaCumplimientoOT.toFixed(1)}%
-          </div>
-          <p className="text-[11px] text-slate-500">
-            N° OT cerradas ({indices.otCerradas}) / N° OT abiertas ({indices.otAbiertas}) en el periodo
-          </p>
-        </div>
-
-        <div className="p-4 space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold text-slate-700">Tasa de Cumplimiento MP</span>
-            <span className="text-[11px] font-mono tabular-nums text-slate-500">
-              {indices.mpCumplidas} / {indices.mpProgramadas}
-            </span>
-          </div>
-          <div className="text-2xl font-extrabold text-emerald-700 font-mono tabular-nums">
-            {indices.tasaCumplimientoMP.toFixed(1)}%
-          </div>
-          <p className="text-[11px] text-slate-500">
-            N° MP cumplidas ({indices.mpCumplidas}) / N° MP programadas ({indices.mpProgramadas}) · {indices.mpEnFecha} en fecha, {indices.mpFueraFecha} fuera de tolerancia
-          </p>
-        </div>
-      </div>
-
-      {/* Proportional Distribution Bar */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-700">Composición del Mantenimiento (MP + MC + MM + OT)</span>
-          <span className="text-[11px] text-slate-500 font-mono tabular-nums">
-            {indices.nMP} MP · {indices.nMM} MM · {indices.nOT} OT · {indices.nMC} MC
-          </span>
-        </div>
-        <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden flex">
-          {total > 0 &&
-            distributionItems.map(item =>
-              item.value > 0 ? (
-                <div
-                  key={item.code}
-                  style={{ width: `${item.value}%` }}
-                  className={`${item.barColor} h-full transition-all`}
-                  title={`${item.code} (${item.label}): ${item.value.toFixed(1)}%`}
-                />
-              ) : null
-            )}
-        </div>
-      </div>
-
-      {/* 4 Maintenance Mix Indices Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border border-slate-200 rounded-xl">
-        {distributionItems.map(item => (
-          <div key={item.code} className="p-4 space-y-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-slate-800">
-                {item.code} · {item.label}
-              </span>
-            </div>
-            <div className="flex items-baseline justify-between gap-2">
-              <span className={`text-2xl font-extrabold font-mono tabular-nums ${item.textColor}`}>
-                {item.value.toFixed(1)}%
-              </span>
-              <span className="text-xs font-mono tabular-nums text-slate-500">
-                {item.count}/{total}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 font-mono">{item.formula}</p>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 };

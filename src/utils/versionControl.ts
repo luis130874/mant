@@ -4,7 +4,7 @@
  */
 
 export const APP_VERSION: string =
-  typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '57.5.0';
+  typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '57.4.0';
 
 export const APP_BUILD_ID: string =
   typeof __APP_BUILD_ID__ !== 'undefined' ? __APP_BUILD_ID__ : 'dev';
