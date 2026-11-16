@@ -56,8 +56,10 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
 
   const [activeSubTab, setActiveSubTab] = useState<'emitir' | 'cierre' | 'historial'>('emitir');
   const [searchQuery, setSearchQuery] = useState('');
+  const [tipoFiltro, setTipoFiltro] = useState<'TODOS' | 'OT' | 'MM'>('TODOS');
 
   // Form states for Emission
+  const [tipoOrden, setTipoOrden] = useState<'OT' | 'MM'>('OT');
   const [selectedEquipoCode, setSelectedEquipoCode] = useState('');
   const [fechaEmision, setFechaEmision] = useState(new Date().toISOString().slice(0, 10));
   const [fechaTentativa, setFechaTentativa] = useState(new Date().toISOString().slice(0, 10));
@@ -82,8 +84,13 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
     ? ordenesTrabajo
     : ordenesTrabajo.filter(o => o.cliente.trim() === selectedCliente.trim());
 
-  const pendientesList = ordenesCliente.filter(o => o.estado === 'Pendiente');
-  const cerradosList = ordenesCliente.filter(o => o.estado.startsWith('Cerrada'));
+  const ordenesFiltradasTipo = ordenesCliente.filter(o => {
+    const t = o.tipo_orden === 'MM' ? 'MM' : 'OT';
+    return tipoFiltro === 'TODOS' ? true : t === tipoFiltro;
+  });
+
+  const pendientesList = ordenesFiltradasTipo.filter(o => o.estado === 'Pendiente');
+  const cerradosList = ordenesFiltradasTipo.filter(o => o.estado.startsWith('Cerrada'));
 
   const handleEmitirSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +106,7 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
     const dTent = parseFecha(fechaTentativa) || new Date();
 
     crearOrdenTrabajo({
+      tipo_orden: tipoOrden,
       codigo_eq: selectedEquipoCode || 'PLANTA-GEN',
       cliente: clienteName,
       fecha_emision: formatFechaDDMMYYYY(dEmision),
@@ -271,6 +279,36 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
             <form onSubmit={handleEmitirSubmit} className="space-y-3.5 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
+                  Clasificación de Ingeniería
+                </label>
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setTipoOrden('OT')}
+                    className={`py-1.5 px-2.5 rounded-md font-semibold transition-colors whitespace-nowrap ${
+                      tipoOrden === 'OT'
+                        ? 'bg-white text-blue-700 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    OT · Orden de Trabajo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTipoOrden('MM')}
+                    className={`py-1.5 px-2.5 rounded-md font-semibold transition-colors whitespace-nowrap ${
+                      tipoOrden === 'MM'
+                        ? 'bg-white text-violet-700 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    MM · Mant. Mejorativo
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
                   Equipo o Ubicación de Planta
                 </label>
                 <select
@@ -395,9 +433,27 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
 
           {/* Pending List and Printable sheets */}
           <div className="lg:col-span-7 space-y-4">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              Órdenes de Trabajo en Ejecución ({pendientesList.length})
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Órdenes en Ejecución ({pendientesList.length})
+              </h2>
+              <div className="inline-flex p-1 bg-slate-100 rounded-lg text-[11px]">
+                {(['TODOS', 'OT', 'MM'] as const).map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setTipoFiltro(f)}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
+                      tipoFiltro === f
+                        ? 'bg-white text-slate-900 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {f === 'TODOS' ? 'Todas' : f === 'OT' ? 'Solo OT' : 'Solo MM'}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {pendientesList.length === 0 ? (
               <div className="bg-white p-8 text-center rounded-xl border border-slate-200 text-slate-500 text-xs">
@@ -414,9 +470,16 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-bold text-sm text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                               {o.id_ot}
+                            </span>
+                            <span className={`font-mono font-bold text-[10px] px-1.5 py-0.5 rounded border ${
+                              o.tipo_orden === 'MM'
+                                ? 'bg-violet-50 text-violet-700 border-violet-200'
+                                : 'bg-slate-100 text-slate-700 border-slate-200'
+                            }`}>
+                              {o.tipo_orden === 'MM' ? 'MM · Mejorativo' : 'OT'}
                             </span>
                             <span className="text-xs font-bold text-slate-900">
                               {eq?.nombre || o.codigo_eq}
@@ -670,7 +733,16 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                   .map(row => (
                     <tr key={row.id_ot} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-2.5 px-3 font-mono font-bold text-blue-700">
-                        {row.id_ot}
+                        <div className="flex items-center gap-1.5">
+                          <span>{row.id_ot}</span>
+                          <span className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                            row.tipo_orden === 'MM'
+                              ? 'bg-violet-50 text-violet-700 border-violet-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}>
+                            {row.tipo_orden === 'MM' ? 'MM' : 'OT'}
+                          </span>
+                        </div>
                         {row.firma_tecnico && (
                           <span className="block text-[9.5px] font-sans font-semibold text-emerald-700">
                             Firmada Digital

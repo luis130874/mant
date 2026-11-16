@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import {defineConfig, Plugin} from 'vite';
 
-const APP_VERSION = '57.4.0';
+const APP_VERSION = '57.5.0';
 const APP_BUILD_ID = `${APP_VERSION}-${Date.now()}`;
 
 function prodexusVersionPlugin(): Plugin {

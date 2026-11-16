@@ -339,6 +339,7 @@ export const INITIAL_CORRECTIVOS: OrdenCorrectivo[] = [
 export const INITIAL_ORDENES_TRABAJO: OrdenTrabajoOT[] = [
   {
     id_ot: 'OT-2026-01-0001',
+    tipo_orden: 'MM',
     codigo_eq: 'SUB-01',
     cliente: 'TermoIndustrial del Sur S.A.',
     fecha_emision: '05/01/2026',
@@ -354,6 +355,7 @@ export const INITIAL_ORDENES_TRABAJO: OrdenTrabajoOT[] = [
   },
   {
     id_ot: 'OT-2026-02-0001',
+    tipo_orden: 'OT',
     codigo_eq: 'CALD-01',
     cliente: 'TermoIndustrial del Sur S.A.',
     fecha_emision: '10/02/2026',
@@ -369,6 +371,7 @@ export const INITIAL_ORDENES_TRABAJO: OrdenTrabajoOT[] = [
   },
   {
     id_ot: 'OT-2026-03-0001',
+    tipo_orden: 'OT',
     codigo_eq: 'COMP-01',
     cliente: 'TermoIndustrial del Sur S.A.',
     fecha_emision: '01/03/2026',

@@ -573,11 +573,13 @@ export function calcularOcurrenciasInstrumento(
 export interface KpiMensual {
   mes_label: string;
   total_programados: number;
+  cumplidas: number;
   en_fecha: number;
   fuera_fecha: number;
   pendientes_vencidos: number;
   por_vencer: number;
   porcentaje_cumplimiento: number;
+  porcentaje_puntualidad: number;
 }
 
 export function calcularKpiMensual(
@@ -655,18 +657,179 @@ export function calcularKpiMensual(
     }
   }
 
+  const cumplidas = en_fecha + fuera_fecha;
   const porcentaje_cumplimiento = total_programados > 0
+    ? (cumplidas / total_programados) * 100
+    : 0;
+  const porcentaje_puntualidad = total_programados > 0
     ? (en_fecha / total_programados) * 100
     : 0;
 
   return {
     mes_label: MESES_L[mesIdx - 1],
     total_programados,
+    cumplidas,
     en_fecha,
     fuera_fecha,
     pendientes_vencidos,
     por_vencer,
-    porcentaje_cumplimiento
+    porcentaje_cumplimiento,
+    porcentaje_puntualidad
+  };
+}
+
+export interface IndicesIngenieriaPlanta {
+  periodoLabel: string;
+  // Tasa de cumplimiento OT = N° OT cerradas / N° OT abiertas en un periodo
+  otAbiertas: number;
+  otCerradas: number;
+  tasaCumplimientoOT: number;
+  // Tasa de cumplimiento MP = N° MP cumplidas / N° MP programadas en un periodo
+  mpProgramadas: number;
+  mpCumplidas: number;
+  mpEnFecha: number;
+  mpFueraFecha: number;
+  tasaCumplimientoMP: number;
+  // Índices de distribución: N° X / (N° MP + N° MC + N° MM + N° OT)
+  nMP: number;
+  nMC: number;
+  nMM: number;
+  nOT: number;
+  totalIntervenciones: number;
+  imp: number; // Índice de Mant. Preventivos (IMP)
+  imm: number; // Índice de Mant. Mejorativos (IMM)
+  iot: number; // Índice de Órdenes de Trabajo (IOT)
+  imc: number; // Índice de Mant. Correctivos (IMC)
+}
+
+function getOrderYearMonth(fechaStr?: string, folio?: string): { anio: number; mes: number } | null {
+  const parsed = parseFecha(fechaStr);
+  if (parsed && !isNaN(parsed.getTime())) {
+    return {
+      anio: parsed.getFullYear(),
+      mes: parsed.getMonth() + 1
+    };
+  }
+  if (folio) {
+    const m = String(folio).match(/^(?:MP|MC|OT|MM|CAL)-(\d{4})-(\d{2})-/i);
+    if (m) {
+      return {
+        anio: parseInt(m[1], 10),
+        mes: parseInt(m[2], 10)
+      };
+    }
+  }
+  return null;
+}
+
+function matchesPeriodo(
+  ym: { anio: number; mes: number } | null,
+  anio: number,
+  mesIdx: number | null
+): boolean {
+  if (!ym || ym.anio !== anio) return false;
+  if (mesIdx !== null && ym.mes !== mesIdx) return false;
+  return true;
+}
+
+export function calcularIndicesIngenieriaPlanta(params: {
+  equipos: Equipo[];
+  historial: RegistroHistorialMP[];
+  frecuencias: FrecuenciaConfig[];
+  correctivos: OrdenCorrectivo[];
+  ordenesTrabajo: OrdenTrabajoOT[];
+  anio: number;
+  mesIdx: number | null; // 1..12 for monthly, null for full annual
+  mapaFolios?: Map<string, string>;
+}): IndicesIngenieriaPlanta {
+  const {
+    equipos,
+    historial,
+    frecuencias,
+    correctivos,
+    ordenesTrabajo,
+    anio,
+    mesIdx,
+    mapaFolios
+  } = params;
+
+  const mapa = mapaFolios || generarMapaFoliosAnual(equipos, anio, frecuencias, historial);
+
+  // MP metrics from schedule + execution records
+  let mpProgramadas = 0;
+  let mpCumplidas = 0;
+  let mpEnFecha = 0;
+  let mpFueraFecha = 0;
+
+  const monthsToCheck = mesIdx !== null ? [mesIdx] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  for (const m of monthsToCheck) {
+    const km = calcularKpiMensual(equipos, historial, frecuencias, m, anio, mapa);
+    mpProgramadas += km.total_programados;
+    mpCumplidas += km.cumplidas;
+    mpEnFecha += km.en_fecha;
+    mpFueraFecha += km.fuera_fecha;
+  }
+
+  const tasaCumplimientoMP = mpProgramadas > 0 ? (mpCumplidas / mpProgramadas) * 100 : 0;
+
+  // Separate OT vs MM orders
+  const soloOT = ordenesTrabajo.filter(o => o.tipo_orden !== 'MM');
+  const soloMM = ordenesTrabajo.filter(o => o.tipo_orden === 'MM');
+
+  // N° OT abiertas en un periodo (emitidas/abiertas en el periodo)
+  const otAbiertasEnPeriodo = soloOT.filter(o =>
+    matchesPeriodo(getOrderYearMonth(o.fecha_emision, o.id_ot), anio, mesIdx)
+  );
+  // N° OT cerradas en un periodo
+  const otCerradasEnPeriodo = soloOT.filter(o =>
+    String(o.estado || '').startsWith('Cerrada') &&
+    matchesPeriodo(getOrderYearMonth(o.fecha_real || o.fecha_emision, o.id_ot), anio, mesIdx)
+  );
+
+  const otAbiertas = otAbiertasEnPeriodo.length;
+  const otCerradas = otCerradasEnPeriodo.length;
+  const tasaCumplimientoOT = otAbiertas > 0 ? (otCerradas / otAbiertas) * 100 : 0;
+
+  // N° MC, N° MM, N° OT en el periodo
+  const nMP = mpCumplidas;
+  const nMC = correctivos.filter(c =>
+    matchesPeriodo(getOrderYearMonth(c.fecha_emision, c.id_ot), anio, mesIdx)
+  ).length;
+  const nMM = soloMM.filter(o =>
+    matchesPeriodo(getOrderYearMonth(o.fecha_emision, o.id_ot), anio, mesIdx)
+  ).length;
+  const nOT = otAbiertas;
+
+  const totalIntervenciones = nMP + nMC + nMM + nOT;
+
+  const imp = totalIntervenciones > 0 ? (nMP / totalIntervenciones) * 100 : 0;
+  const imm = totalIntervenciones > 0 ? (nMM / totalIntervenciones) * 100 : 0;
+  const iot = totalIntervenciones > 0 ? (nOT / totalIntervenciones) * 100 : 0;
+  const imc = totalIntervenciones > 0 ? (nMC / totalIntervenciones) * 100 : 0;
+
+  const periodoLabel = mesIdx !== null
+    ? `${MESES_COMPLETOS[mesIdx - 1]} ${anio}`
+    : `Año ${anio}`;
+
+  return {
+    periodoLabel,
+    otAbiertas,
+    otCerradas,
+    tasaCumplimientoOT,
+    mpProgramadas,
+    mpCumplidas,
+    mpEnFecha,
+    mpFueraFecha,
+    tasaCumplimientoMP,
+    nMP,
+    nMC,
+    nMM,
+    nOT,
+    totalIntervenciones,
+    imp,
+    imm,
+    iot,
+    imc
   };
 }
 

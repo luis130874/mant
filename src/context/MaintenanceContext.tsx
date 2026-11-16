@@ -1366,8 +1366,10 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     const empId = resolveEmpresaId(data.cliente);
     const clienteObj = stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === empId);
+    const tipoOrden = data.tipo_orden === 'MM' ? 'MM' : 'OT';
     const nuevaOrden: OrdenTrabajoOT = {
       ...data,
+      tipo_orden: tipoOrden,
       cliente: clienteObj?.nombre || data.cliente,
       id_ot: folio,
       estado: 'Pendiente',
@@ -1376,7 +1378,11 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
     const currentEmpItems = (modulesMapRef.current[empId]?.ordenesTrabajo as OrdenTrabajoOT[]) || [];
     void persistEmpresaModulo(empId, 'ordenesTrabajo', [nuevaOrden, ...currentEmpItems]);
-    addToast(`Orden de Trabajo ${folio} emitida.`);
+    addToast(
+      tipoOrden === 'MM'
+        ? `Mantenimiento Mejorativo ${folio} emitido.`
+        : `Orden de Trabajo ${folio} emitida.`
+    );
     return folio;
   };
 

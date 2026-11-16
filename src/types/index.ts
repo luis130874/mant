@@ -109,6 +109,7 @@ export interface OrdenCorrectivo {
 
 export interface OrdenTrabajoOT {
   id_ot: string; // Folio OT-YYYY-MM-XXXX
+  tipo_orden?: 'OT' | 'MM'; // OT = Orden de Trabajo, MM = Mantenimiento Mejorativo
   codigo_eq: string;
   cliente: string;
   fecha_emision: string; // DD/MM/YYYY

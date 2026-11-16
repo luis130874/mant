@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, AlertTriangle, FileCheck2, ClipboardList, Plus, Compass } from 'lucide-react';
+import { X, AlertTriangle, FileCheck2, ClipboardList, Plus, Compass, Sparkles } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { formatFechaDDMMYYYY, parseFecha } from '../utils/maintenanceEngine';
 
@@ -26,7 +26,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
     addToast
   } = useMaintenance();
 
-  const [tipo, setTipo] = useState<'MC' | 'OT' | 'MP' | 'CAL'>('MC');
+  const [tipo, setTipo] = useState<'MC' | 'OT' | 'MM' | 'MP' | 'CAL'>('MC');
   const [equipoCode, setEquipoCode] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [fechaTentativa, setFechaTentativa] = useState(new Date().toISOString().slice(0, 10));
@@ -61,8 +61,9 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
         falla_reportada: descripcion,
         tecnico: tecnico || 'Por Cuadrilla'
       });
-    } else if (tipo === 'OT') {
+    } else if (tipo === 'OT' || tipo === 'MM') {
       crearOrdenTrabajo({
+        tipo_orden: tipo,
         codigo_eq: equipoCode || 'PLANTA-GEN',
         cliente: clienteName,
         fecha_emision: hoyStr,
@@ -122,7 +123,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Type Selector */}
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-5 gap-1.5">
           <button
             type="button"
             onClick={() => { setTipo('MC'); setDiasTolerancia(2); }}
@@ -133,7 +134,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
             }`}
           >
             <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-            <span>Correctivo</span>
+            <span className="truncate">Correctivo</span>
           </button>
 
           <button
@@ -146,7 +147,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
             }`}
           >
             <Compass className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Calibración</span>
+            <span className="truncate">Calibración</span>
           </button>
 
           <button
@@ -159,7 +160,20 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
             }`}
           >
             <ClipboardList className="w-3.5 h-3.5 text-blue-600" />
-            <span>Trabajo/OT</span>
+            <span className="truncate">Trabajo/OT</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setTipo('MM'); setDiasTolerancia(5); }}
+            className={`p-2 rounded-lg border text-[11px] font-semibold flex flex-col items-center gap-1 transition-all ${
+              tipo === 'MM'
+                ? 'border-violet-500 bg-violet-50 text-violet-900 shadow-xs'
+                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+            <span className="truncate">Mejorativo</span>
           </button>
 
           <button
@@ -172,7 +186,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
             }`}
           >
             <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Preventivo</span>
+            <span className="truncate">Preventivo</span>
           </button>
         </div>
 
