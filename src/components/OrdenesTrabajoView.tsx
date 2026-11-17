@@ -19,7 +19,7 @@ import {
 import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
 import { hasActionAccess } from '../utils/rbac';
-import { formatFechaDDMMYYYY, parseFecha } from '../utils/maintenanceEngine';
+import { formatFechaDDMMYYYY, parseFecha, tecnicoPerteneceAEmpresa } from '../utils/maintenanceEngine';
 import { OrdenTrabajoOT, Equipo } from '../types';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
 import { PrintableDocument } from './PrintModal';
@@ -356,11 +356,17 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                   className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">-- Por asignar / Cuadrilla de Proyectos --</option>
-                  {tecnicos.filter(t => t.estado === 'Activo').map(t => (
-                    <option key={t.codigo_tec} value={t.nombre}>
-                      {t.nombre} ({t.especialidad})
-                    </option>
-                  ))}
+                  {(() => {
+                    const eqSel = equiposCliente.find(e => e.codigo_eq === selectedEquipoCode);
+                    const targetClienteOT = eqSel?.cliente || selectedCliente;
+                    return tecnicos
+                      .filter(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, targetClienteOT))
+                      .map(t => (
+                        <option key={t.codigo_tec} value={t.nombre}>
+                          {t.nombre} ({t.especialidad})
+                        </option>
+                      ));
+                  })()}
                 </select>
               </div>
 
@@ -569,11 +575,26 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                         className="w-full font-semibold text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">-- Seleccionar Responsable --</option>
-                        {tecnicos.filter(t => t.estado === 'Activo').map(t => (
-                          <option key={t.codigo_tec} value={t.nombre}>
-                            {t.nombre} ({t.especialidad})
-                          </option>
-                        ))}
+                        {(() => {
+                          const otSel = pendientesList.find(p => p.id_ot === selectedOTToClose);
+                          const targetClienteOT = otSel?.cliente || selectedCliente;
+                          const scoped = tecnicos.filter(
+                            t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, targetClienteOT)
+                          );
+                          const hasSaved = cierreTecnico && scoped.some(t => t.nombre === cierreTecnico);
+                          return (
+                            <>
+                              {cierreTecnico && !hasSaved && (
+                                <option value={cierreTecnico}>{cierreTecnico}</option>
+                              )}
+                              {scoped.map(t => (
+                                <option key={t.codigo_tec} value={t.nombre}>
+                                  {t.nombre} ({t.especialidad})
+                                </option>
+                              ))}
+                            </>
+                          );
+                        })()}
                       </select>
                     </div>
                   </div>

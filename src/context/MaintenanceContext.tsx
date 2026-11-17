@@ -977,6 +977,18 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }
           }
           await syncEmpresaNombreEnRoster(empId, updated.nombre);
+          const currentTecnicos = stateRef.current.tecnicos;
+          const hasTechMatch = currentTecnicos.some((t) =>
+            (t.empresas || []).some((emp) => emp === oldCliente.nombre)
+          );
+          if (hasTechMatch) {
+            const nextTecnicos = currentTecnicos.map((t) => ({
+              ...t,
+              empresas: t.empresas?.map((emp) => (emp === oldCliente.nombre ? updated.nombre : emp))
+            }));
+            setTecnicos(nextTecnicos);
+            await persistCatalogo('tecnicos', nextTecnicos);
+          }
           if (selectedCliente === oldCliente.nombre) {
             setSelectedClienteState(updated.nombre);
           }

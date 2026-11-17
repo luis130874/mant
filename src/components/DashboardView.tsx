@@ -27,7 +27,8 @@ import {
   MESES_L,
   calcularKpiMensual,
   calcularKpisTecnicos,
-  generarMapaFoliosAnual
+  generarMapaFoliosAnual,
+  tecnicoPerteneceAEmpresa
 } from '../utils/maintenanceEngine';
 
 interface DashboardViewProps {
@@ -106,8 +107,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
     };
   });
 
-  // Technician KPIs
-  const kpisTecnicos = calcularKpisTecnicos(tecnicos, correctivosFiltrados, ordenesFiltradas);
+  // Technician KPIs scoped to selectedCliente
+  const tecnicosFiltrados = tecnicos.filter(t => tecnicoPerteneceAEmpresa(t, selectedCliente));
+  const kpisTecnicos = calcularKpisTecnicos(tecnicosFiltrados, correctivosFiltrados, ordenesFiltradas);
 
   // Overdue / Urgent Alert Items
   const correctivosAbiertos = correctivosFiltrados.filter(c => c.estado === 'Pendiente');
@@ -299,7 +301,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenDigitalValid
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">activos industriales</span>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-2">
-            {tecnicos.filter(t => t.estado === 'Activo').length} técnicos activos asignados
+            {tecnicosFiltrados.filter(t => t.estado === 'Activo').length} técnicos activos asignados
           </p>
         </div>
       </div>

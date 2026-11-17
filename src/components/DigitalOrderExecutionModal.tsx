@@ -26,7 +26,8 @@ import { canValidateDigitalOrder, hasActionAccess } from '../utils/rbac';
 import {
   addFrequencyStep,
   formatFechaDDMMYYYY,
-  parseFecha
+  parseFecha,
+  tecnicoPerteneceAEmpresa
 } from '../utils/maintenanceEngine';
 import { Equipo, OrdenCalibracion, PuntoCalibracion } from '../types';
 import { DigitalOrderTarget } from '../utils/digitalOrderLink';
@@ -249,7 +250,10 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
       .filter(Boolean);
   }, [equipoObj.tareas]);
 
-  const activeTecnicos = useMemo(() => tecnicos.filter(t => t.estado === 'Activo'), [tecnicos]);
+  const activeTecnicos = useMemo(
+    () => tecnicos.filter(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, target.cliente)),
+    [tecnicos, target.cliente]
+  );
 
   const defaultTechName = useMemo(() => {
     if (target.tecnicoSugerido && target.tecnicoSugerido !== 'Por asignar') {

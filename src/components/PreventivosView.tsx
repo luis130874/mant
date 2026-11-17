@@ -28,7 +28,8 @@ import {
   generarMapaFoliosAnual,
   formatFechaDDMMYYYY,
   formatFechaYYYYMMDD,
-  parseFecha
+  parseFecha,
+  tecnicoPerteneceAEmpresa
 } from '../utils/maintenanceEngine';
 import { Equipo } from '../types';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
@@ -593,11 +594,25 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                           className="w-full text-xs font-semibold text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">-- Seleccionar Técnico --</option>
-                          {tecnicos.filter(t => t.estado === 'Activo').map(tec => (
-                            <option key={tec.codigo_tec} value={tec.nombre}>
-                              {tec.nombre} ({tec.especialidad})
-                            </option>
-                          ))}
+                          {(() => {
+                            const targetCliente = selectedPendingItem?.equipo.cliente || selectedCliente;
+                            const scoped = tecnicos.filter(
+                              t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, targetCliente)
+                            );
+                            const hasSaved = cierreTecnico && scoped.some(t => t.nombre === cierreTecnico);
+                            return (
+                              <>
+                                {cierreTecnico && !hasSaved && (
+                                  <option value={cierreTecnico}>{cierreTecnico}</option>
+                                )}
+                                {scoped.map(tec => (
+                                  <option key={tec.codigo_tec} value={tec.nombre}>
+                                    {tec.nombre} ({tec.especialidad})
+                                  </option>
+                                ))}
+                              </>
+                            );
+                          })()}
                         </select>
                       </div>
                     </div>

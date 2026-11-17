@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { X, AlertTriangle, FileCheck2, ClipboardList, Plus, Compass } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
-import { formatFechaDDMMYYYY, parseFecha } from '../utils/maintenanceEngine';
+import { formatFechaDDMMYYYY, parseFecha, tecnicoPerteneceAEmpresa } from '../utils/maintenanceEngine';
 
 interface NewOrderModalProps {
   isOpen: boolean;
@@ -235,11 +235,17 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ isOpen, onClose })
               className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Por asignar / Cuadrilla de turno --</option>
-              {tecnicos.filter(t => t.estado === 'Activo').map(t => (
-                <option key={t.codigo_tec} value={t.nombre}>
-                  {t.nombre} ({t.especialidad})
-                </option>
-              ))}
+              {(() => {
+                const eqObjSel = equipos.find(e => e.codigo_eq === equipoCode);
+                const targetCliente = eqObjSel?.cliente || selectedCliente;
+                return tecnicos
+                  .filter(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, targetCliente))
+                  .map(t => (
+                    <option key={t.codigo_tec} value={t.nombre}>
+                      {t.nombre} ({t.especialidad})
+                    </option>
+                  ));
+              })()}
             </select>
           </div>
 

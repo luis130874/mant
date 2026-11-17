@@ -22,6 +22,7 @@ import {
   buildEmailShareContent,
   buildWhatsAppShareHref
 } from '../utils/digitalOrderLink';
+import { tecnicoPerteneceAEmpresa } from '../utils/maintenanceEngine';
 
 interface ShareOrderModalProps {
   target: DigitalOrderTarget;
@@ -38,14 +39,21 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [copiedEmailText, setCopiedEmailText] = useState(false);
 
+  const scopedActiveTecnicos = useMemo(
+    () => tecnicos.filter(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, target.cliente)),
+    [tecnicos, target.cliente]
+  );
+
   const initialTech = useMemo(() => {
     if (!target.tecnicoSugerido) return undefined;
     const targetName = target.tecnicoSugerido.trim().toLowerCase();
     return (
+      scopedActiveTecnicos.find(t => t.nombre.trim().toLowerCase() === targetName) ||
+      scopedActiveTecnicos.find(t => t.codigo_tec.trim().toLowerCase() === targetName) ||
       tecnicos.find(t => t.nombre.trim().toLowerCase() === targetName) ||
       tecnicos.find(t => t.codigo_tec.trim().toLowerCase() === targetName)
     );
-  }, [tecnicos, target.tecnicoSugerido]);
+  }, [scopedActiveTecnicos, tecnicos, target.tecnicoSugerido]);
 
   const [selectedTechCode, setSelectedTechCode] = useState<string>(initialTech?.codigo_tec || '');
   const [phoneInput, setPhoneInput] = useState<string>(initialTech?.telefono || '');
@@ -225,7 +233,7 @@ export const ShareOrderModal: React.FC<ShareOrderModalProps> = ({
               className="w-full text-xs font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Elegir técnico del catálogo o ingresar datos abajo --</option>
-              {tecnicos.filter(t => t.estado === 'Activo').map(t => {
+              {scopedActiveTecnicos.map(t => {
                 const contactHint = [t.correo, t.telefono].filter(Boolean).join(' · ');
                 return (
                   <option key={t.codigo_tec} value={t.codigo_tec}>

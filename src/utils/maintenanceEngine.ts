@@ -723,3 +723,29 @@ export function calcularKpisTecnicos(
     };
   });
 }
+
+export const TODAS_LAS_EMPRESAS = 'Todas las Empresas';
+
+export function isTecnicoDeTodasLasEmpresas(tec: Pick<Tecnico, 'empresas'>): boolean {
+  if (!Array.isArray(tec.empresas)) return true; // Registros legados sin campo empresas
+  if (tec.empresas.length === 0) return false;
+  return tec.empresas.some(e => {
+    const norm = e.trim().toLowerCase();
+    return (
+      norm === 'todas' ||
+      norm === 'todas las empresas' ||
+      norm === 'todas las plantas' ||
+      norm === 'todos'
+    );
+  });
+}
+
+export function tecnicoPerteneceAEmpresa(
+  tec: Pick<Tecnico, 'empresas'>,
+  empresaNombre?: string
+): boolean {
+  if (!empresaNombre || empresaNombre.trim().toLowerCase() === 'todos') return true;
+  if (isTecnicoDeTodasLasEmpresas(tec)) return true;
+  const target = empresaNombre.trim().toLowerCase();
+  return (tec.empresas || []).some(e => e.trim().toLowerCase() === target);
+}

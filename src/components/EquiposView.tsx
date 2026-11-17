@@ -25,6 +25,7 @@ import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
 import { hasActionAccess } from '../utils/rbac';
 import { Equipo } from '../types';
+import { tecnicoPerteneceAEmpresa } from '../utils/maintenanceEngine';
 import { CatalogoListadoModal } from './CatalogoListadoModal';
 
 export const EquiposView: React.FC = () => {
@@ -168,7 +169,10 @@ export const EquiposView: React.FC = () => {
     setFormModelo('');
     setFormFrecuencia(frecuencias[0]?.nombre_freq || 'Mensual');
     setFormFechaProxima(new Date().toISOString().slice(0, 10));
-    setFormTecnico(tecnicos[0]?.nombre || '');
+    const firstTech = tecnicos.find(
+      t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, targetCliente)
+    );
+    setFormTecnico(firstTech?.nombre || '');
     setFormCriticidad('Alta');
     setFormTareas(`1. Inspección visual y limpieza externa
 2. Medición de temperatura y vibraciones
@@ -675,7 +679,19 @@ export const EquiposView: React.FC = () => {
                   </label>
                   <select
                     value={formCliente}
-                    onChange={(e) => setFormCliente(e.target.value)}
+                    onChange={(e) => {
+                      const nextCliente = e.target.value;
+                      setFormCliente(nextCliente);
+                      if (
+                        formTecnico &&
+                        !tecnicos.some(t => t.nombre === formTecnico && tecnicoPerteneceAEmpresa(t, nextCliente))
+                      ) {
+                        const fallbackTech = tecnicos.find(
+                          t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, nextCliente)
+                        );
+                        setFormTecnico(fallbackTech?.nombre || '');
+                      }
+                    }}
                     disabled={!isSuperAdmin}
                     required
                     className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 dark:disabled:bg-slate-800"
@@ -831,11 +847,24 @@ export const EquiposView: React.FC = () => {
                     className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">-- Sin asignar --</option>
-                    {tecnicos.filter(t => t.estado === 'Activo').map(t => (
-                      <option key={t.codigo_tec} value={t.nombre}>
-                        {t.nombre}
-                      </option>
-                    ))}
+                    {(() => {
+                      const scoped = tecnicos.filter(
+                        t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, formCliente)
+                      );
+                      const hasSaved = formTecnico && scoped.some(t => t.nombre === formTecnico);
+                      return (
+                        <>
+                          {formTecnico && !hasSaved && (
+                            <option value={formTecnico}>{formTecnico}</option>
+                          )}
+                          {scoped.map(t => (
+                            <option key={t.codigo_tec} value={t.nombre}>
+                              {t.nombre}
+                            </option>
+                          ))}
+                        </>
+                      );
+                    })()}
                   </select>
                 </div>
               </div>

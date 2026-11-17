@@ -43,7 +43,8 @@ import {
   formatFechaDDMMYYYY,
   formatFechaYYYYMMDD,
   obtenerFrecuenciaConfig,
-  parseFecha
+  parseFecha,
+  tecnicoPerteneceAEmpresa
 } from '../utils/maintenanceEngine';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { resolveSheetClientes } from '../utils/logoResolver';
@@ -156,7 +157,9 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
   const [batchFechaTent, setBatchFechaTent] = useState<string>(() => `${selectedAnio}-${String(new Date().getMonth() + 1).padStart(2, '0')}-22`);
   const [batchTolDias, setBatchTolDias] = useState<number>(7);
   const [respectProjectedDates, setRespectProjectedDates] = useState<boolean>(true);
-  const [batchMetrologoDefault, setBatchMetrologoDefault] = useState<string>(tecnicos[0]?.nombre || 'Metrología Interna');
+  const [batchMetrologoDefault, setBatchMetrologoDefault] = useState<string>(
+    () => tecnicos.find(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, selectedCliente))?.nombre || 'Metrología Interna'
+  );
   const [selectedBatchInsts, setSelectedBatchInsts] = useState<string[]>([]);
   const [lastBatchFolios, setLastBatchFolios] = useState<string[]>([]);
 
@@ -169,7 +172,9 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
   const [formFechaProg, setFormFechaProg] = useState(new Date().toISOString().slice(0, 10));
   const [formFechaTent, setFormFechaTent] = useState(new Date().toISOString().slice(0, 10));
   const [formTolDias, setFormTolDias] = useState(7);
-  const [formMetrologo, setFormMetrologo] = useState(tecnicos[0]?.nombre || 'Metrología Interna');
+  const [formMetrologo, setFormMetrologo] = useState(
+    () => tecnicos.find(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, selectedCliente))?.nombre || 'Metrología Interna'
+  );
   const [formObs, setFormObs] = useState('');
 
   // Form states for Cierre / Certificado
@@ -246,7 +251,10 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
           dias_tolerancia: tolerancia,
           estado: 'Pendiente',
           fecha_real: '',
-          metrologo_laboratorio: inst.metrologo_habitual || tecnicos[0]?.nombre || 'Metrología Interna',
+          metrologo_laboratorio:
+            inst.metrologo_habitual ||
+            tecnicos.find(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, inst.cliente))?.nombre ||
+            'Metrología Interna',
           observaciones: inst.notas || `Programación automática (${MESES_L[occ.mes_n - 1]} ${selectedAnio}).`
         };
         projectedPendientesList.push({
@@ -674,7 +682,10 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
     setFInstSerie('');
     setFInstUbicacion('');
     setFInstPatron('Balanza de Pesos Muertos / Calibrador Patrón');
-    setFInstMetrologo(tecnicos[0]?.nombre || 'Metrología Interna');
+    const defaultInstCli = selectedCliente === 'Todos' ? (clientes[0]?.nombre || '') : selectedCliente;
+    setFInstMetrologo(
+      tecnicos.find(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, defaultInstCli))?.nombre || 'Metrología Interna'
+    );
     setFInstNotas('');
   };
 
@@ -908,7 +919,10 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
             dias_tolerancia: tolerancia,
             estado: 'Pendiente',
             fecha_real: '',
-            metrologo_laboratorio: inst.metrologo_habitual || tecnicos[0]?.nombre || 'Metrología Interna',
+            metrologo_laboratorio:
+              inst.metrologo_habitual ||
+              tecnicos.find(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, inst.cliente))?.nombre ||
+              'Metrología Interna',
             observaciones: inst.notas || `Programación automática (${inst.frecuencia} - ${MESES_L[mIdx - 1]} ${selectedAnio}).`
           };
 

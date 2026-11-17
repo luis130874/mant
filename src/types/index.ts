@@ -33,6 +33,7 @@ export interface Tecnico {
   estado: 'Activo' | 'Inactivo';
   telefono?: string;
   correo?: string;
+  empresas?: string[]; // ['Todas las Empresas'] o lista de nombres de empresas asignadas
 }
 
 export type CriticidadEquipo = 'Alta' | 'Media' | 'Baja';

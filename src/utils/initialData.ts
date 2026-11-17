@@ -86,7 +86,8 @@ export const INITIAL_TECNICOS: Tecnico[] = [
     especialidad: 'Mecánica Térmica y Calderas',
     estado: 'Activo',
     telefono: '+56 9 8450 1122',
-    correo: 'cmendoza@prodexus.net'
+    correo: 'cmendoza@prodexus.net',
+    empresas: ['Todas las Empresas']
   },
   {
     codigo_tec: 'TEC-02',
@@ -94,7 +95,8 @@ export const INITIAL_TECNICOS: Tecnico[] = [
     especialidad: 'Electricidad y Automatización',
     estado: 'Activo',
     telefono: '+56 9 7331 9901',
-    correo: 'rvalenzuela@prodexus.net'
+    correo: 'rvalenzuela@prodexus.net',
+    empresas: ['Todas las Empresas']
   },
   {
     codigo_tec: 'TEC-03',
@@ -102,7 +104,8 @@ export const INITIAL_TECNICOS: Tecnico[] = [
     especialidad: 'Refrigeración y Climatización HVAC',
     estado: 'Activo',
     telefono: '+56 9 6112 4433',
-    correo: 'msoto@prodexus.net'
+    correo: 'msoto@prodexus.net',
+    empresas: ['Todas las Empresas']
   },
   {
     codigo_tec: 'TEC-04',
@@ -110,7 +113,8 @@ export const INITIAL_TECNICOS: Tecnico[] = [
     especialidad: 'Mecatrónica y Bombas Hidráulicas',
     estado: 'Activo',
     telefono: '+56 9 5540 8877',
-    correo: 'fmorales@prodexus.net'
+    correo: 'fmorales@prodexus.net',
+    empresas: ['Todas las Empresas']
   }
 ];
 
