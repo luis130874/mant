@@ -304,7 +304,7 @@ interface MaintenanceContextType {
   ) => string[];
 
   // System
-  resetAllData: () => void;
+  resetAllData: () => Promise<void>;
   importBackup: (backup: Record<string, unknown>) => void;
 }
 
@@ -2091,94 +2091,143 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return summaryLabels;
   };
 
-  const resetAllData = () => {
+  const resetAllData = async (): Promise<void> => {
     if (!isSuperAdmin || !auth.currentUser) {
       addToast('Solo el Administrador General puede restablecer los datos globales.', 'error');
       return;
     }
     const uid = auth.currentUser.uid;
-    void (async () => {
-      try {
-        await persistCatalogo('sistemas', INITIAL_SISTEMAS);
-        await persistCatalogo('frecuencias', INITIAL_FRECUENCIAS);
-        await persistCatalogo('tecnicos', INITIAL_TECNICOS);
+    let currentPath = 'catalogos/sistemas';
+    try {
+      currentPath = 'catalogos/sistemas';
+      await persistCatalogo('sistemas', INITIAL_SISTEMAS);
+      currentPath = 'catalogos/frecuencias';
+      await persistCatalogo('frecuencias', INITIAL_FRECUENCIAS);
+      currentPath = 'catalogos/tecnicos';
+      await persistCatalogo('tecnicos', INITIAL_TECNICOS);
 
-        const initIds = INITIAL_CLIENTES.map((c) => makeSafeDocId(c.codigo));
-        for (const existingCli of stateRef.current.clientes) {
-          const id = makeSafeDocId(existingCli.codigo);
-          if (!initIds.includes(id)) {
-            for (const mod of MODULOS_DATOS) {
-              try {
-                await deleteDoc(doc(db, 'empresas', id, 'datos', mod));
-              } catch {
-                // ignore
-              }
-            }
-            await deleteDoc(doc(db, 'empresas', id));
-          }
-        }
+      const initIds = INITIAL_CLIENTES.map((c) => makeSafeDocId(c.codigo));
+      const existingExtraIds = stateRef.current.clientes
+        .map((c) => makeSafeDocId(c.codigo))
+        .filter((id) => !initIds.includes(id));
 
-        for (let i = 0; i < INITIAL_CLIENTES.length; i++) {
-          const cli = INITIAL_CLIENTES[i];
-          const empId = makeSafeDocId(cli.codigo);
-          await setDoc(
-            doc(db, 'empresas', empId),
-            stripUndefinedDeep({
+      for (let i = 0; i < INITIAL_CLIENTES.length; i++) {
+        const cli = INITIAL_CLIENTES[i];
+        const empId = makeSafeDocId(cli.codigo);
+        const empRef = doc(db, 'empresas', empId);
+        currentPath = `empresas/${empId}`;
+        const empSnap = await getDoc(empRef);
+        const empUpdateFields = stripUndefinedDeep({
+          nombre: cli.nombre,
+          rut: cli.rut || '',
+          direccion: cli.direccion || '',
+          telefono: cli.telefono || '',
+          correo: cli.correo || '',
+          trabaja_terceros: Boolean(cli.trabaja_terceros),
+          ...(cli.logo ? { logo: cli.logo } : {}),
+          updatedAt: serverTimestamp()
+        });
+
+        if (empSnap.exists()) {
+          const existingEmp = empSnap.data();
+          if (existingEmp?.createdAt && existingEmp?.codigo === empId) {
+            await updateDoc(empRef, empUpdateFields);
+          } else {
+            await deleteDoc(empRef);
+            await setDoc(empRef, {
               codigo: empId,
-              nombre: cli.nombre,
-              rut: cli.rut || '',
-              direccion: cli.direccion || '',
-              telefono: cli.telefono || '',
-              correo: cli.correo || '',
-              ...(cli.logo ? { logo: cli.logo } : {}),
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            })
-          );
-          const eqEmp = INITIAL_EQUIPOS.filter((e) => e.cliente.trim() === cli.nombre.trim());
-          const eqCodes = new Set(eqEmp.map((e) => e.codigo_eq.trim().toUpperCase()));
-          const instEmp = INITIAL_INSTRUMENTOS.filter((ins) => ins.cliente.trim() === cli.nombre.trim());
-          const histEmp = INITIAL_HISTORIAL.filter((h) => eqCodes.has(h.codigo_eq.trim().toUpperCase()));
-          const mcEmp = INITIAL_CORRECTIVOS.filter((c) => c.cliente.trim() === cli.nombre.trim());
-          const otEmp = INITIAL_ORDENES_TRABAJO.filter((o) => o.cliente.trim() === cli.nombre.trim());
-          const calEmp = INITIAL_CALIBRACIONES.filter((c) => c.cliente.trim() === cli.nombre.trim());
-          const repEmp = INITIAL_REPUESTOS.filter(
-            (r) => r.cliente.trim() === cli.nombre.trim() || (i === 0 && r.cliente === 'Todas las Plantas')
-          );
-          const repIds = new Set(repEmp.map((r) => r.id));
-          const movEmp = INITIAL_MOVIMIENTOS_REPUESTOS.filter((m) => repIds.has(m.repuesto_id));
+              ...empUpdateFields,
+              createdAt: serverTimestamp()
+            });
+          }
+        } else {
+          await setDoc(empRef, {
+            codigo: empId,
+            ...empUpdateFields,
+            createdAt: serverTimestamp()
+          });
+        }
 
-          const buckets: Record<ModuloDatosName, unknown[]> = {
-            equipos: eqEmp,
-            instrumentos: instEmp,
-            historial: histEmp,
-            correctivos: mcEmp,
-            ordenesTrabajo: otEmp,
-            calibraciones: calEmp,
-            repuestos: repEmp,
-            movimientosRepuestos: movEmp
-          };
-          for (const mod of MODULOS_DATOS) {
-            await setDoc(
-              doc(db, 'empresas', empId, 'datos', mod),
-              stripUndefinedDeep({
-                empresaCodigo: empId,
-                modulo: mod,
-                items: buckets[mod],
-                updatedAt: serverTimestamp(),
-                updatedBy: uid
-              })
-            );
+        const eqEmp = INITIAL_EQUIPOS.filter((e) => e.cliente.trim() === cli.nombre.trim());
+        const eqCodes = new Set(eqEmp.map((e) => e.codigo_eq.trim().toUpperCase()));
+        const instEmp = INITIAL_INSTRUMENTOS.filter((ins) => ins.cliente.trim() === cli.nombre.trim());
+        const histEmp = INITIAL_HISTORIAL.filter((h) => eqCodes.has(h.codigo_eq.trim().toUpperCase()));
+        const mcEmp = INITIAL_CORRECTIVOS.filter((c) => c.cliente.trim() === cli.nombre.trim());
+        const otEmp = INITIAL_ORDENES_TRABAJO.filter((o) => o.cliente.trim() === cli.nombre.trim());
+        const calEmp = INITIAL_CALIBRACIONES.filter((c) => c.cliente.trim() === cli.nombre.trim());
+        const repEmp = INITIAL_REPUESTOS.filter(
+          (r) => r.cliente.trim() === cli.nombre.trim() || (i === 0 && r.cliente === 'Todas las Plantas')
+        );
+        const repIds = new Set(repEmp.map((r) => r.id));
+        const movEmp = INITIAL_MOVIMIENTOS_REPUESTOS.filter((m) => repIds.has(m.repuesto_id));
+
+        const buckets: Record<ModuloDatosName, unknown[]> = {
+          equipos: eqEmp,
+          instrumentos: instEmp,
+          historial: histEmp,
+          correctivos: mcEmp,
+          ordenesTrabajo: otEmp,
+          calibraciones: calEmp,
+          repuestos: repEmp,
+          movimientosRepuestos: movEmp
+        };
+        for (const mod of MODULOS_DATOS) {
+          currentPath = `empresas/${empId}/datos/${mod}`;
+          const modRef = doc(db, 'empresas', empId, 'datos', mod);
+          const modSnap = await getDoc(modRef);
+          const cleanItems = stripUndefinedDeep(buckets[mod]);
+          if (
+            modSnap.exists() &&
+            modSnap.data()?.empresaCodigo === empId &&
+            modSnap.data()?.modulo === mod
+          ) {
+            await updateDoc(modRef, {
+              items: cleanItems,
+              updatedAt: serverTimestamp(),
+              updatedBy: uid
+            });
+          } else {
+            await setDoc(modRef, {
+              empresaCodigo: empId,
+              modulo: mod,
+              items: cleanItems,
+              updatedAt: serverTimestamp(),
+              updatedBy: uid
+            });
           }
         }
-        await persistCatalogo('empresas_index', initIds);
-        setSelectedCliente(INITIAL_CLIENTES[0]?.nombre || 'Todos');
-        addToast('Sistema restaurado a datos iniciales de fábrica en la nube.', 'info');
-      } catch (err) {
-        addToast('Error al restablecer datos en la nube.', 'error');
-        handleFirestoreError(err, OperationType.WRITE, 'empresas');
       }
-    })();
+
+      currentPath = 'catalogos/empresas_index';
+      await persistCatalogo('empresas_index', initIds);
+
+      for (const id of existingExtraIds) {
+        for (const mod of MODULOS_DATOS) {
+          try {
+            await deleteDoc(doc(db, 'empresas', id, 'datos', mod));
+          } catch {
+            // ignore
+          }
+        }
+        try {
+          await deleteDoc(doc(db, 'empresas', id, 'config', 'usuarios'));
+        } catch {
+          // ignore
+        }
+        try {
+          currentPath = `empresas/${id}`;
+          await deleteDoc(doc(db, 'empresas', id));
+        } catch {
+          // ignore
+        }
+      }
+
+      setSelectedCliente(INITIAL_CLIENTES[0]?.nombre || 'Todos');
+      addToast('Sistema restaurado a datos iniciales de fábrica en la nube.', 'info');
+    } catch (err) {
+      addToast('Error al restablecer datos en la nube.', 'error');
+      handleFirestoreError(err, OperationType.WRITE, currentPath);
+    }
   };
 
   const importBackup = (backup: Record<string, unknown>) => {
@@ -2188,10 +2237,20 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
     const uid = auth.currentUser.uid;
     void (async () => {
+      let currentPath = 'catalogos/sistemas';
       try {
-        if (Array.isArray(backup.sistemas)) await persistCatalogo('sistemas', backup.sistemas);
-        if (Array.isArray(backup.frecuencias)) await persistCatalogo('frecuencias', backup.frecuencias);
-        if (Array.isArray(backup.tecnicos)) await persistCatalogo('tecnicos', backup.tecnicos);
+        if (Array.isArray(backup.sistemas)) {
+          currentPath = 'catalogos/sistemas';
+          await persistCatalogo('sistemas', backup.sistemas);
+        }
+        if (Array.isArray(backup.frecuencias)) {
+          currentPath = 'catalogos/frecuencias';
+          await persistCatalogo('frecuencias', backup.frecuencias);
+        }
+        if (Array.isArray(backup.tecnicos)) {
+          currentPath = 'catalogos/tecnicos';
+          await persistCatalogo('tecnicos', backup.tecnicos);
+        }
 
         const bClientes = Array.isArray(backup.clientes) ? (backup.clientes as Cliente[]) : stateRef.current.clientes;
         const bEquipos = Array.isArray(backup.equipos) ? (backup.equipos as Equipo[]) : [];
@@ -2208,20 +2267,40 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           const cli = bClientes[i];
           const empId = makeSafeDocId(cli.codigo);
           ids.push(empId);
-          await setDoc(
-            doc(db, 'empresas', empId),
-            stripUndefinedDeep({
+          currentPath = `empresas/${empId}`;
+          const empRef = doc(db, 'empresas', empId);
+          const empSnap = await getDoc(empRef);
+          const empUpdateFields = stripUndefinedDeep({
+            nombre: cli.nombre,
+            rut: cli.rut || '',
+            direccion: cli.direccion || '',
+            telefono: cli.telefono || '',
+            correo: cli.correo || '',
+            trabaja_terceros: Boolean(cli.trabaja_terceros),
+            ...(cli.logo ? { logo: cli.logo } : {}),
+            updatedAt: serverTimestamp()
+          });
+
+          if (empSnap.exists()) {
+            const existingEmp = empSnap.data();
+            if (existingEmp?.createdAt && existingEmp?.codigo === empId) {
+              await updateDoc(empRef, empUpdateFields);
+            } else {
+              await deleteDoc(empRef);
+              await setDoc(empRef, {
+                codigo: empId,
+                ...empUpdateFields,
+                createdAt: serverTimestamp()
+              });
+            }
+          } else {
+            await setDoc(empRef, {
               codigo: empId,
-              nombre: cli.nombre,
-              rut: cli.rut || '',
-              direccion: cli.direccion || '',
-              telefono: cli.telefono || '',
-              correo: cli.correo || '',
-              ...(cli.logo ? { logo: cli.logo } : {}),
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            })
-          );
+              ...empUpdateFields,
+              createdAt: serverTimestamp()
+            });
+          }
+
           const eqEmp = bEquipos.filter((e) => e.cliente.trim() === cli.nombre.trim());
           const eqCodes = new Set(eqEmp.map((e) => e.codigo_eq.trim().toUpperCase()));
           const instEmp = bInst.filter((ins) => ins.cliente.trim() === cli.nombre.trim());
@@ -2246,23 +2325,37 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
             movimientosRepuestos: movEmp
           };
           for (const mod of MODULOS_DATOS) {
-            await setDoc(
-              doc(db, 'empresas', empId, 'datos', mod),
-              stripUndefinedDeep({
-                empresaCodigo: empId,
-                modulo: mod,
-                items: buckets[mod],
+            currentPath = `empresas/${empId}/datos/${mod}`;
+            const modRef = doc(db, 'empresas', empId, 'datos', mod);
+            const modSnap = await getDoc(modRef);
+            const cleanItems = stripUndefinedDeep(buckets[mod]);
+            if (
+              modSnap.exists() &&
+              modSnap.data()?.empresaCodigo === empId &&
+              modSnap.data()?.modulo === mod
+            ) {
+              await updateDoc(modRef, {
+                items: cleanItems,
                 updatedAt: serverTimestamp(),
                 updatedBy: uid
-              })
-            );
+              });
+            } else {
+              await setDoc(modRef, {
+                empresaCodigo: empId,
+                modulo: mod,
+                items: cleanItems,
+                updatedAt: serverTimestamp(),
+                updatedBy: uid
+              });
+            }
           }
         }
+        currentPath = 'catalogos/empresas_index';
         await persistCatalogo('empresas_index', ids);
         addToast('Copia de seguridad importada con éxito a la nube.', 'success');
       } catch (e) {
         addToast('Error al importar copia de seguridad.', 'error');
-        handleFirestoreError(e, OperationType.WRITE, 'empresas');
+        handleFirestoreError(e, OperationType.WRITE, currentPath);
       }
     })();
   };

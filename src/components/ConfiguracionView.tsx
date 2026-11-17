@@ -52,6 +52,7 @@ export const ConfiguracionView: React.FC = () => {
   const canDelete = hasActionAccess(userProfile, 'eliminar');
 
   const [activeTab, setActiveTab] = useState<'apariencia' | 'sistemas' | 'frecuencias' | 'backup'>('sistemas');
+  const [isResetting, setIsResetting] = useState(false);
 
   // Modal states for Sistemas
   const [modalSis, setModalSis] = useState<'create' | 'edit' | null>(null);
@@ -654,6 +655,8 @@ export const ConfiguracionView: React.FC = () => {
             </div>
 
             <button
+              type="button"
+              disabled={isResetting}
               onClick={async () => {
                 const confirmed = await confirmAction({
                   title: 'Restablecer Valores Iniciales',
@@ -662,12 +665,20 @@ export const ConfiguracionView: React.FC = () => {
                   tone: 'danger'
                 });
                 if (confirmed) {
-                  resetAllData();
+                  setIsResetting(true);
+                  try {
+                    await resetAllData();
+                  } catch {
+                    // Error toast and logging already handled inside resetAllData
+                  } finally {
+                    setIsResetting(false);
+                  }
                 }
               }}
-              className="py-2 px-4 font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/70 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors text-xs"
+              className="py-2 px-4 font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/70 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors text-xs inline-flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Restablecer Valores Iniciales
+              {isResetting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+              <span>{isResetting ? 'Restableciendo en la nube...' : 'Restablecer Valores Iniciales'}</span>
             </button>
           </div>
         </div>
