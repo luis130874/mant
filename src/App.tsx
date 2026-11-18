@@ -222,7 +222,13 @@ const MainLayout: React.FC = () => {
               {currentTab === 'dashboard' && (
                 <DashboardView onOpenDigitalValidation={handleOpenDigitalValidation} />
               )}
-              {currentTab === 'plan' && <PlanMaestroView />}
+              {currentTab === 'plan' && (
+                <PlanMaestroView
+                  onPrintOrder={handlePrintSingleOrder}
+                  onShareOrder={setSharingOrder}
+                  onOpenDigitalExecution={setExecutingOrder}
+                />
+              )}
               {currentTab === 'preventivos' && (
                 <PreventivosView
                   onPrintOrder={handlePrintSingleOrder}

@@ -16,7 +16,9 @@ import {
   AlertCircle,
   Eye,
   FileText,
-  Building2
+  Building2,
+  Share2,
+  Smartphone
 } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
@@ -31,9 +33,33 @@ import {
 } from '../utils/maintenanceEngine';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { resolveSheetClientes } from '../utils/logoResolver';
-import { Equipo } from '../types';
+import { Equipo, RegistroHistorialMP } from '../types';
+import { PrintableDocument } from './PrintModal';
+import { DigitalOrderTarget } from '../utils/digitalOrderLink';
 
-export const PlanMaestroView: React.FC = () => {
+interface PlanMaestroViewProps {
+  onPrintOrder?: (order: PrintableDocument) => void;
+  onShareOrder?: (target: DigitalOrderTarget) => void;
+  onOpenDigitalExecution?: (target: DigitalOrderTarget) => void;
+}
+
+interface SelectedPlanCellInfo {
+  equipo: Equipo;
+  mesIdx: number;
+  folio: string;
+  fechaPrev: string;
+  fechaReal?: string;
+  tecnico?: string;
+  comentarios?: string;
+  reg?: RegistroHistorialMP;
+  estado: 'completada_a_tiempo' | 'completada_fuera' | 'vencida' | 'programada';
+}
+
+export const PlanMaestroView: React.FC<PlanMaestroViewProps> = ({
+  onPrintOrder,
+  onShareOrder,
+  onOpenDigitalExecution
+}) => {
   const {
     selectedCliente,
     selectedAnio,
@@ -52,16 +78,7 @@ export const PlanMaestroView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSistema, setSelectedSistema] = useState('Todos');
   const [selectedEmpresa, setSelectedEmpresa] = useState('Todas');
-  const [selectedCellInfo, setSelectedCellInfo] = useState<{
-    equipo: Equipo;
-    mesIdx: number;
-    folio: string;
-    fechaPrev: string;
-    fechaReal?: string;
-    tecnico?: string;
-    comentarios?: string;
-    estado: 'completada_a_tiempo' | 'completada_fuera' | 'vencida' | 'programada';
-  } | null>(null);
+  const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedPlanCellInfo | null>(null);
 
   const [printMode, setPrintMode] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -124,10 +141,10 @@ export const PlanMaestroView: React.FC = () => {
     rowReal: Record<string, string>;
     rowFolio: Record<string, string>;
     rowStatus: Record<string, 'completada_a_tiempo' | 'completada_fuera' | 'vencida' | 'programada' | 'vacio'>;
+    cellMatches: Record<string, SelectedPlanCellInfo>;
   }
 
   const matrixGroups: MatrixRowGroup[] = [];
-  const exportRows: Record<string, string>[] = [];
 
   for (const eq of equiposFiltrados) {
     const eqCode = eq.codigo_eq.trim();
@@ -152,6 +169,7 @@ export const PlanMaestroView: React.FC = () => {
       const rReal: Record<string, string> = { ID: '', Equipo: '', Frecuencia: '', Detalle: 'Fecha Realizada' };
       const rFolio: Record<string, string> = { ID: '', Equipo: '', Frecuencia: '', Detalle: 'ID de Orden' };
       const rStatus: Record<string, 'completada_a_tiempo' | 'completada_fuera' | 'vencida' | 'programada' | 'vacio'> = {};
+      const cellMatches: Record<string, SelectedPlanCellInfo> = {};
 
       for (let mIdx = 1; mIdx <= 12; mIdx++) {
         const mLabel = MESES_L[mIdx - 1];
@@ -183,6 +201,7 @@ export const PlanMaestroView: React.FC = () => {
               ? dictMatch
               : undefined;
           const reg = occItem.historialMatch || safeDictMatch;
+          let cellEstado: SelectedPlanCellInfo['estado'] = 'programada';
           if (reg) {
             rReal[mLabel] = reg.fecha_real;
             const fReal = parseFecha(reg.fecha_real);
@@ -192,16 +211,28 @@ export const PlanMaestroView: React.FC = () => {
             if (fReal) {
               fReal.setHours(0, 0, 0, 0);
               const diffDays = Math.abs(Math.round((fReal.getTime() - prevD.getTime()) / (1000 * 60 * 60 * 24)));
-              rStatus[mLabel] = diffDays <= 4 ? 'completada_a_tiempo' : 'completada_fuera';
+              cellEstado = diffDays <= 4 ? 'completada_a_tiempo' : 'completada_fuera';
             } else {
-              rStatus[mLabel] = 'completada_a_tiempo';
+              cellEstado = 'completada_a_tiempo';
             }
           } else {
             rReal[mLabel] = '';
             const prevD = new Date(occItem.fecha);
             prevD.setHours(0, 0, 0, 0);
-            rStatus[mLabel] = prevD.getTime() < hoy.getTime() ? 'vencida' : 'programada';
+            cellEstado = prevD.getTime() < hoy.getTime() ? 'vencida' : 'programada';
           }
+          rStatus[mLabel] = cellEstado;
+          cellMatches[mLabel] = {
+            equipo: eq,
+            mesIdx: mIdx,
+            folio: folId,
+            fechaPrev: dtPrevStr,
+            fechaReal: reg?.fecha_real,
+            tecnico: reg?.tecnico || eq.tecnico,
+            comentarios: reg?.comentarios,
+            reg,
+            estado: cellEstado
+          };
         } else {
           rPrev[mLabel] = '';
           rReal[mLabel] = '';
@@ -217,10 +248,52 @@ export const PlanMaestroView: React.FC = () => {
         rowPrevista: rPrev,
         rowReal: rReal,
         rowFolio: rFolio,
-        rowStatus: rStatus
+        rowStatus: rStatus,
+        cellMatches
       });
     }
   }
+
+  const buildPrintableMP = (info: SelectedPlanCellInfo): PrintableDocument => {
+    const reg = info.reg;
+    return {
+      tipo: 'MP',
+      folio: info.folio,
+      equipo: info.equipo,
+      fechaProgramada: info.fechaPrev,
+      protocolo: info.equipo.tareas.split('\n').filter(t => t.trim().length > 0),
+      tecnico: reg?.tecnico || info.equipo.tecnico || 'Técnico Asignado',
+      isCerrada: Boolean(reg),
+      fechaReal: reg?.fecha_real,
+      duracionHoras: reg?.duracion_horas,
+      accionesRealizadas: reg?.comentarios,
+      repuestos: reg?.repuestos_utilizados,
+      tareasCompletadas: reg?.tareas_completadas,
+      firmaTecnico: reg?.firma_tecnico,
+      firmaSupervisor: reg?.firma_supervisor,
+      firmadoPor: reg?.firmado_por,
+      firmadoSupervisorPor: reg?.firmado_supervisor_por,
+      fechaFirmaDigital: reg?.fecha_firma_digital,
+      fechaValidacionSupervisor: reg?.fecha_validacion_supervisor,
+      observacionSupervisor: reg?.observacion_supervisor,
+      ejecucionDigital: reg?.ejecucion_digital
+    };
+  };
+
+  const buildDigitalTargetMP = (info: SelectedPlanCellInfo): DigitalOrderTarget => ({
+    tipo: 'MP',
+    folio: info.folio,
+    cliente: info.equipo.cliente,
+    codigoEq: info.equipo.codigo_eq,
+    nombreActivo: info.equipo.nombre,
+    fechaProgramada: info.fechaPrev,
+    mes_n: info.mesIdx,
+    anio: selectedAnio,
+    frecuencia: info.equipo.frecuencia,
+    tecnicoSugerido: info.equipo.tecnico,
+    equipo: info.equipo,
+    historialMP: info.reg
+  });
 
   // Paginate equipment in chunks of 8 so equipment fits comfortably per A4 landscape page without unnecessary breaks
   const ITEMS_PER_PAGE = 8;
@@ -531,10 +604,10 @@ export const PlanMaestroView: React.FC = () => {
                                 <td className="py-0.5 px-0.5 text-slate-600 border-r border-slate-200 font-medium text-[7px] bg-slate-50 text-center whitespace-nowrap">
                                   Prev.
                                 </td>
-                                {MESES_L.map((m, mIdx) => {
+                                {MESES_L.map((m) => {
                                   const dateVal = group.rowPrevista[m];
                                   const status = group.rowStatus[m];
-                                  const folio = group.rowFolio[m];
+                                  const cellMatch = group.cellMatches[m];
 
                                   let statusBg = 'bg-slate-50/50';
                                   if (status === 'completada_a_tiempo') statusBg = 'bg-emerald-50 text-emerald-800 font-bold';
@@ -545,23 +618,11 @@ export const PlanMaestroView: React.FC = () => {
                                   return (
                                     <td
                                       key={m}
-                                      onClick={() => {
-                                        if (dateVal) {
-                                          const reg = dictHistorial.get(folio);
-                                          setSelectedCellInfo({
-                                            equipo: group.equipo,
-                                            mesIdx: mIdx + 1,
-                                            folio,
-                                            fechaPrev: dateVal,
-                                            fechaReal: reg?.fecha_real,
-                                            tecnico: reg?.tecnico || group.equipo.tecnico,
-                                            comentarios: reg?.comentarios,
-                                            estado: status as any
-                                          });
-                                        }
-                                      }}
+                                      onClick={() => cellMatch && setSelectedCellInfo(cellMatch)}
                                       title={dateVal || ''}
-                                      className={`py-0.5 px-0.5 text-center font-mono border-r border-slate-200 tabular-nums cursor-pointer transition-colors hover:brightness-95 whitespace-nowrap ${statusBg}`}
+                                      className={`py-0.5 px-0.5 text-center font-mono border-r border-slate-200 tabular-nums transition-colors whitespace-nowrap ${
+                                        cellMatch ? 'cursor-pointer hover:brightness-95' : ''
+                                      } ${statusBg}`}
                                     >
                                       <span className="font-mono font-bold text-[6.5px] tracking-tighter block leading-none">
                                         {dateVal || '-'}
@@ -578,11 +639,15 @@ export const PlanMaestroView: React.FC = () => {
                                 </td>
                                 {MESES_L.map(m => {
                                   const realVal = group.rowReal[m];
+                                  const cellMatch = group.cellMatches[m];
                                   return (
                                     <td
                                       key={m}
+                                      onClick={() => cellMatch && setSelectedCellInfo(cellMatch)}
                                       title={realVal || ''}
-                                      className="py-0.5 px-0.5 text-center font-mono border-r border-slate-200 tabular-nums font-semibold text-emerald-700 bg-white whitespace-nowrap"
+                                      className={`py-0.5 px-0.5 text-center font-mono border-r border-slate-200 tabular-nums font-semibold text-emerald-700 bg-white whitespace-nowrap ${
+                                        cellMatch ? 'cursor-pointer hover:bg-slate-50' : ''
+                                      }`}
                                     >
                                       <span className="font-mono font-semibold text-[6.5px] tracking-tighter block leading-none">
                                         {realVal || '-'}
@@ -600,11 +665,15 @@ export const PlanMaestroView: React.FC = () => {
                                 {MESES_L.map(m => {
                                   const folioVal = group.rowFolio[m];
                                   const shortFolio = /^MP-\d{4}-/.test(folioVal || '') ? 'MP-' + folioVal.split('-').pop() : folioVal;
+                                  const cellMatch = group.cellMatches[m];
                                   return (
                                     <td
                                       key={m}
+                                      onClick={() => cellMatch && setSelectedCellInfo(cellMatch)}
                                       title={folioVal || ''}
-                                      className="py-0.5 px-0.5 text-center font-mono border-r border-slate-200 tabular-nums text-slate-600 bg-slate-50/30 font-semibold whitespace-nowrap"
+                                      className={`py-0.5 px-0.5 text-center font-mono border-r border-slate-200 tabular-nums text-slate-600 bg-slate-50/30 font-semibold whitespace-nowrap ${
+                                        cellMatch ? 'cursor-pointer hover:bg-slate-100' : ''
+                                      }`}
                                     >
                                       <span className="font-mono text-[6.5px] tracking-tighter block leading-none">
                                         {shortFolio || '-'}
@@ -664,14 +733,25 @@ export const PlanMaestroView: React.FC = () => {
 
       {/* Detail Modal for Selected Cell */}
       {selectedCellInfo && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] max-w-lg w-full p-6 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto no-print">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] max-w-lg w-full p-6 space-y-4 my-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#E2ECF1]">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
-                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
-                  Detalle de Programación Preventiva
-                </h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
+                    Orden & Control de Mantenimiento Preventivo
+                  </h3>
+                  <span className="inline-block text-[10px] font-bold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] border border-blue-200 dark:border-blue-800/70 prodexus:border-[#B9D2FA] px-1.5 py-0.5 rounded mt-0.5">
+                    {selectedCellInfo.estado === 'completada_a_tiempo'
+                      ? 'Completada a Tiempo'
+                      : selectedCellInfo.estado === 'completada_fuera'
+                      ? 'Completada Fuera de Término'
+                      : selectedCellInfo.estado === 'vencida'
+                      ? 'Vencida Pendiente de Cierre'
+                      : `Programada (${MESES_L[selectedCellInfo.mesIdx - 1]} ${selectedAnio})`}
+                  </span>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedCellInfo(null)}
@@ -689,7 +769,7 @@ export const PlanMaestroView: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Equipo:</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-100 prodexus:text-[#132B36]">{selectedCellInfo.equipo.nombre} ({selectedCellInfo.equipo.codigo_eq})</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-100 prodexus:text-[#132B36] text-right">{selectedCellInfo.equipo.nombre} ({selectedCellInfo.equipo.codigo_eq})</span>
                 </div>
                 {isTercerosEnabled && selectedCellInfo.equipo.empresa_tercero && (
                   <div className="flex justify-between">
@@ -704,6 +784,10 @@ export const PlanMaestroView: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Frecuencia:</span>
                   <span className="text-slate-700 dark:text-slate-300">{selectedCellInfo.equipo.frecuencia}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Técnico Asignado:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedCellInfo.tecnico || 'Por Asignar'}</span>
                 </div>
               </div>
 
@@ -728,19 +812,69 @@ export const PlanMaestroView: React.FC = () => {
                   <p className="text-xs text-slate-700 dark:text-slate-200 mt-1 italic">
                     "{selectedCellInfo.comentarios}"
                   </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 font-medium">
+                  {selectedCellInfo.reg?.repuestos_utilizados && (
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
+                      Repuestos: <span className="font-medium text-slate-700 dark:text-slate-300">{selectedCellInfo.reg.repuestos_utilizados}</span>
+                    </p>
+                  )}
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
                     Técnico ejecutor: {selectedCellInfo.tecnico}
+                    {selectedCellInfo.reg?.duracion_horas ? ` · ${selectedCellInfo.reg.duracion_horas} h` : ''}
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-2 flex flex-wrap justify-between items-center gap-2 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                {canPrint && onPrintOrder && (
+                  <button
+                    type="button"
+                    onClick={() => onPrintOrder(buildPrintableMP(selectedCellInfo))}
+                    className="px-3.5 py-1.5 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors flex items-center gap-1.5"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>
+                      {selectedCellInfo.reg
+                        ? 'Imprimir / PDF Cierre MP'
+                        : 'Imprimir / PDF Orden MP'}
+                    </span>
+                  </button>
+                )}
+
+                {onShareOrder && (
+                  <button
+                    type="button"
+                    onClick={() => onShareOrder(buildDigitalTargetMP(selectedCellInfo))}
+                    className="px-3 py-1.5 font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-lg flex items-center gap-1.5"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Compartir</span>
+                  </button>
+                )}
+
+                {onOpenDigitalExecution && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = buildDigitalTargetMP(selectedCellInfo);
+                      setSelectedCellInfo(null);
+                      onOpenDigitalExecution(target);
+                    }}
+                    className="px-3 py-1.5 font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] hover:bg-blue-100 dark:hover:bg-blue-900/60 prodexus:hover:bg-[#E4ECF0] border border-blue-200 dark:border-blue-800/70 prodexus:border-[#B9D2FA] rounded-lg flex items-center gap-1.5"
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>{selectedCellInfo.reg ? 'Ver Digital' : 'Ejecutar Digital'}</span>
+                  </button>
+                )}
+              </div>
+
               <button
+                type="button"
                 onClick={() => setSelectedCellInfo(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                className="px-4 py-1.5 font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] transition-colors ml-auto"
               >
-                Cerrar Ventana
+                Cerrar
               </button>
             </div>
           </div>
