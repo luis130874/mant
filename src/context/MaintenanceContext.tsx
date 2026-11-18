@@ -225,6 +225,14 @@ interface MaintenanceContextType {
     trazabilidad_patron?: string;
     metrologo_laboratorio: string;
     puntos_calibracion?: PuntoCalibracion[];
+    magnitud?: string;
+    unidad_medida?: string;
+    rango_min?: number;
+    rango_max?: number;
+    puntos_prueba?: number;
+    variable_medicion?: string;
+    rango_operacion?: string;
+    tolerancia_emp?: string;
     observaciones?: string;
     repuestos_utilizados?: string;
     numero_certificado?: string;
@@ -250,6 +258,14 @@ interface MaintenanceContextType {
       trazabilidad_patron?: string;
       metrologo_laboratorio: string;
       puntos_calibracion?: PuntoCalibracion[];
+      magnitud?: string;
+      unidad_medida?: string;
+      rango_min?: number;
+      rango_max?: number;
+      puntos_prueba?: number;
+      variable_medicion?: string;
+      rango_operacion?: string;
+      tolerancia_emp?: string;
       observaciones?: string;
       repuestos_utilizados?: string;
       numero_certificado?: string;
@@ -1562,6 +1578,14 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       trazabilidad_patron?: string;
       metrologo_laboratorio: string;
       puntos_calibracion?: PuntoCalibracion[];
+      magnitud?: string;
+      unidad_medida?: string;
+      rango_min?: number;
+      rango_max?: number;
+      puntos_prueba?: number;
+      variable_medicion?: string;
+      rango_operacion?: string;
+      tolerancia_emp?: string;
       observaciones?: string;
       repuestos_utilizados?: string;
       numero_certificado?: string;
@@ -1605,6 +1629,14 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           trazabilidad_patron: data.trazabilidad_patron || c.trazabilidad_patron,
           metrologo_laboratorio: data.metrologo_laboratorio,
           puntos_calibracion: data.puntos_calibracion || c.puntos_calibracion,
+          ...(data.magnitud !== undefined ? { magnitud: data.magnitud } : {}),
+          ...(data.unidad_medida !== undefined ? { unidad_medida: data.unidad_medida } : {}),
+          ...(data.rango_min !== undefined ? { rango_min: data.rango_min } : {}),
+          ...(data.rango_max !== undefined ? { rango_max: data.rango_max } : {}),
+          ...(data.puntos_prueba !== undefined ? { puntos_prueba: data.puntos_prueba } : {}),
+          ...(data.variable_medicion !== undefined ? { variable_medicion: data.variable_medicion } : {}),
+          ...(data.rango_operacion !== undefined ? { rango_operacion: data.rango_operacion } : {}),
+          ...(data.tolerancia_emp !== undefined ? { tolerancia_emp: data.tolerancia_emp } : {}),
           observaciones: data.observaciones || c.observaciones,
           repuestos_utilizados: data.repuestos_utilizados || c.repuestos_utilizados,
           numero_certificado: data.numero_certificado || `CERT-${id_ot.replace('CAL-', '')}`,
@@ -1645,6 +1677,14 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       trazabilidad_patron?: string;
       metrologo_laboratorio: string;
       puntos_calibracion?: PuntoCalibracion[];
+      magnitud?: string;
+      unidad_medida?: string;
+      rango_min?: number;
+      rango_max?: number;
+      puntos_prueba?: number;
+      variable_medicion?: string;
+      rango_operacion?: string;
+      tolerancia_emp?: string;
       observaciones?: string;
       repuestos_utilizados?: string;
       numero_certificado?: string;
@@ -1706,6 +1746,14 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       trazabilidad_patron: cierreData.trazabilidad_patron || restOrder.trazabilidad_patron,
       metrologo_laboratorio: cierreData.metrologo_laboratorio,
       puntos_calibracion: cierreData.puntos_calibracion,
+      ...(cierreData.magnitud !== undefined ? { magnitud: cierreData.magnitud } : {}),
+      ...(cierreData.unidad_medida !== undefined ? { unidad_medida: cierreData.unidad_medida } : {}),
+      ...(cierreData.rango_min !== undefined ? { rango_min: cierreData.rango_min } : {}),
+      ...(cierreData.rango_max !== undefined ? { rango_max: cierreData.rango_max } : {}),
+      ...(cierreData.puntos_prueba !== undefined ? { puntos_prueba: cierreData.puntos_prueba } : {}),
+      ...(cierreData.variable_medicion !== undefined ? { variable_medicion: cierreData.variable_medicion } : {}),
+      ...(cierreData.rango_operacion !== undefined ? { rango_operacion: cierreData.rango_operacion } : {}),
+      ...(cierreData.tolerancia_emp !== undefined ? { tolerancia_emp: cierreData.tolerancia_emp } : {}),
       observaciones: cierreData.observaciones || restOrder.observaciones,
       repuestos_utilizados: cierreData.repuestos_utilizados,
       numero_certificado: cierreData.numero_certificado || `CAL-CERT-${folio.replace('CAL-', '')}`,

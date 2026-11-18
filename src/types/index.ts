@@ -135,9 +135,12 @@ export interface OrdenTrabajoOT {
 
 export interface PuntoCalibracion {
   punto_nominal: string;
+  valor_nominal?: number;
   lectura_patron: string;
   lectura_instrumento: string;
   error_calculado: string;
+  desvio?: number;
+  unidad?: string;
   conforme: boolean;
 }
 
@@ -148,6 +151,11 @@ export interface Instrumento {
   nombre: string;
   cliente: string;
   equipo_asociado?: string; // Código de equipo principal al que está montado (ej: "CH-01")
+  magnitud?: string; // Presión, Temperatura, Caudal, Nivel, Masa / Balanza, etc.
+  unidad_medida?: string; // PSI, Bar, °C, mA, etc.
+  rango_min?: number;
+  rango_max?: number;
+  puntos_prueba?: number; // Cantidad de puntos de prueba (ej. 5)
   variable_medicion: string; // Presión, Temperatura, Caudal, Nivel, Válvula de Seguridad, Balanza
   rango_operacion: string; // Ej: "0 a 300 PSI"
   tolerancia_emp: string; // Error Máximo Permisible, ej: "± 0.5% FS"
@@ -177,6 +185,11 @@ export interface OrdenCalibracion {
   codigo_eq: string; // ID equipo / instrumento
   cliente: string;
   instrumento_nombre: string;
+  magnitud?: string;
+  unidad_medida?: string;
+  rango_min?: number;
+  rango_max?: number;
+  puntos_prueba?: number;
   variable_medicion: string; // Presión, Temperatura, Caudal, Nivel, Válvula de Seguridad, Balanza
   rango_operacion: string; // Ej: "0 a 250 PSI", "-50 a 150 °C"
   tolerancia_emp: string; // Error Máximo Permisible, ej: "± 1.0% FS" o "± 0.5 °C"

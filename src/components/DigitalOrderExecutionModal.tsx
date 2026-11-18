@@ -18,7 +18,8 @@ import {
   Check,
   ShieldCheck,
   ShieldAlert,
-  ClipboardCheck
+  ClipboardCheck,
+  RefreshCw
 } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
@@ -34,6 +35,20 @@ import { DigitalOrderTarget } from '../utils/digitalOrderLink';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
 import { SignaturePad } from './SignaturePad';
 import { PrintableDocument } from './PrintModal';
+import { CalibrationDeviationChart } from './CalibrationDeviationChart';
+import {
+  MAGNITUDES_SENSOR,
+  TEST_POINT_PRESETS,
+  calcularResumenDesvio,
+  findMagnitudeByName,
+  formatMetrologyNum,
+  formatRangoOperacion,
+  generarPuntosCalibracion,
+  inferMagnitudeFromVariable,
+  parseRangoMedicion,
+  recalcularPuntoCalibracion,
+  resolveNominalNumeric
+} from '../utils/calibrationMetrology';
 
 interface DigitalOrderExecutionModalProps {
   target: DigitalOrderTarget;
@@ -41,14 +56,6 @@ interface DigitalOrderExecutionModalProps {
   onOpenPrint?: (doc: PrintableDocument) => void;
   onOpenShare?: (target: DigitalOrderTarget) => void;
 }
-
-const DEFAULT_CAL_PUNTOS: PuntoCalibracion[] = [
-  { punto_nominal: '0% FS', lectura_patron: '0.00', lectura_instrumento: '0.0', error_calculado: '0.00%', conforme: true },
-  { punto_nominal: '25% FS', lectura_patron: '25.00', lectura_instrumento: '25.0', error_calculado: '0.00%', conforme: true },
-  { punto_nominal: '50% FS', lectura_patron: '50.00', lectura_instrumento: '50.0', error_calculado: '0.00%', conforme: true },
-  { punto_nominal: '75% FS', lectura_patron: '75.00', lectura_instrumento: '75.0', error_calculado: '0.00%', conforme: true },
-  { punto_nominal: '100% FS', lectura_patron: '100.00', lectura_instrumento: '100.0', error_calculado: '0.00%', conforme: true }
-];
 
 export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProps> = ({
   target,
@@ -281,12 +288,21 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
   const [calDictamen, setCalDictamen] = useState<'Conforme' | 'Ajustado y Conforme' | 'No Conforme'>('Conforme');
   const [calPatron, setCalPatron] = useState(resolvedCal?.patron_utilizado || 'Patrón Certificado de Laboratorio');
   const [calTrazabilidad, setCalTrazabilidad] = useState(resolvedCal?.trazabilidad_patron || '');
-  const [calErrorMax, setCalErrorMax] = useState('+0.20%');
+  const [calErrorMax, setCalErrorMax] = useState('Pendiente');
   const [calCertNo, setCalCertNo] = useState(() => {
     if (target.folio.includes('PROY')) return `CAL-CERT-${selectedAnio}-0001`;
     return `CAL-CERT-${target.folio.replace('CAL-', '')}`;
   });
-  const [calPuntos, setCalPuntos] = useState<PuntoCalibracion[]>(DEFAULT_CAL_PUNTOS);
+  const [calMagnitud, setCalMagnitud] = useState('Presión');
+  const [calUnidad, setCalUnidad] = useState('PSI');
+  const [calRangoMin, setCalRangoMin] = useState<number>(0);
+  const [calRangoMax, setCalRangoMax] = useState<number>(300);
+  const [calNumPuntos, setCalNumPuntos] = useState<number>(5);
+  const [calIncluirBajada, setCalIncluirBajada] = useState<boolean>(false);
+  const [calEmp, setCalEmp] = useState<string>('± 0.5% FS');
+  const [calPuntos, setCalPuntos] = useState<PuntoCalibracion[]>(() =>
+    generarPuntosCalibracion({ min: 0, max: 300, unit: 'PSI', numPuntos: 5 })
+  );
 
   // Digital signature states
   const [firmaTecnico, setFirmaTecnico] = useState('');
@@ -299,6 +315,69 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
   const [valSupervisorName, setValSupervisorName] = useState(userProfile?.nombre || '');
   const [valSupervisorSignature, setValSupervisorSignature] = useState('');
   const [valSupervisorObs, setValSupervisorObs] = useState('');
+
+  useEffect(() => {
+    if (target.tipo !== 'CAL' || !resolvedCal) return;
+    const mag =
+      findMagnitudeByName(resolvedCal.magnitud) ||
+      inferMagnitudeFromVariable(resolvedCal.variable_medicion, resolvedCal.rango_operacion);
+    const parsed = parseRangoMedicion(
+      resolvedCal.rango_operacion,
+      resolvedCal.variable_medicion,
+      resolvedCal.unidad_medida
+    );
+    const min = typeof resolvedCal.rango_min === 'number' ? resolvedCal.rango_min : parsed.min;
+    const max = typeof resolvedCal.rango_max === 'number' ? resolvedCal.rango_max : parsed.max;
+    const unit = resolvedCal.unidad_medida || parsed.unit;
+    const emp = resolvedCal.tolerancia_emp || mag.defaultEmp;
+    const ptsCount = resolvedCal.puntos_prueba || (resolvedCal.puntos_calibracion?.length || 5);
+    const isBajada =
+      ptsCount === 9 ||
+      Boolean(resolvedCal.puntos_calibracion?.some(p => p.punto_nominal.includes('↓')));
+
+    setCalMagnitud(resolvedCal.magnitud || mag.nombre);
+    setCalUnidad(unit);
+    setCalRangoMin(min);
+    setCalRangoMax(max);
+    setCalNumPuntos(isBajada ? 9 : ptsCount);
+    setCalIncluirBajada(isBajada);
+    setCalEmp(emp);
+    setCalPatron(resolvedCal.patron_utilizado || mag.patronSugerido);
+    setCalTrazabilidad(resolvedCal.trazabilidad_patron || '');
+    setCalCertNo(
+      resolvedCal.numero_certificado ||
+        (target.folio.includes('PROY')
+          ? `CAL-CERT-${selectedAnio}-0001`
+          : `CAL-CERT-${resolvedCal.id_ot.replace('CAL-', '')}`)
+    );
+
+    if (resolvedCal.puntos_calibracion && resolvedCal.puntos_calibracion.length > 0) {
+      const hydrated = resolvedCal.puntos_calibracion.map(pt => {
+        const nom = resolveNominalNumeric(pt);
+        const patStr = pt.lectura_patron.trim() !== '' ? pt.lectura_patron : nom !== null ? formatMetrologyNum(nom) : '';
+        return recalcularPuntoCalibracion(
+          { ...pt, lectura_patron: patStr, unidad: pt.unidad || unit },
+          min,
+          max,
+          emp,
+          unit
+        );
+      });
+      setCalPuntos(hydrated);
+      const res = calcularResumenDesvio(hydrated, min, max, emp, unit);
+      setCalErrorMax(resolvedCal.error_max_hallado || res.errorMaxLabel);
+    } else {
+      const generated = generarPuntosCalibracion({
+        min,
+        max,
+        unit,
+        numPuntos: isBajada ? 5 : ptsCount,
+        incluirBajada: isBajada
+      });
+      setCalPuntos(generated);
+      setCalErrorMax(resolvedCal.error_max_hallado || 'Pendiente');
+    }
+  }, [target.tipo, target.folio, resolvedCal?.id_ot, selectedAnio]);
 
   useEffect(() => {
     if (tecnico && !firmadoPor) {
@@ -620,23 +699,45 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
         dReal.getDate()
       );
       const nextCalStr = formatFechaDDMMYYYY(nextDate);
+      const resumenCal = calcularResumenDesvio(calPuntos, calRangoMin, calRangoMax, calEmp, calUnidad);
+      const finalErrorMax =
+        calErrorMax.trim() && calErrorMax !== 'Pendiente'
+          ? calErrorMax.trim()
+          : resumenCal.measuredCount > 0
+          ? resumenCal.errorMaxLabel
+          : 'Dentro de EMP';
+      const updatedRangoStr = formatRangoOperacion(calRangoMin, calRangoMax, calUnidad);
 
       if (target.isProjectedCal) {
         const { id_ot: _ignore, estado: _st, fecha_real: _fr, ...orderBase } = liveCal;
         const nuevoFolio = certificarCalibracionProyectada(
           {
             ...orderBase,
+            magnitud: calMagnitud,
+            unidad_medida: calUnidad,
+            rango_min: calRangoMin,
+            rango_max: calRangoMax,
+            puntos_prueba: calPuntos.length,
+            rango_operacion: updatedRangoStr,
+            tolerancia_emp: calEmp,
             mes_objetivo: target.mes_n || dReal.getMonth() + 1,
             anio_objetivo: target.anio || selectedAnio
           },
           {
             fecha_real: fechaRealStr,
             dictamen: calDictamen,
-            error_max_hallado: calErrorMax.trim() || 'Dentro de EMP',
+            error_max_hallado: finalErrorMax,
             patron_utilizado: calPatron.trim(),
             trazabilidad_patron: calTrazabilidad.trim(),
             metrologo_laboratorio: tecnico,
             puntos_calibracion: calPuntos,
+            magnitud: calMagnitud,
+            unidad_medida: calUnidad,
+            rango_min: calRangoMin,
+            rango_max: calRangoMax,
+            puntos_prueba: calPuntos.length,
+            rango_operacion: updatedRangoStr,
+            tolerancia_emp: calEmp,
             observaciones: notasAcciones.trim(),
             repuestos_utilizados: repuestosFinal,
             numero_certificado: calCertNo.trim() || undefined,
@@ -666,11 +767,18 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
             estado: calDictamen === 'No Conforme' ? 'No Conforme / Fuera de Tolerancia' : 'Conforme (A tiempo)',
             fecha_real: fechaRealStr,
             dictamen: calDictamen,
-            error_max_hallado: calErrorMax.trim() || 'Dentro de EMP',
+            error_max_hallado: finalErrorMax,
             patron_utilizado: calPatron.trim(),
             trazabilidad_patron: calTrazabilidad.trim(),
             metrologo_laboratorio: tecnico,
             puntos_calibracion: calPuntos,
+            magnitud: calMagnitud,
+            unidad_medida: calUnidad,
+            rango_min: calRangoMin,
+            rango_max: calRangoMax,
+            puntos_prueba: calPuntos.length,
+            rango_operacion: updatedRangoStr,
+            tolerancia_emp: calEmp,
             observaciones: notasAcciones.trim(),
             repuestos_utilizados: repuestosFinal,
             numero_certificado: calCertNo.trim() || `CAL-CERT-${nuevoFolio.replace('CAL-', '')}`,
@@ -687,11 +795,18 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
         cerrarOrdenCalibracion(liveCal.id_ot, {
           fecha_real: fechaRealStr,
           dictamen: calDictamen,
-          error_max_hallado: calErrorMax.trim() || 'Dentro de EMP',
+          error_max_hallado: finalErrorMax,
           patron_utilizado: calPatron.trim(),
           trazabilidad_patron: calTrazabilidad.trim(),
           metrologo_laboratorio: tecnico,
           puntos_calibracion: calPuntos,
+          magnitud: calMagnitud,
+          unidad_medida: calUnidad,
+          rango_min: calRangoMin,
+          rango_max: calRangoMax,
+          puntos_prueba: calPuntos.length,
+          rango_operacion: updatedRangoStr,
+          tolerancia_emp: calEmp,
           observaciones: notasAcciones.trim(),
           repuestos_utilizados: repuestosFinal,
           numero_certificado: calCertNo.trim() || `CAL-CERT-${selectedAnio}-${liveCal.id_ot.replace(/CAL-\d+-/g, '')}`,
@@ -887,23 +1002,72 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                 )}
 
                 {target.tipo === 'CAL' && resolvedCal && (
-                  <div className="grid grid-cols-2 gap-3 pb-2 border-b border-slate-100 dark:border-slate-800 prodexus:border-[#E4ECF0]">
-                    <div>
-                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Dictamen</span>
-                      <span className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{resolvedCal.dictamen || 'Conforme'}</span>
+                  <div className="space-y-3 pb-2 border-b border-slate-100 dark:border-slate-800 prodexus:border-[#E4ECF0]">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Dictamen</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{resolvedCal.dictamen || 'Conforme'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Error Máx. Hallado</span>
+                        <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{resolvedCal.error_max_hallado || '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">N° Certificado</span>
+                        <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]">{resolvedCal.numero_certificado || '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Magnitud / Rango</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
+                          {resolvedCal.magnitud || resolvedCal.variable_medicion} ({resolvedCal.rango_operacion})
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Próxima Calibración</span>
+                        <span className="font-mono font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{resolvedCal.proxima_calibracion || '-'}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Error Máx. Hallado</span>
-                      <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{resolvedCal.error_max_hallado || '-'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">N° Certificado</span>
-                      <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6]">{resolvedCal.numero_certificado || '-'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] block">Próxima Calibración</span>
-                      <span className="font-mono font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{resolvedCal.proxima_calibracion || '-'}</span>
-                    </div>
+
+                    {resolvedCal.puntos_calibracion && resolvedCal.puntos_calibracion.length > 0 && (
+                      <>
+                        <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-lg">
+                          <table className="w-full text-[11px]">
+                            <thead className="bg-slate-50 dark:bg-slate-800/70 prodexus:bg-[#F3F6F8] text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976]">
+                              <tr>
+                                <th className="py-1.5 px-2 text-left">Punto Nominal</th>
+                                <th className="py-1.5 px-2 text-left">Patrón</th>
+                                <th className="py-1.5 px-2 text-left">Instrumento</th>
+                                <th className="py-1.5 px-2 text-left">Error</th>
+                                <th className="py-1.5 px-2 text-center">Estado</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E4ECF0]">
+                              {resolvedCal.puntos_calibracion.map((pt, idx) => (
+                                <tr key={idx}>
+                                  <td className="py-1.5 px-2 font-mono font-semibold">{pt.punto_nominal}</td>
+                                  <td className="py-1.5 px-2 font-mono">{pt.lectura_patron}</td>
+                                  <td className="py-1.5 px-2 font-mono">{pt.lectura_instrumento}</td>
+                                  <td className="py-1.5 px-2 font-mono font-bold">{pt.error_calculado}</td>
+                                  <td className={`py-1.5 px-2 text-center font-bold ${pt.conforme ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+                                    {pt.conforme ? 'OK' : 'NO'}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <CalibrationDeviationChart
+                          puntos={resolvedCal.puntos_calibracion}
+                          rangoOperacion={resolvedCal.rango_operacion}
+                          rangoMin={resolvedCal.rango_min}
+                          rangoMax={resolvedCal.rango_max}
+                          unidad={resolvedCal.unidad_medida}
+                          toleranciaEmp={resolvedCal.tolerancia_emp}
+                          variableMedicion={resolvedCal.variable_medicion}
+                        />
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -1285,9 +1449,175 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                       />
                     </div>
 
+                    {/* Magnitude, Range & Test Points Generator */}
+                    <div className="border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded-xl p-3 bg-indigo-50/40 dark:bg-indigo-950/30 prodexus:bg-[#EEF5FF]/60 space-y-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-bold text-indigo-900 dark:text-indigo-200 prodexus:text-[#132B36] text-[11px] uppercase tracking-wider">
+                          Configuración del Sensor & Generador de Puntos de Prueba
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const generated = generarPuntosCalibracion({
+                              min: calRangoMin,
+                              max: calRangoMax,
+                              unit: calUnidad,
+                              numPuntos: calIncluirBajada ? 5 : calNumPuntos,
+                              incluirBajada: calIncluirBajada
+                            });
+                            setCalPuntos(generated);
+                            setCalErrorMax('Pendiente');
+                          }}
+                          className="px-2.5 py-1 text-[11px] font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg inline-flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          <span>Generar Puntos</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        <div className="col-span-2 sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                            Magnitud del Sensor
+                          </label>
+                          <select
+                            value={calMagnitud}
+                            onChange={(e) => {
+                              const magName = e.target.value;
+                              setCalMagnitud(magName);
+                              const magObj = findMagnitudeByName(magName);
+                              if (magObj) {
+                                setCalUnidad(magObj.defaultUnit);
+                                setCalRangoMin(magObj.defaultMin);
+                                setCalRangoMax(magObj.defaultMax);
+                                setCalEmp(magObj.defaultEmp);
+                                const pts = generarPuntosCalibracion({
+                                  min: magObj.defaultMin,
+                                  max: magObj.defaultMax,
+                                  unit: magObj.defaultUnit,
+                                  numPuntos: calIncluirBajada ? 5 : calNumPuntos,
+                                  incluirBajada: calIncluirBajada
+                                });
+                                setCalPuntos(pts);
+                                setCalErrorMax('Pendiente');
+                              }
+                            }}
+                            className="w-full min-h-[36px] text-[11px] font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2"
+                          >
+                            {MAGNITUDES_SENSOR.map(m => (
+                              <option key={m.id} value={m.nombre}>
+                                {m.nombre}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                            Unidad
+                          </label>
+                          {(() => {
+                            const magObj = findMagnitudeByName(calMagnitud);
+                            const units = magObj ? magObj.unidades : [calUnidad];
+                            return (
+                              <select
+                                value={calUnidad}
+                                onChange={(e) => setCalUnidad(e.target.value)}
+                                className="w-full min-h-[36px] text-[11px] font-mono font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2"
+                              >
+                                {units.map(u => (
+                                  <option key={u} value={u}>{u}</option>
+                                ))}
+                                {!units.includes(calUnidad) && (
+                                  <option value={calUnidad}>{calUnidad}</option>
+                                )}
+                              </select>
+                            );
+                          })()}
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                            Rango Mín
+                          </label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={calRangoMin}
+                            onChange={(e) => setCalRangoMin(Number(e.target.value))}
+                            className="w-full min-h-[36px] text-[11px] font-mono font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                            Rango Máx
+                          </label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={calRangoMax}
+                            onChange={(e) => setCalRangoMax(Number(e.target.value))}
+                            className="w-full min-h-[36px] text-[11px] font-mono font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                            Puntos de Contraste a Generar
+                          </label>
+                          <select
+                            value={calIncluirBajada ? 9 : calNumPuntos}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              const preset = TEST_POINT_PRESETS.find(p => p.count === val);
+                              const isBajada = Boolean(preset?.incluirBajada);
+                              setCalNumPuntos(val);
+                              setCalIncluirBajada(isBajada);
+                              const pts = generarPuntosCalibracion({
+                                min: calRangoMin,
+                                max: calRangoMax,
+                                unit: calUnidad,
+                                numPuntos: isBajada ? 5 : val,
+                                incluirBajada: isBajada
+                              });
+                              setCalPuntos(pts);
+                              setCalErrorMax('Pendiente');
+                            }}
+                            className="w-full min-h-[36px] text-[11px] font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2"
+                          >
+                            {TEST_POINT_PRESETS.map(p => (
+                              <option key={p.count} value={p.count}>{p.label}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                            Tolerancia EMP
+                          </label>
+                          <input
+                            type="text"
+                            value={calEmp}
+                            onChange={(e) => setCalEmp(e.target.value)}
+                            className="w-full min-h-[36px] text-[11px] font-mono font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Points table */}
                     <div className="border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-xl p-3 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] space-y-2">
-                      <span className="font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36] block">Puntos de Contraste</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
+                          Puntos de Contraste ({calPuntos.length})
+                        </span>
+                        <span className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
+                          Cálculo automático de desvío y conformidad
+                        </span>
+                      </div>
                       <div className="overflow-x-auto">
                         <table className="w-full text-[11px]">
                           <thead>
@@ -1296,51 +1626,94 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                               <th className="py-1.5 px-1.5 text-left">Patrón</th>
                               <th className="py-1.5 px-1.5 text-left">Instrumento</th>
                               <th className="py-1.5 px-1.5 text-left">Error</th>
+                              <th className="py-1.5 px-1.5 text-center">EMP</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {calPuntos.map((p, idx) => (
-                              <tr key={idx} className="border-b border-slate-100 dark:border-slate-700/60 prodexus:border-[#E4ECF0] last:border-b-0">
-                                <td className="py-1.5 px-1.5 font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{p.punto_nominal}</td>
-                                <td className="py-1.5 px-1.5">
-                                  <input
-                                    type="text"
-                                    value={p.lectura_patron}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      setCalPuntos(prev => prev.map((it, i) => i === idx ? { ...it, lectura_patron: val } : it));
-                                    }}
-                                    className="w-20 min-h-[36px] bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 font-mono"
-                                  />
-                                </td>
-                                <td className="py-1.5 px-1.5">
-                                  <input
-                                    type="text"
-                                    value={p.lectura_instrumento}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      setCalPuntos(prev => prev.map((it, i) => i === idx ? { ...it, lectura_instrumento: val } : it));
-                                    }}
-                                    className="w-20 min-h-[36px] bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 font-mono"
-                                  />
-                                </td>
-                                <td className="py-1.5 px-1.5">
-                                  <input
-                                    type="text"
-                                    value={p.error_calculado}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      setCalPuntos(prev => prev.map((it, i) => i === idx ? { ...it, error_calculado: val } : it));
-                                    }}
-                                    className="w-20 min-h-[36px] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 font-mono font-bold text-emerald-700 dark:text-emerald-400"
-                                  />
-                                </td>
-                              </tr>
-                            ))}
+                            {calPuntos.map((p, idx) => {
+                              const updateRow = (patch: Partial<PuntoCalibracion>) => {
+                                const next = calPuntos.map((it, i) => {
+                                  if (i !== idx) return it;
+                                  return recalcularPuntoCalibracion(
+                                    { ...it, ...patch },
+                                    calRangoMin,
+                                    calRangoMax,
+                                    calEmp,
+                                    calUnidad
+                                  );
+                                });
+                                setCalPuntos(next);
+                                const res = calcularResumenDesvio(next, calRangoMin, calRangoMax, calEmp, calUnidad);
+                                if (res.measuredCount > 0) {
+                                  setCalErrorMax(res.errorMaxLabel);
+                                  if (!res.allConforme) {
+                                    setCalDictamen('No Conforme');
+                                  } else if (calDictamen === 'No Conforme') {
+                                    setCalDictamen('Conforme');
+                                  }
+                                }
+                              };
+                              return (
+                                <tr key={idx} className="border-b border-slate-100 dark:border-slate-700/60 prodexus:border-[#E4ECF0] last:border-b-0">
+                                  <td className="py-1.5 px-1.5 font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] whitespace-nowrap">
+                                    {p.punto_nominal}
+                                  </td>
+                                  <td className="py-1.5 px-1.5">
+                                    <input
+                                      type="text"
+                                      value={p.lectura_patron}
+                                      onChange={(e) => updateRow({ lectura_patron: e.target.value })}
+                                      className="w-20 min-h-[36px] bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 font-mono"
+                                    />
+                                  </td>
+                                  <td className="py-1.5 px-1.5">
+                                    <input
+                                      type="text"
+                                      placeholder="Medición"
+                                      value={p.lectura_instrumento}
+                                      onChange={(e) => updateRow({ lectura_instrumento: e.target.value })}
+                                      className="w-20 min-h-[36px] bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 font-mono"
+                                    />
+                                  </td>
+                                  <td className={`py-1.5 px-1.5 font-mono font-bold whitespace-nowrap ${
+                                    p.error_calculado === ''
+                                      ? 'text-slate-400'
+                                      : p.conforme
+                                      ? 'text-emerald-700 dark:text-emerald-400'
+                                      : 'text-rose-700 dark:text-rose-400'
+                                  }`}>
+                                    {p.error_calculado || '—'}
+                                  </td>
+                                  <td className="py-1.5 px-1.5 text-center">
+                                    {p.lectura_instrumento.trim() === '' ? (
+                                      <span className="text-[10px] text-slate-400">—</span>
+                                    ) : (
+                                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                        p.conforme
+                                          ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300'
+                                          : 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300'
+                                      }`}>
+                                        {p.conforme ? 'OK' : 'NO'}
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
                     </div>
+
+                    {/* Live Deviation Graph */}
+                    <CalibrationDeviationChart
+                      puntos={calPuntos}
+                      rangoMin={calRangoMin}
+                      rangoMax={calRangoMax}
+                      unidad={calUnidad}
+                      toleranciaEmp={calEmp}
+                      variableMedicion={calMagnitud}
+                    />
                   </div>
                 )}
 

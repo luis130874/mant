@@ -670,6 +670,88 @@ export function calcularKpiMensual(
   };
 }
 
+export interface KpiCalibracionMensual extends KpiMensual {
+  no_conformes: number;
+}
+
+export function calcularKpiCalibracionMensual(
+  instrumentos: Instrumento[],
+  calibraciones: OrdenCalibracion[],
+  frecuencias: FrecuenciaConfig[],
+  mesIdx: number, // 1 to 12
+  anio = new Date().getFullYear()
+): KpiCalibracionMensual {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  let total_programados = 0;
+  let en_fecha = 0;
+  let fuera_fecha = 0;
+  let pendientes_vencidos = 0;
+  let por_vencer = 0;
+  let no_conformes = 0;
+
+  for (const inst of instrumentos) {
+    if (inst.estado !== 'Activo') continue;
+    const occurs = calcularOcurrenciasInstrumento(inst, anio, frecuencias, calibraciones);
+    const { tolerancia } = obtenerFrecuenciaConfig(inst.frecuencia, frecuencias);
+
+    for (const occ of occurs) {
+      if (occ.mes_n !== mesIdx) continue;
+      total_programados++;
+
+      const fechaPrev = new Date(occ.fecha);
+      fechaPrev.setHours(0, 0, 0, 0);
+
+      const match = occ.ordenMatch;
+      if (match && match.estado !== 'Pendiente') {
+        if (match.dictamen === 'No Conforme' || match.estado.includes('No Conforme')) {
+          no_conformes++;
+          fuera_fecha++;
+        } else if (match.estado.includes('Fuera de término')) {
+          fuera_fecha++;
+        } else if (match.estado.includes('A tiempo')) {
+          en_fecha++;
+        } else {
+          const fReal = parseFecha(match.fecha_real);
+          if (fReal) {
+            fReal.setHours(0, 0, 0, 0);
+            const diffDays = Math.abs(Math.round((fReal.getTime() - fechaPrev.getTime()) / (1000 * 60 * 60 * 24)));
+            if (diffDays <= tolerancia) {
+              en_fecha++;
+            } else {
+              fuera_fecha++;
+            }
+          } else {
+            en_fecha++;
+          }
+        }
+      } else {
+        if (fechaPrev.getTime() <= hoy.getTime()) {
+          pendientes_vencidos++;
+        } else {
+          por_vencer++;
+        }
+      }
+    }
+  }
+
+  const porcentaje_cumplimiento = total_programados > 0
+    ? (en_fecha / total_programados) * 100
+    : 0;
+
+  return {
+    mes_label: MESES_L[mesIdx - 1],
+    total_programados,
+    en_fecha,
+    fuera_fecha,
+    pendientes_vencidos,
+    por_vencer,
+    porcentaje_cumplimiento,
+    no_conformes
+  };
+}
+
 export interface KpiTecnico {
   codigo_tec: string;
   nombre: string;
@@ -705,6 +787,50 @@ export function calcularKpisTecnicos(
         fuera_termino++;
       } else if (est === 'Pendiente') {
         pendientes++;
+      }
+    }
+
+    const cerradas = a_tiempo + fuera_termino;
+    const cumplimiento_pct = cerradas > 0 ? (a_tiempo / cerradas) * 100 : 0;
+
+    return {
+      codigo_tec: tec.codigo_tec,
+      nombre: tNombre,
+      especialidad: tec.especialidad,
+      asignadas_total,
+      pendientes,
+      a_tiempo,
+      fuera_termino,
+      cumplimiento_pct
+    };
+  });
+}
+
+export function calcularKpisMetrologos(
+  tecnicos: Tecnico[],
+  calibraciones: OrdenCalibracion[]
+): KpiTecnico[] {
+  return tecnicos.map(tec => {
+    const tNombre = tec.nombre.trim();
+    const calsTec = calibraciones.filter(c => String(c.metrologo_laboratorio).trim() === tNombre);
+
+    const asignadas_total = calsTec.length;
+    let a_tiempo = 0;
+    let fuera_termino = 0;
+    let pendientes = 0;
+
+    for (const r of calsTec) {
+      const est = String(r.estado || '');
+      if (est === 'Pendiente') {
+        pendientes++;
+      } else if (
+        r.dictamen === 'No Conforme' ||
+        est.includes('No Conforme') ||
+        est.includes('Fuera de término')
+      ) {
+        fuera_termino++;
+      } else if (est.includes('A tiempo') || est.includes('Conforme')) {
+        a_tiempo++;
       }
     }
 

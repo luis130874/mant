@@ -8,6 +8,8 @@ import { Printer, X, FileDown, Loader2 } from 'lucide-react';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { Equipo, OrdenCalibracion } from '../types';
 import { useMaintenance } from '../context/MaintenanceContext';
+import { CalibrationDeviationChart } from './CalibrationDeviationChart';
+import { generarPuntosCalibracion, parseNumericInput, parseRangoMedicion } from '../utils/calibrationMetrology';
 
 export interface PrintableDocument {
   tipo: 'MP' | 'MC' | 'OT' | 'CAL';
@@ -404,26 +406,55 @@ export const PrintModal: React.FC<PrintModalProps> = ({ documents, onClose }) =>
                       </tr>
                     </thead>
                     <tbody>
-                      {isCalPendiente ? (
-                        ['0% FS', '25% FS', '50% FS', '75% FS', '100% FS'].map((nominal, pIdx) => (
-                          <tr key={pIdx} className="border-b border-slate-200">
-                            <td className="py-2.5 px-3 font-mono font-semibold border border-slate-300">{nominal}</td>
-                            <td className="py-2.5 px-3 font-mono text-slate-400 border border-slate-300">____________</td>
-                            <td className="py-2.5 px-3 font-mono text-slate-400 border border-slate-300">____________</td>
-                            <td className="py-2.5 px-3 font-mono text-slate-400 border border-slate-300">_________</td>
-                            <td className="py-2.5 px-3 text-center border border-slate-300 font-mono text-[10px] text-slate-600">
-                              [ ] OK &nbsp; [ ] NO
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        (doc.calibracion?.puntos_calibracion || [
-                          { punto_nominal: '0% FS', lectura_patron: '0.00', lectura_instrumento: '0.0', error_calculado: '0.00%', conforme: true },
-                          { punto_nominal: '25% FS', lectura_patron: '75.05', lectura_instrumento: '75.2', error_calculado: '+0.20%', conforme: true },
-                          { punto_nominal: '50% FS', lectura_patron: '150.10', lectura_instrumento: '150.4', error_calculado: '+0.20%', conforme: true },
-                          { punto_nominal: '75% FS', lectura_patron: '225.08', lectura_instrumento: '225.5', error_calculado: '+0.21%', conforme: true },
-                          { punto_nominal: '100% FS', lectura_patron: '300.02', lectura_instrumento: '300.3', error_calculado: '+0.09%', conforme: true }
-                        ]).map((p, pIdx) => (
+                      {(() => {
+                        const parsed = parseRangoMedicion(
+                          doc.calibracion?.rango_operacion,
+                          doc.calibracion?.variable_medicion,
+                          doc.calibracion?.unidad_medida
+                        );
+                        const rMin = typeof doc.calibracion?.rango_min === 'number' ? doc.calibracion.rango_min : parsed.min;
+                        const rMax = typeof doc.calibracion?.rango_max === 'number' ? doc.calibracion.rango_max : parsed.max;
+                        const rUnit = doc.calibracion?.unidad_medida || parsed.unit;
+
+                        if (isCalPendiente) {
+                          const pendingPts =
+                            doc.calibracion?.puntos_calibracion && doc.calibracion.puntos_calibracion.length > 0
+                              ? doc.calibracion.puntos_calibracion
+                              : generarPuntosCalibracion({
+                                  min: rMin,
+                                  max: rMax,
+                                  unit: rUnit,
+                                  numPuntos: doc.calibracion?.puntos_prueba || 5,
+                                  incluirBajada: doc.calibracion?.puntos_prueba === 9,
+                                  emptyReadings: true
+                                });
+
+                          return pendingPts.map((pt, pIdx) => (
+                            <tr key={pIdx} className="border-b border-slate-200">
+                              <td className="py-2.5 px-3 font-mono font-semibold border border-slate-300">{pt.punto_nominal}</td>
+                              <td className="py-2.5 px-3 font-mono text-slate-400 border border-slate-300">
+                                {pt.lectura_patron ? pt.lectura_patron : '____________'}
+                              </td>
+                              <td className="py-2.5 px-3 font-mono text-slate-400 border border-slate-300">____________</td>
+                              <td className="py-2.5 px-3 font-mono text-slate-400 border border-slate-300">_________</td>
+                              <td className="py-2.5 px-3 text-center border border-slate-300 font-mono text-[10px] text-slate-600">
+                                [ ] OK &nbsp; [ ] NO
+                              </td>
+                            </tr>
+                          ));
+                        }
+
+                        const closedPts = doc.calibracion?.puntos_calibracion && doc.calibracion.puntos_calibracion.length > 0
+                          ? doc.calibracion.puntos_calibracion
+                          : [
+                              { punto_nominal: '0% FS', lectura_patron: '0.00', lectura_instrumento: '0.0', error_calculado: '0.00%', conforme: true },
+                              { punto_nominal: '25% FS', lectura_patron: '75.05', lectura_instrumento: '75.2', error_calculado: '+0.20%', conforme: true },
+                              { punto_nominal: '50% FS', lectura_patron: '150.10', lectura_instrumento: '150.4', error_calculado: '+0.20%', conforme: true },
+                              { punto_nominal: '75% FS', lectura_patron: '225.08', lectura_instrumento: '225.5', error_calculado: '+0.21%', conforme: true },
+                              { punto_nominal: '100% FS', lectura_patron: '300.02', lectura_instrumento: '300.3', error_calculado: '+0.09%', conforme: true }
+                            ];
+
+                        return closedPts.map((p, pIdx) => (
                           <tr key={pIdx} className="border-b border-slate-200">
                             <td className="py-1.5 px-3 font-mono font-medium border border-slate-300">{p.punto_nominal}</td>
                             <td className="py-1.5 px-3 font-mono border border-slate-300">{p.lectura_patron}</td>
@@ -433,8 +464,8 @@ export const PrintModal: React.FC<PrintModalProps> = ({ documents, onClose }) =>
                               {p.conforme ? 'CONFORME' : 'NO CONFORME'}
                             </td>
                           </tr>
-                        ))
-                      )}
+                        ));
+                      })()}
                     </tbody>
                   </table>
 
@@ -478,6 +509,26 @@ export const PrintModal: React.FC<PrintModalProps> = ({ documents, onClose }) =>
                       </div>
                     </div>
                   )}
+
+                  {!isCalPendiente && (() => {
+                    const pts = doc.calibracion?.puntos_calibracion || [];
+                    const hasMeasured = pts.some(
+                      p => parseNumericInput(p.lectura_patron) !== null && parseNumericInput(p.lectura_instrumento) !== null
+                    );
+                    if (!hasMeasured) return null;
+                    return (
+                      <CalibrationDeviationChart
+                        puntos={pts}
+                        rangoOperacion={doc.calibracion?.rango_operacion}
+                        rangoMin={doc.calibracion?.rango_min}
+                        rangoMax={doc.calibracion?.rango_max}
+                        unidad={doc.calibracion?.unidad_medida}
+                        toleranciaEmp={doc.calibracion?.tolerancia_emp}
+                        variableMedicion={doc.calibracion?.variable_medicion}
+                        variant="print"
+                      />
+                    );
+                  })()}
 
                   {doc.calibracion?.repuestos_utilizados && (
                     <p className="text-[11px] text-slate-700 bg-slate-50 p-2 rounded border border-slate-200">

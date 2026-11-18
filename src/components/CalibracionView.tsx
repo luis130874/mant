@@ -31,7 +31,8 @@ import {
   XCircle,
   FileText,
   Share2,
-  Smartphone
+  Smartphone,
+  RefreshCw
 } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
@@ -53,6 +54,21 @@ import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosCo
 import { CatalogoListadoModal } from './CatalogoListadoModal';
 import { PrintableDocument } from './PrintModal';
 import { DigitalOrderTarget } from '../utils/digitalOrderLink';
+import { CalibrationDeviationChart } from './CalibrationDeviationChart';
+import {
+  MAGNITUDES_SENSOR,
+  TEST_POINT_PRESETS,
+  calcularResumenDesvio,
+  findMagnitudeByName,
+  formatMetrologyNum,
+  formatRangoOperacion,
+  generarPuntosCalibracion,
+  inferMagnitudeFromVariable,
+  parseNumericInput,
+  parseRangoMedicion,
+  recalcularPuntoCalibracion,
+  resolveNominalNumeric
+} from '../utils/calibrationMetrology';
 
 interface CalibracionViewProps {
   initialTab?: 'plan' | 'instrumentos' | 'emision' | 'cierre' | 'historial';
@@ -133,6 +149,11 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
   const [fInstCliente, setFInstCliente] = useState('');
   const [fInstEquipoAsoc, setFInstEquipoAsoc] = useState('');
   const [fInstVariable, setFInstVariable] = useState('Presión Hidráulica / Neumática');
+  const [fInstMagnitud, setFInstMagnitud] = useState('Presión');
+  const [fInstUnidad, setFInstUnidad] = useState('PSI');
+  const [fInstRangoMin, setFInstRangoMin] = useState<number>(0);
+  const [fInstRangoMax, setFInstRangoMax] = useState<number>(300);
+  const [fInstNumPuntos, setFInstNumPuntos] = useState<number>(5);
   const [fInstRango, setFInstRango] = useState('0 a 300 PSI');
   const [fInstEMP, setFInstEMP] = useState('± 0.5% FS');
   const [fInstFrecuencia, setFInstFrecuencia] = useState('Semestral');
@@ -156,6 +177,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
   const [batchFechaProg, setBatchFechaProg] = useState<string>(() => `${selectedAnio}-${String(new Date().getMonth() + 1).padStart(2, '0')}-15`);
   const [batchFechaTent, setBatchFechaTent] = useState<string>(() => `${selectedAnio}-${String(new Date().getMonth() + 1).padStart(2, '0')}-22`);
   const [batchTolDias, setBatchTolDias] = useState<number>(7);
+  const [batchNumPuntos, setBatchNumPuntos] = useState<number>(5);
   const [respectProjectedDates, setRespectProjectedDates] = useState<boolean>(true);
   const [batchMetrologoDefault, setBatchMetrologoDefault] = useState<string>(
     () => tecnicos.find(t => t.estado === 'Activo' && tecnicoPerteneceAEmpresa(t, selectedCliente))?.nombre || 'Metrología Interna'
@@ -165,6 +187,15 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
 
   const [formEqCode, setFormEqCode] = useState('');
   const [formNombreInst, setFormNombreInst] = useState('');
+  const [formMagnitud, setFormMagnitud] = useState('Presión');
+  const [formUnidad, setFormUnidad] = useState('PSI');
+  const [formRangoMin, setFormRangoMin] = useState<number>(0);
+  const [formRangoMax, setFormRangoMax] = useState<number>(300);
+  const [formNumPuntos, setFormNumPuntos] = useState<number>(5);
+  const [formIncluirBajada, setFormIncluirBajada] = useState<boolean>(false);
+  const [formPuntosPrueba, setFormPuntosPrueba] = useState<PuntoCalibracion[]>(() =>
+    generarPuntosCalibracion({ min: 0, max: 300, unit: 'PSI', numPuntos: 5, emptyReadings: true })
+  );
   const [formVariable, setFormVariable] = useState('Presión Hidráulica / Neumática');
   const [formRango, setFormRango] = useState('0 a 300 PSI');
   const [formEMP, setFormEMP] = useState('± 0.5% FS');
@@ -181,7 +212,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
   const [selectedCalToClose, setSelectedCalToClose] = useState('');
   const [cierreFechaReal, setCierreFechaReal] = useState(new Date().toISOString().slice(0, 10));
   const [cierreDictamen, setCierreDictamen] = useState<'Conforme' | 'Ajustado y Conforme' | 'No Conforme'>('Conforme');
-  const [cierreErrorMax, setCierreErrorMax] = useState('+0.25%');
+  const [cierreErrorMax, setCierreErrorMax] = useState('Pendiente');
   const [cierrePatron, setCierrePatron] = useState('Balanza de Pesos Muertos Ametek PKII S/N 84120');
   const [cierreTrazabilidad, setCierreTrazabilidad] = useState('CERT-MET-INT-2025-441 (Laboratorio Acreditado)');
   const [cierreMetrologo, setCierreMetrologo] = useState('');
@@ -190,13 +221,16 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
   const [cierreRepuestos, setCierreRepuestos] = useState('');
   const [stockConsumido, setStockConsumido] = useState<SelectedRepuestoConsumo[]>([]);
   const [lastEmittedCalFolio, setLastEmittedCalFolio] = useState<string | null>(null);
-  const [cierrePuntos, setCierrePuntos] = useState<PuntoCalibracion[]>([
-    { punto_nominal: '0% (0.0)', lectura_patron: '0.00', lectura_instrumento: '0.0', error_calculado: '0.00%', conforme: true },
-    { punto_nominal: '25% (75.0)', lectura_patron: '75.02', lectura_instrumento: '75.1', error_calculado: '+0.10%', conforme: true },
-    { punto_nominal: '50% (150.0)', lectura_patron: '150.05', lectura_instrumento: '150.3', error_calculado: '+0.16%', conforme: true },
-    { punto_nominal: '75% (225.0)', lectura_patron: '225.02', lectura_instrumento: '225.4', error_calculado: '+0.17%', conforme: true },
-    { punto_nominal: '100% (300.0)', lectura_patron: '300.00', lectura_instrumento: '300.2', error_calculado: '+0.07%', conforme: true }
-  ]);
+  const [cierreMagnitud, setCierreMagnitud] = useState('Presión');
+  const [cierreUnidad, setCierreUnidad] = useState('PSI');
+  const [cierreRangoMin, setCierreRangoMin] = useState<number>(0);
+  const [cierreRangoMax, setCierreRangoMax] = useState<number>(300);
+  const [cierreNumPuntos, setCierreNumPuntos] = useState<number>(5);
+  const [cierreIncluirBajada, setCierreIncluirBajada] = useState<boolean>(false);
+  const [cierreEmp, setCierreEmp] = useState('± 0.5% FS');
+  const [cierrePuntos, setCierrePuntos] = useState<PuntoCalibracion[]>(() =>
+    generarPuntosCalibracion({ min: 0, max: 300, unit: 'PSI', numPuntos: 5 })
+  );
 
   const calibracionesCliente = selectedCliente === 'Todos'
     ? calibraciones
@@ -282,6 +316,65 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
     ...projectedPendientesList
   ];
 
+  const loadOrderIntoCierre = (order: OrdenCalibracion, isProjectedOnly?: boolean, mes_n?: number) => {
+    setSelectedCalToClose(order.id_ot);
+    setCierreMetrologo(order.metrologo_laboratorio);
+    setCierreCertNo(
+      isProjectedOnly
+        ? `CAL-CERT-${selectedAnio}-${String(mes_n || 1).padStart(2, '0')}-${String(cerradasList.length + 1).padStart(4, '0')}`
+        : `CAL-CERT-${selectedAnio}-${order.id_ot.replace(/CAL-\d+-/g, '')}`
+    );
+
+    const mag =
+      findMagnitudeByName(order.magnitud) ||
+      inferMagnitudeFromVariable(order.variable_medicion, order.rango_operacion);
+    const parsed = parseRangoMedicion(order.rango_operacion, order.variable_medicion, order.unidad_medida);
+    const rMin = typeof order.rango_min === 'number' ? order.rango_min : parsed.min;
+    const rMax = typeof order.rango_max === 'number' ? order.rango_max : parsed.max;
+    const rUnit = order.unidad_medida || parsed.unit;
+    const emp = order.tolerancia_emp || mag.defaultEmp;
+    const ptsCount = order.puntos_prueba || (order.puntos_calibracion?.length || 5);
+    const isBajada =
+      ptsCount === 9 || Boolean(order.puntos_calibracion?.some(p => p.punto_nominal.includes('↓')));
+
+    setCierreMagnitud(order.magnitud || mag.nombre);
+    setCierreUnidad(rUnit);
+    setCierreRangoMin(rMin);
+    setCierreRangoMax(rMax);
+    setCierreNumPuntos(isBajada ? 9 : ptsCount);
+    setCierreIncluirBajada(isBajada);
+    setCierreEmp(emp);
+    if (order.patron_utilizado) setCierrePatron(order.patron_utilizado);
+    if (order.trazabilidad_patron) setCierreTrazabilidad(order.trazabilidad_patron);
+
+    if (order.puntos_calibracion && order.puntos_calibracion.length > 0) {
+      const hydrated = order.puntos_calibracion.map(pt => {
+        const nom = resolveNominalNumeric(pt);
+        const patStr = pt.lectura_patron.trim() !== '' ? pt.lectura_patron : nom !== null ? formatMetrologyNum(nom) : '';
+        return recalcularPuntoCalibracion(
+          { ...pt, lectura_patron: patStr, unidad: pt.unidad || rUnit },
+          rMin,
+          rMax,
+          emp,
+          rUnit
+        );
+      });
+      setCierrePuntos(hydrated);
+      const res = calcularResumenDesvio(hydrated, rMin, rMax, emp, rUnit);
+      setCierreErrorMax(order.error_max_hallado || res.errorMaxLabel);
+    } else {
+      const generated = generarPuntosCalibracion({
+        min: rMin,
+        max: rMax,
+        unit: rUnit,
+        numPuntos: isBajada ? 5 : ptsCount,
+        incluirBajada: isBajada
+      });
+      setCierrePuntos(generated);
+      setCierreErrorMax('Pendiente');
+    }
+  };
+
   // Pre-fill fields on selecting an equipment in Emission form
   const handleSelectEquipForCalibration = (code: string) => {
     setFormEqCode(code);
@@ -289,60 +382,151 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
     if (eq) {
       if (eq.sistema.toLowerCase().includes('hvac') || eq.sistema.toLowerCase().includes('chiller')) {
         setFormNombreInst(`Manómetro Presión Evaporador ${eq.nombre}`);
+        setFormMagnitud('Presión');
+        setFormUnidad('PSI');
+        setFormRangoMin(0);
+        setFormRangoMax(300);
         setFormVariable('Presión Refrigerante R-134a');
         setFormRango('0 a 300 PSI');
         setFormEMP('± 0.5% FS');
+        setFormPuntosPrueba(
+          generarPuntosCalibracion({
+            min: 0,
+            max: 300,
+            unit: 'PSI',
+            numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+            incluirBajada: formIncluirBajada,
+            emptyReadings: true
+          })
+        );
       } else if (eq.sistema.toLowerCase().includes('caldera') || eq.sistema.toLowerCase().includes('vapor')) {
         setFormNombreInst(`Transmisor de Presión Vapor ${eq.nombre}`);
+        setFormMagnitud('Presión');
+        setFormUnidad('PSI');
+        setFormRangoMin(0);
+        setFormRangoMax(200);
         setFormVariable('Presión de Vapor Saturado');
         setFormRango('0 a 200 PSI');
         setFormEMP('± 0.5% FS');
+        setFormPuntosPrueba(
+          generarPuntosCalibracion({
+            min: 0,
+            max: 200,
+            unit: 'PSI',
+            numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+            incluirBajada: formIncluirBajada,
+            emptyReadings: true
+          })
+        );
       } else if (eq.sistema.toLowerCase().includes('neum') || eq.sistema.toLowerCase().includes('compresor')) {
         setFormNombreInst(`Sensor Transmisor Presión Red 4-20mA ${eq.nombre}`);
+        setFormMagnitud('Presión');
+        setFormUnidad('Bar');
+        setFormRangoMin(0);
+        setFormRangoMax(16);
         setFormVariable('Presión de Aire Comprimido');
         setFormRango('0 a 16 Bar');
         setFormEMP('± 0.25% FS');
+        setFormPuntosPrueba(
+          generarPuntosCalibracion({
+            min: 0,
+            max: 16,
+            unit: 'Bar',
+            numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+            incluirBajada: formIncluirBajada,
+            emptyReadings: true
+          })
+        );
       } else {
         setFormNombreInst(`Instrumento de Control ${eq.nombre}`);
+        setFormMagnitud('Presión');
+        setFormUnidad('%');
+        setFormRangoMin(0);
+        setFormRangoMax(100);
         setFormVariable('Presión / Temperatura');
         setFormRango('0 a 100%');
         setFormEMP('± 1.0%');
+        setFormPuntosPrueba(
+          generarPuntosCalibracion({
+            min: 0,
+            max: 100,
+            unit: '%',
+            numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+            incluirBajada: formIncluirBajada,
+            emptyReadings: true
+          })
+        );
       }
     }
   };
 
-  const handleEmitirSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const emitIndividualOrder = (andShareDigital: boolean) => {
     if (!formNombreInst.trim()) {
       addToast('Por favor ingrese el nombre del instrumento.', 'warning');
       return;
     }
 
     const eqObj = equipos.find(e => e.codigo_eq === formEqCode);
-    const clienteName = eqObj?.cliente || (selectedCliente !== 'Todos' ? selectedCliente : 'Planta General');
+    const instObj = instrumentos.find(i => i.codigo_inst === formEqCode);
+    const clienteName = instObj?.cliente || eqObj?.cliente || (selectedCliente !== 'Todos' ? selectedCliente : 'Planta General');
     const dProg = parseFecha(formFechaProg) || new Date();
     const dTent = parseFecha(formFechaTent) || new Date();
     const hoyStr = formatFechaDDMMYYYY(new Date());
+    const finalRangoStr = formatRangoOperacion(formRangoMin, formRangoMax, formUnidad);
+    const finalPts = formPuntosPrueba.length > 0
+      ? formPuntosPrueba
+      : generarPuntosCalibracion({
+          min: formRangoMin,
+          max: formRangoMax,
+          unit: formUnidad,
+          numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+          incluirBajada: formIncluirBajada,
+          emptyReadings: true
+        });
 
-    const folioEmitido = crearOrdenCalibracion({
+    const payload: Omit<OrdenCalibracion, 'id_ot' | 'estado' | 'fecha_real'> = {
       codigo_eq: formEqCode || 'INST-GEN',
       cliente: clienteName,
       instrumento_nombre: formNombreInst,
-      variable_medicion: formVariable,
-      rango_operacion: formRango,
+      magnitud: formMagnitud,
+      unidad_medida: formUnidad,
+      rango_min: formRangoMin,
+      rango_max: formRangoMax,
+      puntos_prueba: finalPts.length,
+      variable_medicion: formVariable || formMagnitud,
+      rango_operacion: finalRangoStr || formRango,
       tolerancia_emp: formEMP,
       frecuencia_calibracion: formFrecuencia,
+      patron_utilizado: instObj?.patron_habitual,
       fecha_emision: hoyStr,
       fecha_programada: formatFechaDDMMYYYY(dProg),
       fecha_tentativa: formatFechaDDMMYYYY(dTent),
       dias_tolerancia: formTolDias,
       metrologo_laboratorio: formMetrologo,
+      puntos_calibracion: finalPts,
       observaciones: formObs
-    });
+    };
 
+    const folioEmitido = crearOrdenCalibracion(payload);
     setLastEmittedCalFolio(folioEmitido);
     setFormNombreInst('');
     setFormObs('');
+
+    if (andShareDigital && onShareOrder) {
+      onShareOrder(
+        buildDigitalTargetCAL({
+          ...payload,
+          id_ot: folioEmitido,
+          estado: 'Pendiente',
+          fecha_real: ''
+        })
+      );
+    }
+  };
+
+  const handleEmitirSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    emitIndividualOrder(false);
   };
 
   const handleCierreSubmit = (e: React.FormEvent) => {
@@ -381,23 +565,45 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
       : [];
 
     const repuestosFinal = [...deductedLabels, cierreRepuestos.trim()].filter(Boolean).join(' | ');
+    const resumen = calcularResumenDesvio(cierrePuntos, cierreRangoMin, cierreRangoMax, cierreEmp, cierreUnidad);
+    const finalErrorMax =
+      cierreErrorMax.trim() && cierreErrorMax !== 'Pendiente'
+        ? cierreErrorMax.trim()
+        : resumen.measuredCount > 0
+        ? resumen.errorMaxLabel
+        : 'Dentro de EMP';
+    const updatedRangoStr = formatRangoOperacion(cierreRangoMin, cierreRangoMax, cierreUnidad);
 
     if (closeItem.isProjectedOnly) {
       const { id_ot: _ignore, estado: _st, fecha_real: _fr, ...orderBase } = calMatch;
       certificarCalibracionProyectada(
         {
           ...orderBase,
+          magnitud: cierreMagnitud,
+          unidad_medida: cierreUnidad,
+          rango_min: cierreRangoMin,
+          rango_max: cierreRangoMax,
+          puntos_prueba: cierrePuntos.length,
+          rango_operacion: updatedRangoStr,
+          tolerancia_emp: cierreEmp,
           mes_objetivo: closeItem.mes_n,
           anio_objetivo: selectedAnio
         },
         {
           fecha_real: formatFechaDDMMYYYY(dReal),
           dictamen: cierreDictamen,
-          error_max_hallado: cierreErrorMax,
+          error_max_hallado: finalErrorMax,
           patron_utilizado: cierrePatron,
           trazabilidad_patron: cierreTrazabilidad,
           metrologo_laboratorio: metrologoFinal,
           puntos_calibracion: cierrePuntos,
+          magnitud: cierreMagnitud,
+          unidad_medida: cierreUnidad,
+          rango_min: cierreRangoMin,
+          rango_max: cierreRangoMax,
+          puntos_prueba: cierrePuntos.length,
+          rango_operacion: updatedRangoStr,
+          tolerancia_emp: cierreEmp,
           observaciones: cierreObs,
           repuestos_utilizados: repuestosFinal,
           numero_certificado: cierreCertNo && !cierreCertNo.includes('PROY') ? cierreCertNo : undefined,
@@ -408,11 +614,18 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
       cerrarOrdenCalibracion(selectedCalToClose, {
         fecha_real: formatFechaDDMMYYYY(dReal),
         dictamen: cierreDictamen,
-        error_max_hallado: cierreErrorMax,
+        error_max_hallado: finalErrorMax,
         patron_utilizado: cierrePatron,
         trazabilidad_patron: cierreTrazabilidad,
         metrologo_laboratorio: metrologoFinal,
         puntos_calibracion: cierrePuntos,
+        magnitud: cierreMagnitud,
+        unidad_medida: cierreUnidad,
+        rango_min: cierreRangoMin,
+        rango_max: cierreRangoMax,
+        puntos_prueba: cierrePuntos.length,
+        rango_operacion: updatedRangoStr,
+        tolerancia_emp: cierreEmp,
         observaciones: cierreObs,
         repuestos_utilizados: repuestosFinal,
         numero_certificado: cierreCertNo || `CAL-CERT-${selectedAnio}-${selectedCalToClose.replace(/CAL-\d+-/g, '')}`,
@@ -562,15 +775,39 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
       const dProg = useProj ? projOcc!.fecha : dProgBatch;
       const dTent = useProj ? new Date(dProg.getFullYear(), dProg.getMonth(), dProg.getDate() + leadDays) : dTentBatch;
 
+      const mag =
+        findMagnitudeByName(inst.magnitud) ||
+        inferMagnitudeFromVariable(inst.variable_medicion, inst.rango_operacion);
+      const parsed = parseRangoMedicion(inst.rango_operacion, inst.variable_medicion, inst.unidad_medida);
+      const rMin = typeof inst.rango_min === 'number' ? inst.rango_min : parsed.min;
+      const rMax = typeof inst.rango_max === 'number' ? inst.rango_max : parsed.max;
+      const rUnit = inst.unidad_medida || parsed.unit;
+      const ptsTarget = inst.puntos_prueba || batchNumPuntos;
+      const isBajada = ptsTarget === 9;
+      const generatedPts = generarPuntosCalibracion({
+        min: rMin,
+        max: rMax,
+        unit: rUnit,
+        numPuntos: isBajada ? 5 : ptsTarget,
+        incluirBajada: isBajada,
+        emptyReadings: true
+      });
+
       return {
         codigo_eq: inst.codigo_inst,
         cliente: inst.cliente,
         instrumento_nombre: inst.nombre,
+        magnitud: inst.magnitud || mag.nombre,
+        unidad_medida: rUnit,
+        rango_min: rMin,
+        rango_max: rMax,
+        puntos_prueba: generatedPts.length,
         variable_medicion: inst.variable_medicion,
         rango_operacion: inst.rango_operacion,
         tolerancia_emp: inst.tolerancia_emp,
         frecuencia_calibracion: inst.frecuencia,
         patron_utilizado: inst.patron_habitual,
+        puntos_calibracion: generatedPts,
         fecha_emision: hoyStr,
         fecha_programada: formatFechaDDMMYYYY(dProg),
         fecha_tentativa: formatFechaDDMMYYYY(dTent),
@@ -673,6 +910,11 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
     setFInstCliente(selectedCliente === 'Todos' ? (clientes[0]?.nombre || '') : selectedCliente);
     setFInstEquipoAsoc(equipos[0]?.codigo_eq || '');
     setFInstVariable('Presión Hidráulica / Neumática');
+    setFInstMagnitud('Presión');
+    setFInstUnidad('PSI');
+    setFInstRangoMin(0);
+    setFInstRangoMax(300);
+    setFInstNumPuntos(5);
     setFInstRango('0 a 300 PSI');
     setFInstEMP('± 0.5% FS');
     setFInstFrecuencia('Semestral');
@@ -696,6 +938,15 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
     setFInstNombre(inst.nombre);
     setFInstCliente(inst.cliente);
     setFInstEquipoAsoc(inst.equipo_asociado || '');
+    const mag =
+      findMagnitudeByName(inst.magnitud) ||
+      inferMagnitudeFromVariable(inst.variable_medicion, inst.rango_operacion);
+    const parsed = parseRangoMedicion(inst.rango_operacion, inst.variable_medicion, inst.unidad_medida);
+    setFInstMagnitud(inst.magnitud || mag.nombre);
+    setFInstUnidad(inst.unidad_medida || parsed.unit);
+    setFInstRangoMin(typeof inst.rango_min === 'number' ? inst.rango_min : parsed.min);
+    setFInstRangoMax(typeof inst.rango_max === 'number' ? inst.rango_max : parsed.max);
+    setFInstNumPuntos(inst.puntos_prueba || 5);
     setFInstVariable(inst.variable_medicion);
     setFInstRango(inst.rango_operacion);
     setFInstEMP(inst.tolerancia_emp);
@@ -727,6 +978,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
     }
 
     const codNorm = fInstCodigo.trim().toUpperCase();
+    const formattedRange = formatRangoOperacion(fInstRangoMin, fInstRangoMax, fInstUnidad);
 
     if (instModalMode === 'create') {
       if (instrumentos.some(i => i.codigo_inst.trim().toUpperCase() === codNorm)) {
@@ -739,8 +991,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
         nombre: fInstNombre.trim(),
         cliente: fInstCliente || (selectedCliente !== 'Todos' ? selectedCliente : (clientes[0]?.nombre || '')),
         equipo_asociado: fInstEquipoAsoc.trim() || undefined,
-        variable_medicion: fInstVariable.trim(),
-        rango_operacion: fInstRango.trim(),
+        magnitud: fInstMagnitud,
+        unidad_medida: fInstUnidad,
+        rango_min: fInstRangoMin,
+        rango_max: fInstRangoMax,
+        puntos_prueba: fInstNumPuntos,
+        variable_medicion: fInstVariable.trim() || fInstMagnitud,
+        rango_operacion: fInstRango.trim() || formattedRange,
         tolerancia_emp: fInstEMP.trim(),
         frecuencia: fInstFrecuencia.trim(),
         marca: fInstMarca.trim() || undefined,
@@ -765,8 +1022,13 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
           nombre: fInstNombre.trim(),
           cliente: fInstCliente || existing.cliente,
           equipo_asociado: fInstEquipoAsoc.trim() || undefined,
-          variable_medicion: fInstVariable.trim(),
-          rango_operacion: fInstRango.trim(),
+          magnitud: fInstMagnitud,
+          unidad_medida: fInstUnidad,
+          rango_min: fInstRangoMin,
+          rango_max: fInstRangoMax,
+          puntos_prueba: fInstNumPuntos,
+          variable_medicion: fInstVariable.trim() || fInstMagnitud,
+          rango_operacion: fInstRango.trim() || formattedRange,
           tolerancia_emp: fInstEMP.trim(),
           frecuencia: fInstFrecuencia.trim(),
           fecha_proxima: fInstFechaInicio,
@@ -832,12 +1094,39 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
   const handleEmitirParaInstrumento = (inst: Instrumento) => {
     setFormEqCode(inst.codigo_inst);
     setFormNombreInst(inst.nombre);
+    const mag =
+      findMagnitudeByName(inst.magnitud) ||
+      inferMagnitudeFromVariable(inst.variable_medicion, inst.rango_operacion);
+    const parsed = parseRangoMedicion(inst.rango_operacion, inst.variable_medicion, inst.unidad_medida);
+    const rMin = typeof inst.rango_min === 'number' ? inst.rango_min : parsed.min;
+    const rMax = typeof inst.rango_max === 'number' ? inst.rango_max : parsed.max;
+    const rUnit = inst.unidad_medida || parsed.unit;
+    const ptsCount = inst.puntos_prueba || 5;
+    const isBajada = ptsCount === 9;
+
+    setFormMagnitud(inst.magnitud || mag.nombre);
+    setFormUnidad(rUnit);
+    setFormRangoMin(rMin);
+    setFormRangoMax(rMax);
+    setFormNumPuntos(isBajada ? 9 : ptsCount);
+    setFormIncluirBajada(isBajada);
+    setFormPuntosPrueba(
+      generarPuntosCalibracion({
+        min: rMin,
+        max: rMax,
+        unit: rUnit,
+        numPuntos: isBajada ? 5 : ptsCount,
+        incluirBajada: isBajada,
+        emptyReadings: true
+      })
+    );
     setFormVariable(inst.variable_medicion);
     setFormRango(inst.rango_operacion);
     setFormEMP(inst.tolerancia_emp);
     setFormFrecuencia(inst.frecuencia);
     if (inst.metrologo_habitual) setFormMetrologo(inst.metrologo_habitual);
     if (inst.notas) setFormObs(inst.notas);
+    setEmisionMode('individual');
     setActiveTab('emision');
   };
 
@@ -1865,17 +2154,35 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       <span>Respetar fecha proyectada individual de cada instrumento (recomendado)</span>
                     </label>
 
-                    <div>
-                      <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
-                        Metrólogo / Laboratorio por Defecto
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Se usa si el instrumento no tiene uno asignado"
-                        value={batchMetrologoDefault}
-                        onChange={(e) => setBatchMetrologoDefault(e.target.value)}
-                        className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                          Metrólogo / Laboratorio por Defecto
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Se usa si el instrumento no tiene uno asignado"
+                          value={batchMetrologoDefault}
+                          onChange={(e) => setBatchMetrologoDefault(e.target.value)}
+                          className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                          Puntos de Prueba Generados
+                        </label>
+                        <select
+                          value={batchNumPuntos}
+                          onChange={(e) => setBatchNumPuntos(Number(e.target.value))}
+                          className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          {TEST_POINT_PRESETS.map(p => (
+                            <option key={p.count} value={p.count}>
+                              {p.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     {/* Selection toolbar */}
@@ -2054,33 +2361,220 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
-                            Variable de Medición *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Ej. Presión, Temperatura, Caudal..."
-                            value={formVariable}
-                            onChange={(e) => setFormVariable(e.target.value)}
-                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          />
+                      {/* Sensor Magnitude, Range & Test Points Generator */}
+                      <div className="p-3 rounded-xl border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] bg-indigo-50/40 dark:bg-indigo-950/30 prodexus:bg-[#EEF5FF]/70 space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-indigo-900 dark:text-indigo-200 prodexus:text-[#132B36] text-[11px] uppercase tracking-wider">
+                            Magnitud del Sensor, Rango & Puntos de Prueba
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const pts = generarPuntosCalibracion({
+                                min: formRangoMin,
+                                max: formRangoMax,
+                                unit: formUnidad,
+                                numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+                                incluirBajada: formIncluirBajada,
+                                emptyReadings: true
+                              });
+                              setFormPuntosPrueba(pts);
+                              setFormRango(formatRangoOperacion(formRangoMin, formRangoMax, formUnidad));
+                            }}
+                            className="px-2 py-1 text-[10.5px] font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 rounded-md inline-flex items-center gap-1"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            <span>Regenerar Puntos</span>
+                          </button>
                         </div>
 
-                        <div>
-                          <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
-                            Rango de Operación *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Ej. 0 a 300 PSI, -50 a 150 °C"
-                            value={formRango}
-                            onChange={(e) => setFormRango(e.target.value)}
-                            className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          />
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <div className="col-span-2">
+                            <label className="block text-[10.5px] font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                              Magnitud del Sensor *
+                            </label>
+                            <select
+                              value={formMagnitud}
+                              onChange={(e) => {
+                                const magName = e.target.value;
+                                setFormMagnitud(magName);
+                                const magObj = findMagnitudeByName(magName);
+                                if (magObj) {
+                                  setFormUnidad(magObj.defaultUnit);
+                                  setFormRangoMin(magObj.defaultMin);
+                                  setFormRangoMax(magObj.defaultMax);
+                                  setFormVariable(magObj.nombre);
+                                  setFormEMP(magObj.defaultEmp);
+                                  setFormRango(formatRangoOperacion(magObj.defaultMin, magObj.defaultMax, magObj.defaultUnit));
+                                  setFormPuntosPrueba(
+                                    generarPuntosCalibracion({
+                                      min: magObj.defaultMin,
+                                      max: magObj.defaultMax,
+                                      unit: magObj.defaultUnit,
+                                      numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+                                      incluirBajada: formIncluirBajada,
+                                      emptyReadings: true
+                                    })
+                                  );
+                                }
+                              }}
+                              className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                              {MAGNITUDES_SENSOR.map(m => (
+                                <option key={m.id} value={m.nombre}>{m.nombre}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10.5px] font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                              Unidad *
+                            </label>
+                            {(() => {
+                              const magObj = findMagnitudeByName(formMagnitud);
+                              const units = magObj ? magObj.unidades : [formUnidad];
+                              return (
+                                <select
+                                  value={formUnidad}
+                                  onChange={(e) => {
+                                    const u = e.target.value;
+                                    setFormUnidad(u);
+                                    setFormRango(formatRangoOperacion(formRangoMin, formRangoMax, u));
+                                    setFormPuntosPrueba(
+                                      generarPuntosCalibracion({
+                                        min: formRangoMin,
+                                        max: formRangoMax,
+                                        unit: u,
+                                        numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+                                        incluirBajada: formIncluirBajada,
+                                        emptyReadings: true
+                                      })
+                                    );
+                                  }}
+                                  className="w-full font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                >
+                                  {units.map(u => <option key={u} value={u}>{u}</option>)}
+                                  {!units.includes(formUnidad) && <option value={formUnidad}>{formUnidad}</option>}
+                                </select>
+                              );
+                            })()}
+                          </div>
+
+                          <div>
+                            <label className="block text-[10.5px] font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                              N° Puntos
+                            </label>
+                            <select
+                              value={formIncluirBajada ? 9 : formNumPuntos}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                const preset = TEST_POINT_PRESETS.find(p => p.count === val);
+                                const isBajada = Boolean(preset?.incluirBajada);
+                                setFormNumPuntos(val);
+                                setFormIncluirBajada(isBajada);
+                                setFormPuntosPrueba(
+                                  generarPuntosCalibracion({
+                                    min: formRangoMin,
+                                    max: formRangoMax,
+                                    unit: formUnidad,
+                                    numPuntos: isBajada ? 5 : val,
+                                    incluirBajada: isBajada,
+                                    emptyReadings: true
+                                  })
+                                );
+                              }}
+                              className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                              {TEST_POINT_PRESETS.map(p => (
+                                <option key={p.count} value={p.count}>{p.count} pts{p.incluirBajada ? ' (↑↓)' : ''}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-[10.5px] font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                              Rango Mín *
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              required
+                              value={formRangoMin}
+                              onChange={(e) => {
+                                const v = Number(e.target.value);
+                                setFormRangoMin(v);
+                                setFormRango(formatRangoOperacion(v, formRangoMax, formUnidad));
+                                setFormPuntosPrueba(
+                                  generarPuntosCalibracion({
+                                    min: v,
+                                    max: formRangoMax,
+                                    unit: formUnidad,
+                                    numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+                                    incluirBajada: formIncluirBajada,
+                                    emptyReadings: true
+                                  })
+                                );
+                              }}
+                              className="w-full font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10.5px] font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                              Rango Máx *
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              required
+                              value={formRangoMax}
+                              onChange={(e) => {
+                                const v = Number(e.target.value);
+                                setFormRangoMax(v);
+                                setFormRango(formatRangoOperacion(formRangoMin, v, formUnidad));
+                                setFormPuntosPrueba(
+                                  generarPuntosCalibracion({
+                                    min: formRangoMin,
+                                    max: v,
+                                    unit: formUnidad,
+                                    numPuntos: formIncluirBajada ? 5 : formNumPuntos,
+                                    incluirBajada: formIncluirBajada,
+                                    emptyReadings: true
+                                  })
+                                );
+                              }}
+                              className="w-full font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10.5px] font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                              Detalle Variable
+                            </label>
+                            <input
+                              type="text"
+                              value={formVariable}
+                              onChange={(e) => setFormVariable(e.target.value)}
+                              className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Preview of generated points */}
+                        <div className="pt-1 border-t border-indigo-200/60 dark:border-indigo-800/50">
+                          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] block mb-1">
+                            Puntos Nominales Generados ({formPuntosPrueba.length}):
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {formPuntosPrueba.map((pt, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] font-mono text-[10px] font-semibold text-indigo-800 dark:text-indigo-200 prodexus:text-[#132B36]"
+                              >
+                                {pt.punto_nominal}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
 
@@ -2185,12 +2679,24 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       </div>
 
                       {canEmit ? (
-                        <button
-                          type="submit"
-                          className="w-full py-2.5 px-4 font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
-                        >
-                          Emitir Orden de Calibración (CAL)
-                        </button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <button
+                            type="submit"
+                            className="w-full py-2.5 px-3 font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
+                          >
+                            Emitir Orden CAL
+                          </button>
+                          {onShareOrder && (
+                            <button
+                              type="button"
+                              onClick={() => emitIndividualOrder(true)}
+                              className="w-full py-2.5 px-3 font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#189B4C] transition-colors shadow-xs flex items-center justify-center gap-1.5"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                              <span>Emitir y Cierre Digital</span>
+                            </button>
+                          )}
+                        </div>
                       ) : (
                         <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-[11px] font-medium text-center">
                           Sin permiso para emitir órdenes de calibración.
@@ -2207,23 +2713,66 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   const batchOrders = calibraciones.filter(c => lastBatchFolios.includes(c.id_ot));
                   if (!batchOrders.length) return null;
                   return (
-                    <div className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/50 flex flex-wrap items-center justify-between gap-3">
-                      <div className="text-xs">
-                        <p className="font-bold text-emerald-900 dark:text-emerald-200">
-                          Lote emitido: {batchOrders.length} {batchOrders.length === 1 ? 'orden generada' : 'órdenes generadas'} para {mesNombre} {selectedAnio}
-                        </p>
-                        <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-mono">
-                          {batchOrders.map(b => b.id_ot).join(', ')}
-                        </p>
+                    <div className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/50 space-y-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="text-xs">
+                          <p className="font-bold text-emerald-900 dark:text-emerald-200">
+                            Lote emitido: {batchOrders.length} {batchOrders.length === 1 ? 'orden generada' : 'órdenes generadas'} para {mesNombre} {selectedAnio}
+                          </p>
+                          <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-mono">
+                            {batchOrders.map(b => b.id_ot).join(', ')}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {batchOrders.length === 1 && onShareOrder && (
+                            <button
+                              type="button"
+                              onClick={() => onShareOrder(buildDigitalTargetCAL(batchOrders[0]))}
+                              className="px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-200 bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 rounded-lg flex items-center gap-1.5 shadow-2xs"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                              <span>Compartir Digital</span>
+                            </button>
+                          )}
+                          {batchOrders.length === 1 && onOpenDigitalExecution && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenDigitalExecution(buildDigitalTargetCAL(batchOrders[0]))}
+                              className="px-3 py-1.5 text-xs font-bold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900 border border-blue-300 dark:border-blue-700 hover:bg-blue-50 rounded-lg flex items-center gap-1.5 shadow-2xs"
+                            >
+                              <Smartphone className="w-3.5 h-3.5" />
+                              <span>Ejecutar Digital</span>
+                            </button>
+                          )}
+                          {canPrint && (
+                            <button
+                              type="button"
+                              onClick={() => handlePrintBatchCalibraciones(batchOrders)}
+                              className="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg flex items-center gap-1.5 shadow-xs"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                              <span>Imprimir / PDF Lote ({batchOrders.length})</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handlePrintBatchCalibraciones(batchOrders)}
-                        className="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg flex items-center gap-1.5 shadow-xs"
-                      >
-                        <Printer className="w-3.5 h-3.5" />
-                        <span>Imprimir / PDF Lote ({batchOrders.length})</span>
-                      </button>
+                      {batchOrders.length > 1 && onShareOrder && (
+                        <div className="pt-2 border-t border-emerald-200/80 dark:border-emerald-800/60 flex flex-wrap items-center gap-1.5 text-[11px]">
+                          <span className="font-semibold text-emerald-800 dark:text-emerald-300 mr-1">Despachar digital:</span>
+                          {batchOrders.map(ord => (
+                            <button
+                              key={ord.id_ot}
+                              type="button"
+                              onClick={() => onShareOrder(buildDigitalTargetCAL(ord))}
+                              className="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100 font-mono font-semibold inline-flex items-center gap-1"
+                              title={`Compartir ${ord.id_ot} (${ord.instrumento_nombre})`}
+                            >
+                              <Share2 className="w-3 h-3" />
+                              <span>{ord.codigo_eq}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -2241,14 +2790,38 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                           {justEmitted.instrumento_nombre} · Programada: {justEmitted.fecha_programada}
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handlePrintCertificate(justEmitted)}
-                        className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg flex items-center gap-1.5 shadow-xs"
-                      >
-                        <Printer className="w-3.5 h-3.5" />
-                        <span>Imprimir / Descargar PDF</span>
-                      </button>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {onShareOrder && (
+                          <button
+                            type="button"
+                            onClick={() => onShareOrder(buildDigitalTargetCAL(justEmitted))}
+                            className="px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-200 bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 rounded-lg flex items-center gap-1.5 shadow-2xs"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                            <span>Compartir Digital</span>
+                          </button>
+                        )}
+                        {onOpenDigitalExecution && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenDigitalExecution(buildDigitalTargetCAL(justEmitted))}
+                            className="px-3 py-1.5 text-xs font-bold text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900 border border-blue-300 dark:border-blue-700 hover:bg-blue-50 rounded-lg flex items-center gap-1.5 shadow-2xs"
+                          >
+                            <Smartphone className="w-3.5 h-3.5" />
+                            <span>Ejecutar Digital</span>
+                          </button>
+                        )}
+                        {canPrint && (
+                          <button
+                            type="button"
+                            onClick={() => handlePrintCertificate(justEmitted)}
+                            className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 prodexus:hover:bg-[#2566D1] rounded-lg flex items-center gap-1.5 shadow-xs"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>Imprimir / PDF</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })()}
@@ -2350,9 +2923,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setSelectedCalToClose(cal.id_ot);
-                                    setCierreMetrologo(cal.metrologo_laboratorio);
-                                    setCierreCertNo(`CAL-CERT-${selectedAnio}-${cal.id_ot.replace(/CAL-\d+-/g, '')}`);
+                                    loadOrderIntoCierre(cal, false);
                                     setActiveTab('cierre');
                                   }}
                                   className="px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded-md"
@@ -2455,26 +3026,28 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                                 <span>Digital</span>
                               </button>
                             )}
-                            <button
-                              type="button"
-                              onClick={() => handlePrintCertificate(cal)}
-                              className="px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded flex items-center gap-1"
-                            >
-                              <Printer className="w-3 h-3" />
-                              <span>Imprimir / PDF</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedCalToClose(cal.id_ot);
-                                setCierreMetrologo(cal.metrologo_laboratorio);
-                                setCierreCertNo(`CAL-CERT-${selectedAnio}-${cal.id_ot.replace(/CAL-\d+-/g, '')}`);
-                                setActiveTab('cierre');
-                              }}
-                              className="px-2 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded"
-                            >
-                              Certificar
-                            </button>
+                            {canPrint && (
+                              <button
+                                type="button"
+                                onClick={() => handlePrintCertificate(cal)}
+                                className="px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded flex items-center gap-1"
+                              >
+                                <Printer className="w-3 h-3" />
+                                <span>Imprimir / PDF</span>
+                              </button>
+                            )}
+                            {canClose && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  loadOrderIntoCierre(cal, false);
+                                  setActiveTab('cierre');
+                                }}
+                                className="px-2 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70 border border-emerald-200 dark:border-emerald-800/70 rounded"
+                              >
+                                Certificar
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -2488,7 +3061,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     Criterios de Aceptación Metrológica (ISO 17025)
                   </h3>
                   <p className="text-[11px] text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] leading-relaxed">
-                    Puede emitir todas las órdenes de un mes en bloque y descargarlas en un solo archivo PDF o imprimir el lote completo desde el botón superior.
+                    Puede emitir todas las órdenes de un mes en bloque, despacharlas para cierre digital o descargarlas en un solo archivo PDF.
                   </p>
                   <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] text-[11px]">
                     <div>
@@ -2519,7 +3092,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
               Certificación de Calibración & Dictamen de Conformidad
             </h2>
             <p className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] mt-0.5">
-              Ingrese los valores de los puntos medidos contra el patrón para calcular el error y emitir el certificado.
+              Seleccione la magnitud y rango para generar los puntos de prueba, registre las mediciones y visualice la gráfica de desvío.
             </p>
           </div>
 
@@ -2530,7 +3103,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
           ) : (
             <form onSubmit={handleCierreSubmit} className="space-y-4">
               <div>
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                   <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36]">
                     Seleccione Orden o Calibración Programada Pendiente *
                   </label>
@@ -2538,14 +3111,52 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     const match = closeableCalItems.find(c => c.key === selectedCalToClose);
                     if (!match) return null;
                     return (
-                      <button
-                        type="button"
-                        onClick={() => handlePrintCertificate(match.order)}
-                        className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded-md flex items-center gap-1"
-                      >
-                        <Printer className="w-3 h-3" />
-                        <span>Imprimir / PDF Orden</span>
-                      </button>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {onShareOrder && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onShareOrder(
+                                buildDigitalTargetCAL(match.order, {
+                                  isProjectedCal: match.isProjectedOnly,
+                                  mes_n: match.mes_n
+                                })
+                              )
+                            }
+                            className="px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800/70 rounded-md flex items-center gap-1"
+                          >
+                            <Share2 className="w-3 h-3" />
+                            <span>Compartir Digital</span>
+                          </button>
+                        )}
+                        {onOpenDigitalExecution && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onOpenDigitalExecution(
+                                buildDigitalTargetCAL(match.order, {
+                                  isProjectedCal: match.isProjectedOnly,
+                                  mes_n: match.mes_n
+                                })
+                              )
+                            }
+                            className="px-2.5 py-1 text-[11px] font-bold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] hover:bg-blue-100 border border-blue-200 dark:border-blue-800/70 prodexus:border-[#B9D2FA] rounded-md flex items-center gap-1"
+                          >
+                            <Smartphone className="w-3 h-3" />
+                            <span>Cierre Digital con Firma</span>
+                          </button>
+                        )}
+                        {canPrint && (
+                          <button
+                            type="button"
+                            onClick={() => handlePrintCertificate(match.order)}
+                            className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 prodexus:text-[#2F7CF6] bg-indigo-50 dark:bg-indigo-950/60 prodexus:bg-[#EEF5FF] hover:bg-indigo-100 dark:hover:bg-indigo-900/70 border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded-md flex items-center gap-1"
+                          >
+                            <Printer className="w-3 h-3" />
+                            <span>Imprimir / PDF</span>
+                          </button>
+                        )}
+                      </div>
                     );
                   })()}
                 </div>
@@ -2553,15 +3164,11 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                   value={selectedCalToClose}
                   onChange={(e) => {
                     const keyVal = e.target.value;
-                    setSelectedCalToClose(keyVal);
                     const match = closeableCalItems.find(c => c.key === keyVal);
                     if (match) {
-                      setCierreMetrologo(match.order.metrologo_laboratorio);
-                      setCierreCertNo(
-                        match.isProjectedOnly
-                          ? `CAL-CERT-${selectedAnio}-${String(match.mes_n).padStart(2, '0')}-${String(cerradasList.length + 1).padStart(4, '0')}`
-                          : `CAL-CERT-${selectedAnio}-${keyVal.replace(/CAL-\d+-/g, '')}`
-                      );
+                      loadOrderIntoCierre(match.order, match.isProjectedOnly, match.mes_n);
+                    } else {
+                      setSelectedCalToClose('');
                     }
                   }}
                   required
@@ -2668,11 +3275,169 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     </div>
                   </div>
 
+                  {/* Magnitude, Range & Test Points Generator */}
+                  <div className="border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] rounded-lg p-3.5 bg-indigo-50/40 dark:bg-indigo-950/30 prodexus:bg-[#EEF5FF]/70 space-y-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-bold text-[11px] uppercase tracking-wider text-indigo-900 dark:text-indigo-200 prodexus:text-[#132B36]">
+                        Magnitud del Sensor, Rango & Generador de Puntos de Prueba
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const generated = generarPuntosCalibracion({
+                            min: cierreRangoMin,
+                            max: cierreRangoMax,
+                            unit: cierreUnidad,
+                            numPuntos: cierreIncluirBajada ? 5 : cierreNumPuntos,
+                            incluirBajada: cierreIncluirBajada
+                          });
+                          setCierrePuntos(generated);
+                          setCierreErrorMax('Pendiente');
+                        }}
+                        className="px-2.5 py-1 text-[11px] font-bold text-white bg-indigo-600 prodexus:bg-[#2F7CF6] hover:bg-indigo-700 rounded-md inline-flex items-center gap-1"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Generar Puntos</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                      <div className="col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                          Magnitud del Sensor
+                        </label>
+                        <select
+                          value={cierreMagnitud}
+                          onChange={(e) => {
+                            const magName = e.target.value;
+                            setCierreMagnitud(magName);
+                            const magObj = findMagnitudeByName(magName);
+                            if (magObj) {
+                              setCierreUnidad(magObj.defaultUnit);
+                              setCierreRangoMin(magObj.defaultMin);
+                              setCierreRangoMax(magObj.defaultMax);
+                              setCierreEmp(magObj.defaultEmp);
+                              setCierrePuntos(
+                                generarPuntosCalibracion({
+                                  min: magObj.defaultMin,
+                                  max: magObj.defaultMax,
+                                  unit: magObj.defaultUnit,
+                                  numPuntos: cierreIncluirBajada ? 5 : cierreNumPuntos,
+                                  incluirBajada: cierreIncluirBajada
+                                })
+                              );
+                              setCierreErrorMax('Pendiente');
+                            }
+                          }}
+                          className="w-full text-[11px] font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded p-1.5"
+                        >
+                          {MAGNITUDES_SENSOR.map(m => (
+                            <option key={m.id} value={m.nombre}>{m.nombre}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                          Unidad
+                        </label>
+                        {(() => {
+                          const magObj = findMagnitudeByName(cierreMagnitud);
+                          const units = magObj ? magObj.unidades : [cierreUnidad];
+                          return (
+                            <select
+                              value={cierreUnidad}
+                              onChange={(e) => setCierreUnidad(e.target.value)}
+                              className="w-full text-[11px] font-mono font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded p-1.5"
+                            >
+                              {units.map(u => <option key={u} value={u}>{u}</option>)}
+                              {!units.includes(cierreUnidad) && <option value={cierreUnidad}>{cierreUnidad}</option>}
+                            </select>
+                          );
+                        })()}
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                          Mín
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={cierreRangoMin}
+                          onChange={(e) => setCierreRangoMin(Number(e.target.value))}
+                          className="w-full text-[11px] font-mono font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded p-1.5"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                          Máx
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={cierreRangoMax}
+                          onChange={(e) => setCierreRangoMax(Number(e.target.value))}
+                          className="w-full text-[11px] font-mono font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded p-1.5"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                          EMP
+                        </label>
+                        <input
+                          type="text"
+                          value={cierreEmp}
+                          onChange={(e) => setCierreEmp(e.target.value)}
+                          className="w-full text-[11px] font-mono font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded p-1.5"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] mb-0.5">
+                        Cantidad de Puntos de Prueba
+                      </label>
+                      <select
+                        value={cierreIncluirBajada ? 9 : cierreNumPuntos}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          const preset = TEST_POINT_PRESETS.find(p => p.count === val);
+                          const isBajada = Boolean(preset?.incluirBajada);
+                          setCierreNumPuntos(val);
+                          setCierreIncluirBajada(isBajada);
+                          setCierrePuntos(
+                            generarPuntosCalibracion({
+                              min: cierreRangoMin,
+                              max: cierreRangoMax,
+                              unit: cierreUnidad,
+                              numPuntos: isBajada ? 5 : val,
+                              incluirBajada: isBajada
+                            })
+                          );
+                          setCierreErrorMax('Pendiente');
+                        }}
+                        className="w-full text-[11px] font-semibold bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded p-1.5"
+                      >
+                        {TEST_POINT_PRESETS.map(p => (
+                          <option key={p.count} value={p.count}>{p.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
                   {/* Calibration Test Points Table */}
                   <div className="border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] rounded-lg p-3.5 bg-slate-50 dark:bg-slate-800/60 prodexus:bg-[#F3F6F8] space-y-2">
-                    <span className="font-bold text-[11px] uppercase tracking-wider text-slate-700 dark:text-slate-200 prodexus:text-[#132B36]">
-                      Puntos de Calibración (Lectura Patrón vs Instrumento)
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[11px] uppercase tracking-wider text-slate-700 dark:text-slate-200 prodexus:text-[#132B36]">
+                        Puntos de Calibración (Lectura Patrón vs Instrumento)
+                      </span>
+                      <span className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400">
+                        {cierrePuntos.length} puntos · Cálculo automático de desvío
+                      </span>
+                    </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-[11px]">
                         <thead>
@@ -2680,42 +3445,101 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                             <th className="py-1 px-2 text-left">Punto Nominal</th>
                             <th className="py-1 px-2 text-left">Lectura Patrón</th>
                             <th className="py-1 px-2 text-left">Lectura Instrumento</th>
-                            <th className="py-1 px-2 text-left">Error Calculado</th>
+                            <th className="py-1 px-2 text-left">Desvío</th>
+                            <th className="py-1 px-2 text-left">Error</th>
+                            <th className="py-1 px-2 text-center">EMP</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {cierrePuntos.map((p, pIdx) => (
-                            <tr key={pIdx} className="border-b border-slate-100 dark:border-slate-700/70 prodexus:border-[#D5E0E6]">
-                              <td className="py-1 px-2 font-mono text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{p.punto_nominal}</td>
-                              <td className="py-1 px-2">
-                                <input
-                                  type="text"
-                                  value={p.lectura_patron}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setCierrePuntos(prev => prev.map((item, i) => i === pIdx ? { ...item, lectura_patron: val } : item));
-                                  }}
-                                  className="w-24 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded px-1.5 py-0.5 font-mono"
-                                />
-                              </td>
-                              <td className="py-1 px-2">
-                                <input
-                                  type="text"
-                                  value={p.lectura_instrumento}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setCierrePuntos(prev => prev.map((item, i) => i === pIdx ? { ...item, lectura_instrumento: val } : item));
-                                  }}
-                                  className="w-24 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded px-1.5 py-0.5 font-mono"
-                                />
-                              </td>
-                              <td className="py-1 px-2 font-mono font-bold text-emerald-700 dark:text-emerald-400">{p.error_calculado}</td>
-                            </tr>
-                          ))}
+                          {cierrePuntos.map((p, pIdx) => {
+                            const updateCierreRow = (patch: Partial<PuntoCalibracion>) => {
+                              const next = cierrePuntos.map((item, i) => {
+                                if (i !== pIdx) return item;
+                                return recalcularPuntoCalibracion(
+                                  { ...item, ...patch },
+                                  cierreRangoMin,
+                                  cierreRangoMax,
+                                  cierreEmp,
+                                  cierreUnidad
+                                );
+                              });
+                              setCierrePuntos(next);
+                              const res = calcularResumenDesvio(next, cierreRangoMin, cierreRangoMax, cierreEmp, cierreUnidad);
+                              if (res.measuredCount > 0) {
+                                setCierreErrorMax(res.errorMaxLabel);
+                                if (!res.allConforme) {
+                                  setCierreDictamen('No Conforme');
+                                } else if (cierreDictamen === 'No Conforme') {
+                                  setCierreDictamen('Conforme');
+                                }
+                              }
+                            };
+                            return (
+                              <tr key={pIdx} className="border-b border-slate-100 dark:border-slate-700/70 prodexus:border-[#D5E0E6]">
+                                <td className="py-1 px-2 font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] whitespace-nowrap">
+                                  {p.punto_nominal}
+                                </td>
+                                <td className="py-1 px-2">
+                                  <input
+                                    type="text"
+                                    value={p.lectura_patron}
+                                    onChange={(e) => updateCierreRow({ lectura_patron: e.target.value })}
+                                    className="w-24 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded px-1.5 py-1 font-mono"
+                                  />
+                                </td>
+                                <td className="py-1 px-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Medición"
+                                    value={p.lectura_instrumento}
+                                    onChange={(e) => updateCierreRow({ lectura_instrumento: e.target.value })}
+                                    className="w-24 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded px-1.5 py-1 font-mono"
+                                  />
+                                </td>
+                                <td className="py-1 px-2 font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                                  {typeof p.desvio === 'number' && p.lectura_instrumento.trim() !== ''
+                                    ? `${p.desvio >= 0 ? '+' : ''}${formatMetrologyNum(p.desvio)} ${cierreUnidad}`
+                                    : '—'}
+                                </td>
+                                <td className={`py-1 px-2 font-mono font-bold whitespace-nowrap ${
+                                  p.error_calculado === ''
+                                    ? 'text-slate-400'
+                                    : p.conforme
+                                    ? 'text-emerald-700 dark:text-emerald-400'
+                                    : 'text-rose-700 dark:text-rose-400'
+                                }`}>
+                                  {p.error_calculado || '—'}
+                                </td>
+                                <td className="py-1 px-2 text-center">
+                                  {p.lectura_instrumento.trim() === '' ? (
+                                    <span className="text-[10px] text-slate-400">—</span>
+                                  ) : (
+                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                      p.conforme
+                                        ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300'
+                                        : 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300'
+                                    }`}>
+                                      {p.conforme ? 'OK' : 'NO'}
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
                   </div>
+
+                  {/* Live Deviation Graph */}
+                  <CalibrationDeviationChart
+                    puntos={cierrePuntos}
+                    rangoMin={cierreRangoMin}
+                    rangoMax={cierreRangoMax}
+                    unidad={cierreUnidad}
+                    toleranciaEmp={cierreEmp}
+                    variableMedicion={cierreMagnitud}
+                  />
 
                   {(() => {
                     const selectedCal = closeableCalItems.find(c => c.key === selectedCalToClose)?.order;
@@ -2864,14 +3688,29 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                         {row.metrologo_laboratorio}
                       </td>
                       <td className="py-2.5 px-3 text-right">
-                        <button
-                          onClick={() => handlePrintCertificate(row)}
-                          className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-800 prodexus:bg-[#F3F6F8] hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded flex items-center gap-1 ml-auto"
-                          title="Imprimir Certificado"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                          <span>Certificado</span>
-                        </button>
+                        <div className="inline-flex items-center gap-1.5 justify-end">
+                          {onOpenDigitalExecution && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenDigitalExecution(buildDigitalTargetCAL(row))}
+                              className="px-2 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EEF5FF] hover:bg-blue-100 border border-blue-200 dark:border-blue-800/70 prodexus:border-[#B9D2FA] rounded flex items-center gap-1"
+                              title="Ver Detalle Digital y Gráfica de Desvío"
+                            >
+                              <Smartphone className="w-3.5 h-3.5" />
+                              <span>Ver Digital</span>
+                            </button>
+                          )}
+                          {canPrint && (
+                            <button
+                              onClick={() => handlePrintCertificate(row)}
+                              className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-800 prodexus:bg-[#F3F6F8] hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded flex items-center gap-1"
+                              title="Imprimir Certificado y Gráfica de Desvío"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                              <span>Certificado</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -2885,9 +3724,14 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
       {selectedCellInfo && (() => {
         const ord = selectedCellInfo.order;
         const isProj = !!selectedCellInfo.isProjectedOnly;
+        const hasMeasuredChart = Boolean(
+          ord.puntos_calibracion?.some(
+            p => parseNumericInput(p.lectura_patron) !== null && parseNumericInput(p.lectura_instrumento) !== null
+          )
+        );
         return (
-          <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 no-print">
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] max-w-lg w-full p-6 space-y-4 text-xs">
+          <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto no-print">
+            <div className={`bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] w-full p-6 space-y-4 text-xs my-6 ${hasMeasuredChart ? 'max-w-2xl' : 'max-w-lg'}`}>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
                 <div className="flex items-center gap-2">
                   <Compass className="w-5 h-5 text-indigo-600 dark:text-indigo-400 prodexus:text-[#2F7CF6]" />
@@ -2921,7 +3765,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">Variable & Rango:</span>
-                  <span className="text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{ord.variable_medicion} ({ord.rango_operacion})</span>
+                  <span className="text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{ord.magnitud || ord.variable_medicion} ({ord.rango_operacion})</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">Error Máximo Permisible:</span>
@@ -2959,6 +3803,18 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                     <span className="text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] truncate max-w-[240px]">{ord.patron_utilizado}</span>
                   </div>
                 </div>
+              )}
+
+              {hasMeasuredChart && ord.puntos_calibracion && (
+                <CalibrationDeviationChart
+                  puntos={ord.puntos_calibracion}
+                  rangoOperacion={ord.rango_operacion}
+                  rangoMin={ord.rango_min}
+                  rangoMax={ord.rango_max}
+                  unidad={ord.unidad_medida}
+                  toleranciaEmp={ord.tolerancia_emp}
+                  variableMedicion={ord.variable_medicion}
+                />
               )}
 
               <div className="pt-2 flex flex-wrap justify-between items-center gap-2">
@@ -3161,47 +4017,136 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
-                    Variable de Medición *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej. Presión, Temperatura, Caudal"
-                    value={fInstVariable}
-                    onChange={(e) => setFInstVariable(e.target.value)}
-                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
-                  />
+              <div className="p-3 rounded-lg border border-indigo-200 dark:border-indigo-800/70 prodexus:border-[#B9D2FA] bg-indigo-50/40 dark:bg-indigo-950/30 prodexus:bg-[#EEF5FF]/70 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                      Magnitud del Sensor *
+                    </label>
+                    <select
+                      value={fInstMagnitud}
+                      onChange={(e) => {
+                        const magName = e.target.value;
+                        setFInstMagnitud(magName);
+                        const magObj = findMagnitudeByName(magName);
+                        if (magObj) {
+                          setFInstUnidad(magObj.defaultUnit);
+                          setFInstRangoMin(magObj.defaultMin);
+                          setFInstRangoMax(magObj.defaultMax);
+                          setFInstVariable(magObj.nombre);
+                          setFInstEMP(magObj.defaultEmp);
+                          setFInstRango(formatRangoOperacion(magObj.defaultMin, magObj.defaultMax, magObj.defaultUnit));
+                        }
+                      }}
+                      className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
+                    >
+                      {MAGNITUDES_SENSOR.map(m => (
+                        <option key={m.id} value={m.nombre}>{m.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                      Unidad *
+                    </label>
+                    {(() => {
+                      const magObj = findMagnitudeByName(fInstMagnitud);
+                      const units = magObj ? magObj.unidades : [fInstUnidad];
+                      return (
+                        <select
+                          value={fInstUnidad}
+                          onChange={(e) => {
+                            const u = e.target.value;
+                            setFInstUnidad(u);
+                            setFInstRango(formatRangoOperacion(fInstRangoMin, fInstRangoMax, u));
+                          }}
+                          className="w-full font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
+                        >
+                          {units.map(u => <option key={u} value={u}>{u}</option>)}
+                          {!units.includes(fInstUnidad) && <option value={fInstUnidad}>{fInstUnidad}</option>}
+                        </select>
+                      );
+                    })()}
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                      Puntos de Prueba
+                    </label>
+                    <select
+                      value={fInstNumPuntos}
+                      onChange={(e) => setFInstNumPuntos(Number(e.target.value))}
+                      className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
+                    >
+                      {TEST_POINT_PRESETS.map(p => (
+                        <option key={p.count} value={p.count}>{p.count} pts{p.incluirBajada ? ' (↑↓)' : ''}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
-                    Rango de Operación *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej. 0 a 300 PSI, 0 a 400 °C"
-                    value={fInstRango}
-                    onChange={(e) => setFInstRango(e.target.value)}
-                    className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
-                    Error Máx. Permisible (EMP) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej. ± 0.5% FS, ± 0.5 °C"
-                    value={fInstEMP}
-                    onChange={(e) => setFInstEMP(e.target.value)}
-                    className="w-full font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                      Rango Mín *
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={fInstRangoMin}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setFInstRangoMin(v);
+                        setFInstRango(formatRangoOperacion(v, fInstRangoMax, fInstUnidad));
+                      }}
+                      className="w-full font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                      Rango Máx *
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={fInstRangoMax}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setFInstRangoMax(v);
+                        setFInstRango(formatRangoOperacion(fInstRangoMin, v, fInstUnidad));
+                      }}
+                      className="w-full font-mono font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                      Variable (Detalle) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. Presión Refrigerante"
+                      value={fInstVariable}
+                      onChange={(e) => setFInstVariable(e.target.value)}
+                      className="w-full font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 prodexus:text-[#132B36] mb-1">
+                      Error Máx. (EMP) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. ± 0.5% FS"
+                      value={fInstEMP}
+                      onChange={(e) => setFInstEMP(e.target.value)}
+                      className="w-full font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 prodexus:focus:ring-[#2F7CF6] focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 

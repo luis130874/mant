@@ -279,6 +279,8 @@ const MainLayout: React.FC = () => {
       <NewOrderModal
         isOpen={isNewOrderModalOpen}
         onClose={() => setIsNewOrderModalOpen(false)}
+        onShareOrder={setSharingOrder}
+        onOpenDigitalExecution={setExecutingOrder}
       />
 
       {/* Share Digital Order Link / WhatsApp Modal */}
