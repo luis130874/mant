@@ -11,10 +11,6 @@ import {
   Loader2,
   Filter,
   Search,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  Eye,
   FileText,
   Building2,
   Share2,
@@ -33,6 +29,7 @@ import {
 } from '../utils/maintenanceEngine';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { resolveSheetClientes } from '../utils/logoResolver';
+import { devError, devWarn } from '../utils/logger';
 import { Equipo, RegistroHistorialMP } from '../types';
 import { PrintableDocument } from './PrintModal';
 import { DigitalOrderTarget } from '../utils/digitalOrderLink';
@@ -80,7 +77,6 @@ export const PlanMaestroView: React.FC<PlanMaestroViewProps> = ({
   const [selectedEmpresa, setSelectedEmpresa] = useState('Todas');
   const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedPlanCellInfo | null>(null);
 
-  const [printMode, setPrintMode] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const planPrintRef = useRef<HTMLDivElement>(null);
 
@@ -201,7 +197,7 @@ export const PlanMaestroView: React.FC<PlanMaestroViewProps> = ({
               ? dictMatch
               : undefined;
           const reg = occItem.historialMatch || safeDictMatch;
-          let cellEstado: SelectedPlanCellInfo['estado'] = 'programada';
+          let cellEstado: SelectedPlanCellInfo['estado'];
           if (reg) {
             rReal[mLabel] = reg.fecha_real;
             const fReal = parseFecha(reg.fecha_real);
@@ -319,7 +315,7 @@ export const PlanMaestroView: React.FC<PlanMaestroViewProps> = ({
       );
       addToast('Plan Maestro descargado como PDF exitosamente.', 'success');
     } catch (err) {
-      console.error(err);
+      devError('Error generating Plan Maestro PDF:', err);
       addToast('Error al generar el PDF. Intente nuevamente.', 'error');
     } finally {
       setIsGeneratingPDF(false);
@@ -330,7 +326,7 @@ export const PlanMaestroView: React.FC<PlanMaestroViewProps> = ({
     try {
       window.print();
     } catch (err) {
-      console.warn('window.print() prevented, fallback to PDF download', err);
+      devWarn('window.print() prevented, fallback to PDF download', err);
       handleDownloadPDF();
     }
   };

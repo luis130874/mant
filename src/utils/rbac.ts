@@ -115,7 +115,7 @@ export const PERMISO_PRESETS: Array<{
 export function makeSafeDocId(raw: string): string {
   const cleaned = String(raw || '')
     .trim()
-    .replace(/[^a-zA-Z0-9_\-]/g, '-')
+    .replace(/[^a-zA-Z0-9_-]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
   const base = cleaned || `ID-${Date.now()}`;

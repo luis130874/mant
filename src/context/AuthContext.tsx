@@ -37,6 +37,7 @@ import {
   FULL_PERMISOS,
   makeInviteIdForEmail
 } from '../utils/rbac';
+import { devError, devWarn } from '../utils/logger';
 
 export type AuthStatus =
   | 'loading'
@@ -255,7 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ...(d.data() as UserInvite),
           id: d.id
         }));
-        const activeInvite = inviteDocs.find((inv) => inv.activo);
+        const activeInvite = inviteDocs.find((inv) => inv.activo && !inv.claimedUid);
 
         if (!activeInvite) {
           setUserProfile(null);
@@ -285,14 +286,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           handleFirestoreError(err, OperationType.CREATE, userPath);
         }
 
-        // Record claimedUid back on the invite (allowed by rules)
+        // Consume the one-time invite and record claimedUid
         try {
           await updateDoc(doc(db, 'user_invites', activeInvite.id), {
             claimedUid: fbUser.uid,
+            activo: false,
             updatedAt: serverTimestamp()
           });
         } catch (claimUpdateErr) {
-          console.warn('No se pudo actualizar claimedUid en invite:', claimUpdateErr);
+          devWarn('No se pudo marcar invitación como reclamada:', claimUpdateErr);
         }
 
         if (isCancelled) return;
@@ -313,7 +315,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         );
       } catch (err) {
-        console.error('Auth resolution error:', err);
+        devError('Auth resolution error:', err);
         let displayMsg = 'Error al validar acceso en Firebase.';
         if (err instanceof Error) {
           try {
@@ -639,7 +641,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           });
         } catch (err) {
-          console.warn('Global user list merge notice:', err);
+          devWarn('Global user list merge notice:', err);
         }
       }
 

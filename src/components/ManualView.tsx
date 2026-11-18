@@ -21,6 +21,7 @@ import {
 import { useMaintenance } from '../context/MaintenanceContext';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { APP_VERSION } from '../utils/versionControl';
+import { devError } from '../utils/logger';
 
 import capturaDashboardImg from '../assets/images/manual_real_dashboard.png';
 import capturaEmpresasImg from '../assets/images/manual_real_empresas.png';
@@ -321,7 +322,7 @@ export const ManualView: React.FC = () => {
       await exportElementToPDF(pdfSheetsRef.current, 'Manual_de_Uso_Prodexus_CMMS', 'portrait');
       addToast('Manual PDF descargado exitosamente.', 'success');
     } catch (err) {
-      console.error('Error generating manual PDF:', err);
+      devError('Error generating manual PDF:', err);
       addToast('No se pudo generar el PDF del manual. Intente nuevamente.', 'error');
     } finally {
       setIsGeneratingPDF(false);

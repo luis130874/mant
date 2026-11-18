@@ -7,12 +7,8 @@ import React, { useState } from 'react';
 import {
   ClipboardList,
   Printer,
-  CheckCircle2,
-  Clock,
   Search,
-  Download,
   Trash2,
-  Hammer,
   Share2,
   Smartphone
 } from 'lucide-react';
@@ -20,7 +16,7 @@ import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
 import { hasActionAccess } from '../utils/rbac';
 import { formatFechaDDMMYYYY, parseFecha, tecnicoPerteneceAEmpresa } from '../utils/maintenanceEngine';
-import { OrdenTrabajoOT, Equipo } from '../types';
+import { OrdenTrabajoOT } from '../types';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
 import { PrintableDocument } from './PrintModal';
 import { DigitalOrderTarget } from '../utils/digitalOrderLink';
@@ -335,7 +331,7 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                   </label>
                   <select
                     value={prioridad}
-                    onChange={(e) => setPrioridad(e.target.value as any)}
+                    onChange={(e) => setPrioridad(e.target.value as 'Urgente' | 'Alta' | 'Media' | 'Baja')}
                     className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Urgente">Urgente</option>

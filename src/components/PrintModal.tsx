@@ -10,6 +10,7 @@ import { Equipo, OrdenCalibracion } from '../types';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { CalibrationDeviationChart } from './CalibrationDeviationChart';
 import { generarPuntosCalibracion, parseNumericInput, parseRangoMedicion } from '../utils/calibrationMetrology';
+import { devError, devWarn } from '../utils/logger';
 
 export interface PrintableDocument {
   tipo: 'MP' | 'MC' | 'OT' | 'CAL';
@@ -63,7 +64,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({ documents, onClose }) =>
       await exportElementToPDF(printDocRef.current, name, 'portrait');
       addToast('PDF descargado exitosamente.', 'success');
     } catch (err) {
-      console.error(err);
+      devError('Error generating PDF in PrintModal:', err);
       addToast('Error al generar el PDF. Intente nuevamente.', 'error');
     } finally {
       setIsGenerating(false);
@@ -75,7 +76,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({ documents, onClose }) =>
       window.print();
       addToast('Si el cuadro de impresión no se abre en la vista previa embebida, use el botón "Descargar PDF".', 'info');
     } catch (err) {
-      console.warn('Direct print blocked by sandbox, downloading PDF instead', err);
+      devWarn('Direct print blocked by sandbox, downloading PDF instead', err);
       handleDownloadPDF();
     }
   };

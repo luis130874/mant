@@ -6,30 +6,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Compass,
-  Calendar,
   Printer,
   FileDown,
   Loader2,
   Plus,
   Search,
-  Filter,
   CheckCircle2,
-  Clock,
-  AlertTriangle,
   Award,
-  FileCheck2,
   Trash2,
-  Eye,
   SlidersHorizontal,
   Edit2,
-  Archive,
   RotateCcw,
   AlertOctagon,
-  ShieldCheck,
-  Check,
   Gauge,
-  XCircle,
-  FileText,
   Share2,
   Smartphone,
   RefreshCw
@@ -49,6 +38,7 @@ import {
 } from '../utils/maintenanceEngine';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { resolveSheetClientes } from '../utils/logoResolver';
+import { devError, devWarn } from '../utils/logger';
 import { OrdenCalibracion, PuntoCalibracion, Equipo, Instrumento } from '../types';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
 import { CatalogoListadoModal } from './CatalogoListadoModal';
@@ -1273,7 +1263,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
       );
       addToast('Plan de Calibración descargado como PDF exitosamente.', 'success');
     } catch (err) {
-      console.error(err);
+      devError('Error generating calibration PDF:', err);
       addToast('Error al generar el PDF de calibración. Intente nuevamente.', 'error');
     } finally {
       setIsGeneratingPDF(false);
@@ -1284,7 +1274,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
     try {
       window.print();
     } catch (err) {
-      console.warn('window.print() prevented, fallback to PDF download', err);
+      devWarn('window.print() prevented, fallback to PDF download', err);
       handleDownloadPlanPDF();
     }
   };
@@ -3205,7 +3195,7 @@ export const CalibracionView: React.FC<CalibracionViewProps> = ({
                       </label>
                       <select
                         value={cierreDictamen}
-                        onChange={(e) => setCierreDictamen(e.target.value as any)}
+                        onChange={(e) => setCierreDictamen(e.target.value as 'Conforme' | 'Ajustado y Conforme' | 'No Conforme')}
                         className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="Conforme">Conforme (Apto para uso operacional)</option>

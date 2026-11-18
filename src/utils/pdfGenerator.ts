@@ -5,6 +5,7 @@
 
 import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
+import { devError } from './logger';
 
 /**
  * Export multiple discrete page elements into a single multi-page PDF document.
@@ -135,7 +136,7 @@ export async function exportElementToPDF(
     const safeFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
     pdf.save(safeFilename);
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    devError('Error generating PDF:', error);
     throw error;
   }
 }

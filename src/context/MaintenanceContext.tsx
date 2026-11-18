@@ -22,24 +22,9 @@ import {
   MovimientoRepuesto
 } from '../types';
 import {
-  INITIAL_CLIENTES,
-  INITIAL_SISTEMAS,
-  INITIAL_FRECUENCIAS,
-  INITIAL_TECNICOS,
-  INITIAL_EQUIPOS,
-  INITIAL_HISTORIAL,
-  INITIAL_CORRECTIVOS,
-  INITIAL_ORDENES_TRABAJO,
-  INITIAL_CALIBRACIONES,
-  INITIAL_INSTRUMENTOS,
-  INITIAL_REPUESTOS,
-  INITIAL_MOVIMIENTOS_REPUESTOS
-} from '../utils/initialData';
-import {
-  addFrequencyStep,
   formatFechaDDMMYYYY,
-  formatFechaYYYYMMDD,
-  parseFecha
+  parseFecha,
+  addFrequencyStep
 } from '../utils/maintenanceEngine';
 import {
   auth,
@@ -51,7 +36,6 @@ import {
 import {
   deleteDoc,
   doc,
-  getDoc,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -59,6 +43,17 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 import { makeSafeDocId } from '../utils/rbac';
+import { devError } from '../utils/logger';
+import {
+  importBackupRepo,
+  LEGACY_STORAGE_KEYS,
+  MODULOS_DATOS,
+  ModuloDatosName,
+  persistCatalogoRepo,
+  persistEmpresaModuloRepo,
+  resetAllDataRepo,
+  seedFirestoreIfEmptyRepo
+} from '../services/firestoreRepository';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface ToastMessage {
@@ -74,27 +69,6 @@ export interface ConfirmOptions {
   cancelText?: string;
   tone?: 'danger' | 'warning' | 'info';
 }
-
-type ModuloDatosName =
-  | 'equipos'
-  | 'instrumentos'
-  | 'historial'
-  | 'correctivos'
-  | 'ordenesTrabajo'
-  | 'calibraciones'
-  | 'repuestos'
-  | 'movimientosRepuestos';
-
-const MODULOS_DATOS: ModuloDatosName[] = [
-  'equipos',
-  'instrumentos',
-  'historial',
-  'correctivos',
-  'ordenesTrabajo',
-  'calibraciones',
-  'repuestos',
-  'movimientosRepuestos'
-];
 
 interface MaintenanceContextType {
   clientes: Cliente[];
@@ -326,40 +300,13 @@ interface MaintenanceContextType {
 
 export const MaintenanceContext = createContext<MaintenanceContextType | null>(null);
 
-const LEGACY_STORAGE_KEYS = {
-  CLIENTES: 'prodexus_clientes',
-  SISTEMAS: 'prodexus_sistemas',
-  FRECUENCIAS: 'prodexus_frecuencias',
-  TECNICOS: 'prodexus_tecnicos',
-  EQUIPOS: 'prodexus_equipos',
-  HISTORIAL: 'prodexus_historial',
-  CORRECTIVOS: 'prodexus_correctivos',
-  ORDENES_TRABAJO: 'prodexus_ordenes_trabajo',
-  CALIBRACIONES: 'prodexus_calibraciones',
-  INSTRUMENTOS: 'prodexus_instrumentos',
-  REPUESTOS: 'prodexus_repuestos',
-  MOVIMIENTOS_REPUESTOS: 'prodexus_movimientos_repuestos',
-  SELECTED_CLIENTE: 'prodexus_selected_cliente',
-  SELECTED_ANIO: 'prodexus_selected_anio'
-};
-
-function loadLegacyStorage<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { userProfile, isSuperAdmin, isCompanyAdmin, syncEmpresaNombreEnRoster } = useAuth();
 
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [sistemas, setSistemas] = useState<Sistema[]>(INITIAL_SISTEMAS);
-  const [frecuencias, setFrecuencias] = useState<FrecuenciaConfig[]>(INITIAL_FRECUENCIAS);
-  const [tecnicos, setTecnicos] = useState<Tecnico[]>(INITIAL_TECNICOS);
+  const [sistemas, setSistemas] = useState<Sistema[]>([]);
+  const [frecuencias, setFrecuencias] = useState<FrecuenciaConfig[]>([]);
+  const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [historial, setHistorial] = useState<RegistroHistorialMP[]>([]);
   const [correctivos, setCorrectivos] = useState<OrdenCorrectivo[]>([]);
@@ -513,124 +460,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Seed initial or localStorage-migrated dataset into Firestore if empresas_index doesn't exist yet
   const seedFirestoreIfEmpty = useCallback(async () => {
     if (!isSuperAdmin || !auth.currentUser) return;
-    const uid = auth.currentUser.uid;
-    const idxRef = doc(db, 'catalogos', 'empresas_index');
-    const idxSnap = await getDoc(idxRef);
-    if (idxSnap.exists()) return;
-
-    const rawClientes = loadLegacyStorage<Cliente[]>(LEGACY_STORAGE_KEYS.CLIENTES, INITIAL_CLIENTES).map((c) => {
-      if (!c.logo) {
-        const initMatch = INITIAL_CLIENTES.find((ic) => ic.codigo === c.codigo || ic.nombre.trim() === c.nombre.trim());
-        if (initMatch?.logo) return { ...c, logo: initMatch.logo };
-      }
-      return c;
-    });
-    const rawSistemas = loadLegacyStorage<Sistema[]>(LEGACY_STORAGE_KEYS.SISTEMAS, INITIAL_SISTEMAS);
-    const rawFrecuencias = loadLegacyStorage<FrecuenciaConfig[]>(LEGACY_STORAGE_KEYS.FRECUENCIAS, INITIAL_FRECUENCIAS);
-    const rawTecnicos = loadLegacyStorage<Tecnico[]>(LEGACY_STORAGE_KEYS.TECNICOS, INITIAL_TECNICOS);
-    const rawEquipos = loadLegacyStorage<Equipo[]>(LEGACY_STORAGE_KEYS.EQUIPOS, INITIAL_EQUIPOS).map((eq, idx) => ({
-      ...eq,
-      id: eq.id || `${eq.codigo_eq}___${eq.frecuencia.trim()}` || `eq_${idx}`
-    }));
-    const rawHistorial = loadLegacyStorage<RegistroHistorialMP[]>(LEGACY_STORAGE_KEYS.HISTORIAL, INITIAL_HISTORIAL);
-    const rawCorrectivos = loadLegacyStorage<OrdenCorrectivo[]>(LEGACY_STORAGE_KEYS.CORRECTIVOS, INITIAL_CORRECTIVOS);
-    const rawOT = loadLegacyStorage<OrdenTrabajoOT[]>(LEGACY_STORAGE_KEYS.ORDENES_TRABAJO, INITIAL_ORDENES_TRABAJO);
-    const rawCal = loadLegacyStorage<OrdenCalibracion[]>(LEGACY_STORAGE_KEYS.CALIBRACIONES, INITIAL_CALIBRACIONES);
-    const rawInst = loadLegacyStorage<Instrumento[]>(LEGACY_STORAGE_KEYS.INSTRUMENTOS, INITIAL_INSTRUMENTOS).map((inst) => {
-      if (inst.fecha_proxima) return inst;
-      const initMatch = INITIAL_INSTRUMENTOS.find((i) => i.codigo_inst === inst.codigo_inst);
-      if (initMatch?.fecha_proxima) return { ...inst, fecha_proxima: initMatch.fecha_proxima };
-      return { ...inst, fecha_proxima: formatFechaYYYYMMDD(parseFecha(inst.fecha_alta) || new Date()) };
-    });
-    const rawRepuestos = loadLegacyStorage<Repuesto[]>(LEGACY_STORAGE_KEYS.REPUESTOS, INITIAL_REPUESTOS);
-    const rawMovs = loadLegacyStorage<MovimientoRepuesto[]>(LEGACY_STORAGE_KEYS.MOVIMIENTOS_REPUESTOS, INITIAL_MOVIMIENTOS_REPUESTOS);
-
-    // Seed catalogs
-    await setDoc(doc(db, 'catalogos', 'sistemas'), stripUndefinedDeep({
-      catalogo: 'sistemas',
-      items: rawSistemas,
-      updatedAt: serverTimestamp(),
-      updatedBy: uid
-    }));
-    await setDoc(doc(db, 'catalogos', 'frecuencias'), stripUndefinedDeep({
-      catalogo: 'frecuencias',
-      items: rawFrecuencias,
-      updatedAt: serverTimestamp(),
-      updatedBy: uid
-    }));
-    await setDoc(doc(db, 'catalogos', 'tecnicos'), stripUndefinedDeep({
-      catalogo: 'tecnicos',
-      items: rawTecnicos,
-      updatedAt: serverTimestamp(),
-      updatedBy: uid
-    }));
-
-    const empresaIds: string[] = [];
-    for (let i = 0; i < rawClientes.length; i++) {
-      const cli = rawClientes[i];
-      const empId = makeSafeDocId(cli.codigo);
-      empresaIds.push(empId);
-
-      await setDoc(
-        doc(db, 'empresas', empId),
-        stripUndefinedDeep({
-          codigo: empId,
-          nombre: cli.nombre,
-          rut: cli.rut || '',
-          direccion: cli.direccion || '',
-          telefono: cli.telefono || '',
-          correo: cli.correo || '',
-          trabaja_terceros: Boolean(cli.trabaja_terceros),
-          ...(cli.logo ? { logo: cli.logo } : {}),
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        })
-      );
-
-      const eqEmp = rawEquipos.filter((e) => e.cliente.trim() === cli.nombre.trim());
-      const eqCodes = new Set(eqEmp.map((e) => e.codigo_eq.trim().toUpperCase()));
-      const instEmp = rawInst.filter((ins) => ins.cliente.trim() === cli.nombre.trim());
-      const histEmp = rawHistorial.filter((h) => eqCodes.has(h.codigo_eq.trim().toUpperCase()));
-      const mcEmp = rawCorrectivos.filter((c) => c.cliente.trim() === cli.nombre.trim());
-      const otEmp = rawOT.filter((o) => o.cliente.trim() === cli.nombre.trim());
-      const calEmp = rawCal.filter((c) => c.cliente.trim() === cli.nombre.trim());
-      const repEmp = rawRepuestos.filter(
-        (r) => r.cliente.trim() === cli.nombre.trim() || (i === 0 && r.cliente === 'Todas las Plantas')
-      );
-      const repIds = new Set(repEmp.map((r) => r.id));
-      const movEmp = rawMovs.filter((m) => repIds.has(m.repuesto_id));
-
-      const buckets: Record<ModuloDatosName, unknown[]> = {
-        equipos: eqEmp,
-        instrumentos: instEmp,
-        historial: histEmp,
-        correctivos: mcEmp,
-        ordenesTrabajo: otEmp,
-        calibraciones: calEmp,
-        repuestos: repEmp,
-        movimientosRepuestos: movEmp
-      };
-
-      for (const mod of MODULOS_DATOS) {
-        await setDoc(
-          doc(db, 'empresas', empId, 'datos', mod),
-          stripUndefinedDeep({
-            empresaCodigo: empId,
-            modulo: mod,
-            items: buckets[mod],
-            updatedAt: serverTimestamp(),
-            updatedBy: uid
-          })
-        );
-      }
-    }
-
-    await setDoc(idxRef, {
-      catalogo: 'empresas_index',
-      items: empresaIds,
-      updatedAt: serverTimestamp(),
-      updatedBy: uid
-    });
+    await seedFirestoreIfEmptyRepo(auth.currentUser.uid);
   }, [isSuperAdmin]);
 
   // Real-time Firestore Subscriptions
@@ -713,7 +543,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           onSnapshot(
             doc(db, 'catalogos', 'sistemas'),
             (snap) => {
-              if (snap.exists()) setSistemas((snap.data().items as Sistema[]) || INITIAL_SISTEMAS);
+              if (snap.exists()) setSistemas((snap.data().items as Sistema[]) || []);
             },
             (err) => {
               handleFirestoreError(err, OperationType.GET, 'catalogos/sistemas');
@@ -724,7 +554,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           onSnapshot(
             doc(db, 'catalogos', 'frecuencias'),
             (snap) => {
-              if (snap.exists()) setFrecuencias((snap.data().items as FrecuenciaConfig[]) || INITIAL_FRECUENCIAS);
+              if (snap.exists()) setFrecuencias((snap.data().items as FrecuenciaConfig[]) || []);
             },
             (err) => {
               handleFirestoreError(err, OperationType.GET, 'catalogos/frecuencias');
@@ -735,7 +565,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           onSnapshot(
             doc(db, 'catalogos', 'tecnicos'),
             (snap) => {
-              if (snap.exists()) setTecnicos((snap.data().items as Tecnico[]) || INITIAL_TECNICOS);
+              if (snap.exists()) setTecnicos((snap.data().items as Tecnico[]) || []);
             },
             (err) => {
               handleFirestoreError(err, OperationType.GET, 'catalogos/tecnicos');
@@ -776,7 +606,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           setCloudLoading(false);
         }
       } catch (err) {
-        console.error('Error initializing cloud sync:', err);
+        devError('Error initializing cloud sync:', err);
         setCloudLoading(false);
       }
     };
@@ -821,27 +651,17 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       recomputeAggregatedState();
 
       const docPath = `empresas/${empId}/datos/${modulo}`;
-      const docRef = doc(db, 'empresas', empId, 'datos', modulo);
       try {
-        const snap = await getDoc(docRef);
-        const payload = stripUndefinedDeep({
-          empresaCodigo: empId,
-          modulo,
-          items,
-          updatedAt: serverTimestamp(),
-          updatedBy: auth.currentUser.uid
+        await persistEmpresaModuloRepo(empId, modulo, items, auth.currentUser.uid, (warnMsg) => {
+          addToast(warnMsg, 'warning');
         });
-        if (snap.exists()) {
-          await updateDoc(docRef, {
-            items: payload.items,
-            updatedAt: serverTimestamp(),
-            updatedBy: auth.currentUser.uid
-          });
-        } else {
-          await setDoc(docRef, payload);
-        }
       } catch (err) {
-        addToast('Error de permisos o red al guardar en la nube.', 'error');
+        addToast(
+          err instanceof Error && err.message.includes('1 MiB')
+            ? err.message
+            : 'Error de permisos o red al guardar en la nube.',
+          'error'
+        );
         handleFirestoreError(err, OperationType.WRITE, docPath);
       }
     },
@@ -852,24 +672,10 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     async (catalogo: 'sistemas' | 'frecuencias' | 'tecnicos' | 'empresas_index', items: unknown[]) => {
       if (!auth.currentUser) return;
       const docPath = `catalogos/${catalogo}`;
-      const docRef = doc(db, 'catalogos', catalogo);
       try {
-        const snap = await getDoc(docRef);
-        const cleanItems = stripUndefinedDeep(items);
-        if (snap.exists()) {
-          await updateDoc(docRef, {
-            items: cleanItems,
-            updatedAt: serverTimestamp(),
-            updatedBy: auth.currentUser.uid
-          });
-        } else {
-          await setDoc(docRef, {
-            catalogo,
-            items: cleanItems,
-            updatedAt: serverTimestamp(),
-            updatedBy: auth.currentUser.uid
-          });
-        }
+        await persistCatalogoRepo(catalogo, items, auth.currentUser.uid, (warnMsg) => {
+          addToast(warnMsg, 'warning');
+        });
       } catch (err) {
         addToast('Error de permisos al guardar catálogo global.', 'error');
         handleFirestoreError(err, OperationType.WRITE, docPath);
@@ -2144,137 +1950,13 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       addToast('Solo el Administrador General puede restablecer los datos globales.', 'error');
       return;
     }
-    const uid = auth.currentUser.uid;
-    let currentPath = 'catalogos/sistemas';
     try {
-      currentPath = 'catalogos/sistemas';
-      await persistCatalogo('sistemas', INITIAL_SISTEMAS);
-      currentPath = 'catalogos/frecuencias';
-      await persistCatalogo('frecuencias', INITIAL_FRECUENCIAS);
-      currentPath = 'catalogos/tecnicos';
-      await persistCatalogo('tecnicos', INITIAL_TECNICOS);
-
-      const initIds = INITIAL_CLIENTES.map((c) => makeSafeDocId(c.codigo));
-      const existingExtraIds = stateRef.current.clientes
-        .map((c) => makeSafeDocId(c.codigo))
-        .filter((id) => !initIds.includes(id));
-
-      for (let i = 0; i < INITIAL_CLIENTES.length; i++) {
-        const cli = INITIAL_CLIENTES[i];
-        const empId = makeSafeDocId(cli.codigo);
-        const empRef = doc(db, 'empresas', empId);
-        currentPath = `empresas/${empId}`;
-        const empSnap = await getDoc(empRef);
-        const empUpdateFields = stripUndefinedDeep({
-          nombre: cli.nombre,
-          rut: cli.rut || '',
-          direccion: cli.direccion || '',
-          telefono: cli.telefono || '',
-          correo: cli.correo || '',
-          trabaja_terceros: Boolean(cli.trabaja_terceros),
-          ...(cli.logo ? { logo: cli.logo } : {}),
-          updatedAt: serverTimestamp()
-        });
-
-        if (empSnap.exists()) {
-          const existingEmp = empSnap.data();
-          if (existingEmp?.createdAt && existingEmp?.codigo === empId) {
-            await updateDoc(empRef, empUpdateFields);
-          } else {
-            await deleteDoc(empRef);
-            await setDoc(empRef, {
-              codigo: empId,
-              ...empUpdateFields,
-              createdAt: serverTimestamp()
-            });
-          }
-        } else {
-          await setDoc(empRef, {
-            codigo: empId,
-            ...empUpdateFields,
-            createdAt: serverTimestamp()
-          });
-        }
-
-        const eqEmp = INITIAL_EQUIPOS.filter((e) => e.cliente.trim() === cli.nombre.trim());
-        const eqCodes = new Set(eqEmp.map((e) => e.codigo_eq.trim().toUpperCase()));
-        const instEmp = INITIAL_INSTRUMENTOS.filter((ins) => ins.cliente.trim() === cli.nombre.trim());
-        const histEmp = INITIAL_HISTORIAL.filter((h) => eqCodes.has(h.codigo_eq.trim().toUpperCase()));
-        const mcEmp = INITIAL_CORRECTIVOS.filter((c) => c.cliente.trim() === cli.nombre.trim());
-        const otEmp = INITIAL_ORDENES_TRABAJO.filter((o) => o.cliente.trim() === cli.nombre.trim());
-        const calEmp = INITIAL_CALIBRACIONES.filter((c) => c.cliente.trim() === cli.nombre.trim());
-        const repEmp = INITIAL_REPUESTOS.filter(
-          (r) => r.cliente.trim() === cli.nombre.trim() || (i === 0 && r.cliente === 'Todas las Plantas')
-        );
-        const repIds = new Set(repEmp.map((r) => r.id));
-        const movEmp = INITIAL_MOVIMIENTOS_REPUESTOS.filter((m) => repIds.has(m.repuesto_id));
-
-        const buckets: Record<ModuloDatosName, unknown[]> = {
-          equipos: eqEmp,
-          instrumentos: instEmp,
-          historial: histEmp,
-          correctivos: mcEmp,
-          ordenesTrabajo: otEmp,
-          calibraciones: calEmp,
-          repuestos: repEmp,
-          movimientosRepuestos: movEmp
-        };
-        for (const mod of MODULOS_DATOS) {
-          currentPath = `empresas/${empId}/datos/${mod}`;
-          const modRef = doc(db, 'empresas', empId, 'datos', mod);
-          const modSnap = await getDoc(modRef);
-          const cleanItems = stripUndefinedDeep(buckets[mod]);
-          if (
-            modSnap.exists() &&
-            modSnap.data()?.empresaCodigo === empId &&
-            modSnap.data()?.modulo === mod
-          ) {
-            await updateDoc(modRef, {
-              items: cleanItems,
-              updatedAt: serverTimestamp(),
-              updatedBy: uid
-            });
-          } else {
-            await setDoc(modRef, {
-              empresaCodigo: empId,
-              modulo: mod,
-              items: cleanItems,
-              updatedAt: serverTimestamp(),
-              updatedBy: uid
-            });
-          }
-        }
-      }
-
-      currentPath = 'catalogos/empresas_index';
-      await persistCatalogo('empresas_index', initIds);
-
-      for (const id of existingExtraIds) {
-        for (const mod of MODULOS_DATOS) {
-          try {
-            await deleteDoc(doc(db, 'empresas', id, 'datos', mod));
-          } catch {
-            // ignore
-          }
-        }
-        try {
-          await deleteDoc(doc(db, 'empresas', id, 'config', 'usuarios'));
-        } catch {
-          // ignore
-        }
-        try {
-          currentPath = `empresas/${id}`;
-          await deleteDoc(doc(db, 'empresas', id));
-        } catch {
-          // ignore
-        }
-      }
-
-      setSelectedCliente(INITIAL_CLIENTES[0]?.nombre || 'Todos');
+      const nextSelected = await resetAllDataRepo(stateRef.current.clientes, auth.currentUser.uid);
+      setSelectedCliente(nextSelected);
       addToast('Sistema restaurado a datos iniciales de fábrica en la nube.', 'info');
     } catch (err) {
       addToast('Error al restablecer datos en la nube.', 'error');
-      handleFirestoreError(err, OperationType.WRITE, currentPath);
+      throw err;
     }
   };
 
@@ -2285,125 +1967,11 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
     const uid = auth.currentUser.uid;
     void (async () => {
-      let currentPath = 'catalogos/sistemas';
       try {
-        if (Array.isArray(backup.sistemas)) {
-          currentPath = 'catalogos/sistemas';
-          await persistCatalogo('sistemas', backup.sistemas);
-        }
-        if (Array.isArray(backup.frecuencias)) {
-          currentPath = 'catalogos/frecuencias';
-          await persistCatalogo('frecuencias', backup.frecuencias);
-        }
-        if (Array.isArray(backup.tecnicos)) {
-          currentPath = 'catalogos/tecnicos';
-          await persistCatalogo('tecnicos', backup.tecnicos);
-        }
-
-        const bClientes = Array.isArray(backup.clientes) ? (backup.clientes as Cliente[]) : stateRef.current.clientes;
-        const bEquipos = Array.isArray(backup.equipos) ? (backup.equipos as Equipo[]) : [];
-        const bInst = Array.isArray(backup.instrumentos) ? (backup.instrumentos as Instrumento[]) : [];
-        const bHist = Array.isArray(backup.historial) ? (backup.historial as RegistroHistorialMP[]) : [];
-        const bMc = Array.isArray(backup.correctivos) ? (backup.correctivos as OrdenCorrectivo[]) : [];
-        const bOt = Array.isArray(backup.ordenesTrabajo) ? (backup.ordenesTrabajo as OrdenTrabajoOT[]) : [];
-        const bCal = Array.isArray(backup.calibraciones) ? (backup.calibraciones as OrdenCalibracion[]) : [];
-        const bRep = Array.isArray(backup.repuestos) ? (backup.repuestos as Repuesto[]) : [];
-        const bMov = Array.isArray(backup.movimientosRepuestos) ? (backup.movimientosRepuestos as MovimientoRepuesto[]) : [];
-
-        const ids: string[] = [];
-        for (let i = 0; i < bClientes.length; i++) {
-          const cli = bClientes[i];
-          const empId = makeSafeDocId(cli.codigo);
-          ids.push(empId);
-          currentPath = `empresas/${empId}`;
-          const empRef = doc(db, 'empresas', empId);
-          const empSnap = await getDoc(empRef);
-          const empUpdateFields = stripUndefinedDeep({
-            nombre: cli.nombre,
-            rut: cli.rut || '',
-            direccion: cli.direccion || '',
-            telefono: cli.telefono || '',
-            correo: cli.correo || '',
-            trabaja_terceros: Boolean(cli.trabaja_terceros),
-            ...(cli.logo ? { logo: cli.logo } : {}),
-            updatedAt: serverTimestamp()
-          });
-
-          if (empSnap.exists()) {
-            const existingEmp = empSnap.data();
-            if (existingEmp?.createdAt && existingEmp?.codigo === empId) {
-              await updateDoc(empRef, empUpdateFields);
-            } else {
-              await deleteDoc(empRef);
-              await setDoc(empRef, {
-                codigo: empId,
-                ...empUpdateFields,
-                createdAt: serverTimestamp()
-              });
-            }
-          } else {
-            await setDoc(empRef, {
-              codigo: empId,
-              ...empUpdateFields,
-              createdAt: serverTimestamp()
-            });
-          }
-
-          const eqEmp = bEquipos.filter((e) => e.cliente.trim() === cli.nombre.trim());
-          const eqCodes = new Set(eqEmp.map((e) => e.codigo_eq.trim().toUpperCase()));
-          const instEmp = bInst.filter((ins) => ins.cliente.trim() === cli.nombre.trim());
-          const histEmp = bHist.filter((h) => eqCodes.has(h.codigo_eq.trim().toUpperCase()));
-          const mcEmp = bMc.filter((c) => c.cliente.trim() === cli.nombre.trim());
-          const otEmp = bOt.filter((o) => o.cliente.trim() === cli.nombre.trim());
-          const calEmp = bCal.filter((c) => c.cliente.trim() === cli.nombre.trim());
-          const repEmp = bRep.filter(
-            (r) => r.cliente.trim() === cli.nombre.trim() || (i === 0 && r.cliente === 'Todas las Plantas')
-          );
-          const repIds = new Set(repEmp.map((r) => r.id));
-          const movEmp = bMov.filter((m) => repIds.has(m.repuesto_id));
-
-          const buckets: Record<ModuloDatosName, unknown[]> = {
-            equipos: eqEmp,
-            instrumentos: instEmp,
-            historial: histEmp,
-            correctivos: mcEmp,
-            ordenesTrabajo: otEmp,
-            calibraciones: calEmp,
-            repuestos: repEmp,
-            movimientosRepuestos: movEmp
-          };
-          for (const mod of MODULOS_DATOS) {
-            currentPath = `empresas/${empId}/datos/${mod}`;
-            const modRef = doc(db, 'empresas', empId, 'datos', mod);
-            const modSnap = await getDoc(modRef);
-            const cleanItems = stripUndefinedDeep(buckets[mod]);
-            if (
-              modSnap.exists() &&
-              modSnap.data()?.empresaCodigo === empId &&
-              modSnap.data()?.modulo === mod
-            ) {
-              await updateDoc(modRef, {
-                items: cleanItems,
-                updatedAt: serverTimestamp(),
-                updatedBy: uid
-              });
-            } else {
-              await setDoc(modRef, {
-                empresaCodigo: empId,
-                modulo: mod,
-                items: cleanItems,
-                updatedAt: serverTimestamp(),
-                updatedBy: uid
-              });
-            }
-          }
-        }
-        currentPath = 'catalogos/empresas_index';
-        await persistCatalogo('empresas_index', ids);
+        await importBackupRepo(backup, stateRef.current.clientes, uid);
         addToast('Copia de seguridad importada con éxito a la nube.', 'success');
-      } catch (e) {
+      } catch {
         addToast('Error al importar copia de seguridad.', 'error');
-        handleFirestoreError(e, OperationType.WRITE, currentPath);
       }
     })();
   };

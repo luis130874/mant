@@ -14,7 +14,9 @@
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
-    "allowJs": true,
+    "allowJs": false,
+    "strict": true,
+    "noUnusedLocals": true,
     "jsx": "react-jsx",
     "paths": {
       "@/*": [

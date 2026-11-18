@@ -288,7 +288,7 @@ export function calcularOcurrenciasEquipo(
     const matchedSlotIndices = new Set<number>();
 
     for (const reg of yearHist) {
-      let targetIdx = -1;
+      let targetIdx: number;
 
       if (subMonthly) {
         // For daily/weekly/biweekly, try matching seq_key encoded in id_ot or date or mes_n

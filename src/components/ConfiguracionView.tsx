@@ -9,9 +9,6 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Clock,
-  Layers,
-  Database,
   Download,
   Upload,
   RefreshCw,
@@ -172,7 +169,7 @@ export const ConfiguracionView: React.FC = () => {
         if (confirmed) {
           importBackup(parsed);
         }
-      } catch (err) {
+      } catch {
         addToast('El archivo no tiene un formato JSON válido.', 'error');
       }
     };

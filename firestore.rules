@@ -177,6 +177,7 @@ service cloud.firestore {
 
     function matchesActiveInvite(data, inv) {
       return inv.activo == true &&
+        (!('claimedUid' in inv) || inv.claimedUid == '') &&
         inv.email.lower() == authEmail() &&
         data.email.lower() == inv.email.lower() &&
         data.role == inv.role &&
@@ -336,14 +337,15 @@ service cloud.firestore {
           (
             existing().email.lower() == authEmail() &&
             existing().activo == true &&
+            (!('claimedUid' in existing()) || existing().claimedUid == '') &&
             incoming().email == existing().email &&
             incoming().role == existing().role &&
             incoming().empresaCodigo == existing().empresaCodigo &&
             incoming().empresaNombre == existing().empresaNombre &&
             incoming().permisos == existing().permisos &&
-            incoming().activo == existing().activo &&
+            incoming().activo == false &&
             incoming().claimedUid == request.auth.uid &&
-            incoming().diff(existing()).affectedKeys().hasOnly(['claimedUid', 'updatedAt'])
+            incoming().diff(existing()).affectedKeys().hasOnly(['claimedUid', 'activo', 'updatedAt'])
           )
         );
 

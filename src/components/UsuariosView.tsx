@@ -28,6 +28,7 @@ import {
   MODULOS_META,
   PERMISO_PRESETS
 } from '../utils/rbac';
+import { devError } from '../utils/logger';
 
 export const UsuariosView: React.FC = () => {
   const {
@@ -73,7 +74,7 @@ export const UsuariosView: React.FC = () => {
         setUsersList(roster);
       }
     } catch (err) {
-      console.error('Error cargando usuarios:', err);
+      devError('Error cargando usuarios:', err);
       addToast('Error al cargar el directorio de usuarios.', 'error');
     } finally {
       setLoading(false);
@@ -245,7 +246,7 @@ export const UsuariosView: React.FC = () => {
       await deleteUserAccess(u);
       addToast(`Acceso eliminado para ${u.email}.`, 'info');
       await fetchUsers();
-    } catch (err) {
+    } catch {
       addToast('Error al eliminar usuario.', 'error');
     }
   };

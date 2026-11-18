@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Informe de Código — Prodexus</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1a1d23; --muted:#5b6472; --line:#e4e7ec;
+    --brand:#0d9488; --brand-ink:#0f766e;
+    --alta:#d12d2d; --alta-bg:#fdeaea;
+    --media:#d97706; --media-bg:#fdf2e3;
+    --baja:#2563eb; --baja-bg:#e9f0fe;
+    --info:#64748b; --info-bg:#eef1f5;
+    --ok:#157347; --ok-bg:#e7f5ee;
+    --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1117; --panel:#161b22; --ink:#e6edf3; --muted:#9aa4b2; --line:#2a313c;
+      --brand:#2dd4bf; --brand-ink:#5eead4;
+      --alta:#ff6b6b; --alta-bg:#2a1414;
+      --media:#f0a53e; --media-bg:#2a1f10;
+      --baja:#6ea0ff; --baja-bg:#111c30;
+      --info:#9aa4b2; --info-bg:#1a2029;
+      --ok:#4ade80; --ok-bg:#10231a;
+      --shadow:0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:32px 16px;
+  }
+  .wrap{max-width:900px;margin:0 auto}
+  header.cover{
+    background:linear-gradient(135deg,var(--brand),var(--brand-ink));
+    color:#fff; border-radius:var(--radius); padding:34px 30px; box-shadow:var(--shadow);
+  }
+  header.cover .tag{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:600}
+  header.cover h1{margin:.3em 0 .1em;font-size:30px;line-height:1.15;letter-spacing:-.02em}
+  header.cover .sub{opacity:.92;font-size:15px}
+  .meta{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 22px;
+    margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.22);font-size:13.5px
+  }
+  .meta b{display:block;opacity:.75;font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1px}
+  .meta code{color:#fff;background:rgba(255,255,255,.14);padding:1px 6px;border-radius:5px;font-size:12.5px;word-break:break-all}
+
+  section.card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:26px 30px;margin-top:22px;box-shadow:var(--shadow)
+  }
+  h2{font-size:21px;letter-spacing:-.01em;margin:.2em 0 .6em;padding-bottom:.4em;border-bottom:2px solid var(--line)}
+  h3{font-size:16.5px;margin:1.5em 0 .3em}
+  p{margin:.6em 0}
+  .muted{color:var(--muted)}
+  code{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;
+    background:var(--info-bg);padding:1px 6px;border-radius:5px;word-break:break-word}
+  ul{margin:.5em 0;padding-left:1.25em}
+  li{margin:.25em 0}
+
+  .badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:3px 9px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+  .b-alta{color:var(--alta);background:var(--alta-bg)}
+  .b-media{color:var(--media);background:var(--media-bg)}
+  .b-baja{color:var(--baja);background:var(--baja-bg)}
+  .b-info{color:var(--info);background:var(--info-bg)}
+  .b-ok{color:var(--ok);background:var(--ok-bg)}
+
+  table{width:100%;border-collapse:collapse;margin:.4em 0;font-size:14.5px}
+  th,td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  td.sev{white-space:nowrap}
+  td.num{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+
+  .finding{border:1px solid var(--line);border-left-width:5px;border-radius:10px;padding:16px 20px;margin:16px 0;background:var(--panel)}
+  .finding.alta{border-left-color:var(--alta)}
+  .finding.media{border-left-color:var(--media)}
+  .finding.baja{border-left-color:var(--baja)}
+  .finding.info{border-left-color:var(--info)}
+  .finding h3{margin-top:.1em;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .finding .ev{font-size:13.5px;background:var(--info-bg);border-radius:8px;padding:9px 12px;margin:.6em 0}
+  .rec{border-radius:8px;padding:9px 12px;margin:.6em 0;background:var(--ok-bg);border:1px solid color-mix(in srgb,var(--ok) 25%,transparent)}
+  .rec b{color:var(--ok)}
+
+  .pill-list{list-style:none;padding:0;margin:.5em 0}
+  .pill-list li{padding:7px 0 7px 26px;position:relative}
+  .pill-list li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:800}
+
+  .callout{border-radius:10px;padding:14px 18px;margin:14px 0;background:var(--media-bg);border:1px solid color-mix(in srgb,var(--media) 30%,transparent)}
+  .callout b{color:var(--media)}
+
+  ol.prio{counter-reset:p;list-style:none;padding:0}
+  ol.prio li{counter-increment:p;position:relative;padding:10px 0 10px 42px;border-bottom:1px solid var(--line)}
+  ol.prio li:last-child{border-bottom:none}
+  ol.prio li::before{content:counter(p);position:absolute;left:0;top:9px;width:28px;height:28px;border-radius:50%;
+    background:var(--brand);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center}
+
+  footer{color:var(--muted);font-size:13px;text-align:center;margin:26px 0 6px}
+
+  @media print{
+    body{background:#fff;padding:0;color:#000}
+    .finding,section.card,header.cover{box-shadow:none}
+    header.cover{color:#000;background:#fff;border:1px solid #ccc}
+    header.cover code,.meta code{color:#000;background:#eee}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="cover">
+    <div class="tag">Informe de Calidad de Código</div>
+    <h1>Prodexus — Salud del Código</h1>
+    <div class="sub">Arquitectura · mantenibilidad · tipado · testing · deuda técnica</div>
+    <div class="meta">
+      <div><b>Proyecto</b>Prodexus · mantenimiento, calibración y metrología</div>
+      <div><b>Stack</b>React 19 + TypeScript + Vite 8 · Firebase</div>
+      <div><b>Tamaño</b>43 archivos TS/TSX · ~29.500 líneas</div>
+      <div><b>Fecha</b>2026-11-18</div>
+      <div><b>Alcance</b>Calidad y arquitectura (no seguridad)</div>
+      <div><b>Relacionado</b><code>REPORTE-PENTEST.md</code></div>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Resumen ejecutivo</h2>
+    <p>El proyecto <b>funciona y tiene decisiones acertadas</b> —acceso a datos centralizado, lógica de dominio
+    separada en funciones puras y un modelo de tipos propio— pero arrastra una <b>deuda técnica estructural fuerte</b>,
+    típica de un proyecto que creció rápido desde un scaffold (AI Studio) sin pasar por una etapa de consolidación.</p>
+    <p>Los tres problemas que más van a doler: <b>cero tests</b> sobre lógica crítica de cálculo,
+    <b>componentes gigantes</b> imposibles de mantener, y un <b>TypeScript tan permisivo que casi no protege</b>.
+    Ninguno es urgente para <i>funcionar</i>; todos son urgentes para <i>crecer sin romper</i>.</p>
+
+    <table>
+      <thead><tr><th>#</th><th>Severidad</th><th>Hallazgo</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="sev"><span class="badge b-alta">Alta</span></td><td>Cero tests automatizados sobre ~29.500 líneas, incluida la lógica de calibración/metrología</td></tr>
+        <tr><td>2</td><td class="sev"><span class="badge b-alta">Alta</span></td><td>Componentes gigantes (god components): <code>CalibracionView</code> 4.380 líneas</td></tr>
+        <tr><td>3</td><td class="sev"><span class="badge b-alta">Alta</span></td><td><code>MaintenanceContext</code> es un "god context": 2.561 líneas, 18 estados, 42 llamadas a Firestore</td></tr>
+        <tr><td>4</td><td class="sev"><span class="badge b-media">Media</span></td><td>TypeScript sin modo <code>strict</code>; el "lint" no chequea casi nada</td></tr>
+        <tr><td>5</td><td class="sev"><span class="badge b-media">Media</span></td><td>Sin ESLint ni Prettier (ni linting real ni formato consistente)</td></tr>
+        <tr><td>6</td><td class="sev"><span class="badge b-media">Media</span></td><td>Vistas que mezclan datos + lógica de negocio + render (sin container/presentational)</td></tr>
+        <tr><td>7</td><td class="sev"><span class="badge b-baja">Baja</span></td><td>Identidad del proyecto inconsistente (<code>react-example</code>, <code>version 0.0.0</code>)</td></tr>
+        <tr><td>8</td><td class="sev"><span class="badge b-baja">Baja</span></td><td>Dependencias en versiones bleeding-edge (TypeScript 7.x, Vite 8)</td></tr>
+        <tr><td>9</td><td class="sev"><span class="badge b-baja">Baja</span></td><td><code>console.*</code> en producción (19) y datos semilla (~878 líneas) en el bundle</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Lo que está bien hecho <span class="badge b-ok">Fortalezas</span></h2>
+    <ul class="pill-list">
+      <li><b>Acceso a Firestore centralizado:</b> las 76 operaciones de BD viven en 3 archivos, no desparramadas por 20 componentes. Frontera de datos real y base excelente para una capa de repositorios.</li>
+      <li><b>Lógica de dominio en funciones puras y separadas:</b> <code>maintenanceEngine.ts</code> (877 líneas) y <code>calibrationMetrology.ts</code> (546) están fuera de los componentes — testeables tal como están.</li>
+      <li><b>Modelo de tipos propio</b> en <code>types/index.ts</code> (378 líneas).</li>
+      <li><b>Cero <code>@ts-ignore</code>/<code>@ts-expect-error</code>:</b> no se silencian errores de tipos a mano.</li>
+      <li><b>CI de despliegue</b> ya configurado (GitHub Actions a Firebase Hosting, en PR y merge).</li>
+      <li>Reglas de seguridad robustas (ver informe de seguridad).</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Hallazgos detallados</h2>
+
+    <div class="finding alta">
+      <h3><span class="badge b-alta">Alta</span> 1 · Cero tests automatizados</h3>
+      <div class="ev"><b>Evidencia:</b> no existe ningún archivo de test (sin Vitest/Jest, sin <code>*.test.*</code>).
+      Son ~29.500 líneas sin una sola prueba.</div>
+      <p>Lo preocupante no es la cantidad, es <i>dónde</i>: este es software de <b>mantenimiento y calibración de
+      instrumentos de medición</b>. Un error silencioso en <code>calibrationMetrology.ts</code> o
+      <code>maintenanceEngine.ts</code> (desviaciones, frecuencias, cálculos) no se ve en la pantalla, se ve en una
+      decisión técnica equivocada del cliente.</p>
+      <div class="rec"><b>Recomendación:</b> empezar por el mayor retorno y menor costo —esas dos funciones puras—.
+      Con Vitest se arma en una tarde y cubre lo que más duele si falla. No hace falta cubrir la UI; arrancar por el cálculo.</div>
+    </div>
+
+    <div class="finding alta">
+      <h3><span class="badge b-alta">Alta</span> 2 · Componentes gigantes (god components)</h3>
+      <table>
+        <thead><tr><th>Archivo</th><th>Líneas</th></tr></thead>
+        <tbody>
+          <tr><td><code>CalibracionView.tsx</code></td><td class="num">4.380</td></tr>
+          <tr><td><code>RepuestosView.tsx</code></td><td class="num">2.005</td></tr>
+          <tr><td><code>DigitalOrderExecutionModal.tsx</code></td><td class="num">1.890</td></tr>
+          <tr><td><code>DashboardView.tsx</code></td><td class="num">1.146</td></tr>
+        </tbody>
+      </table>
+      <p>Un componente React de 4.380 líneas no se puede revisar en un PR, no se puede testear por partes y no se puede
+      tocar sin miedo. Viola responsabilidad única de forma extrema: mezcla sub-vistas, formularios, estado local,
+      cálculos y render en un solo archivo.</p>
+      <div class="rec"><b>Recomendación:</b> partir por secciones funcionales en subcomponentes y extraer la lógica a
+      hooks. No hace falta hacerlo todo de una; cada vez que se toque uno, sacarle un pedazo.</div>
+    </div>
+
+    <div class="finding alta">
+      <h3><span class="badge b-alta">Alta</span> 3 · <code>MaintenanceContext</code>: el "god context"</h3>
+      <div class="ev"><b>Evidencia:</b> <code>MaintenanceContext.tsx</code> tiene <b>2.561 líneas, 18 <code>useState</code>
+      y 42 llamadas a Firestore</b>. Es el cerebro de datos de toda la app en un solo provider.</div>
+      <ul>
+        <li><b>Re-renders masivos:</b> cualquier cambio de estado re-renderiza a todos los consumidores.</li>
+        <li><b>Acoplamiento total:</b> equipos, órdenes, calibración, repuestos, clientes… todo convive. Tocar una cosa arriesga todas.</li>
+        <li><b>Imposible de testear</b> de forma aislada.</li>
+      </ul>
+      <div class="rec"><b>Recomendación principal:</b> separar en dos capas —
+      (1) una <b>capa de repositorios</b> que encapsule Firestore por entidad (las vistas no deberían saber que existe
+      Firestore), y (2) <b>contexts/hooks por dominio</b> encima, chicos y enfocados, en vez de un provider monolítico.
+      El acceso a datos <i>ya está centralizado</i>, así que el trabajo de desacoplar está medio hecho.</div>
+    </div>
+
+    <div class="finding media">
+      <h3><span class="badge b-media">Media</span> 4 · TypeScript sin <code>strict</code> — tipado que da falsa seguridad</h3>
+      <div class="ev"><b>Evidencia:</b> <code>tsconfig.json</code> no tiene <code>strict: true</code>, ni
+      <code>noImplicitAny</code>, ni <code>strictNullChecks</code>, y usa <code>allowJs: true</code>. El "lint" es solo
+      <code>tsc --noEmit</code> con esa config. Hay 17 usos de <code>any</code>.</div>
+      <p>Tener TypeScript sin <code>strict</code> es como ponerse el cinturón sin abrocharlo: parece que estás
+      protegido, pero no. La mayoría de los bugs que TS podría atrapar (null/undefined, tipos implícitos) pasan igual.</p>
+      <div class="rec"><b>Recomendación:</b> activar <code>strict</code> y <code>noUnusedLocals</code>, de forma gradual:
+      arreglar por archivo a medida que se tocan, o aplicar primero a archivos nuevos.</div>
+    </div>
+
+    <div class="finding media">
+      <h3><span class="badge b-media">Media</span> 5 · Sin ESLint ni Prettier</h3>
+      <div class="ev"><b>Evidencia:</b> no hay configuración de ESLint ni de Prettier. No hay reglas de calidad
+      (hooks mal usados, dependencias de <code>useEffect</code>, imports sin usar) ni formato automático.</div>
+      <div class="rec"><b>Recomendación:</b> agregar ESLint con <code>eslint-plugin-react-hooks</code> (atrapa el 80% de
+      los bugs clásicos de React) + Prettier, e integrarlo al CI que ya existe.</div>
+    </div>
+
+    <div class="finding media">
+      <h3><span class="badge b-media">Media</span> 6 · Vistas que mezclan datos, lógica y render</h3>
+      <div class="ev"><b>Evidencia:</b> los componentes <code>*View</code> concentran fetching de datos, lógica de
+      negocio y presentación. No hay separación <b>container / presentational</b>.</div>
+      <p>Así, nada de esa UI se puede testear ni reutilizar de forma aislada.</p>
+      <div class="rec"><b>Recomendación:</b> separar cada vista grande en un contenedor (obtiene datos y decide) y
+      componentes presentacionales (reciben props y renderizan, puros y testeables).</div>
+    </div>
+
+    <div class="finding baja">
+      <h3><span class="badge b-baja">Baja</span> 7 · Identidad del proyecto inconsistente</h3>
+      <div class="ev"><b>Evidencia:</b> <code>package.json</code> dice <code>"name": "react-example"</code> y
+      <code>"version": "0.0.0"</code>, mientras <code>vite.config.ts</code> define <code>APP_VERSION = '57.4.0'</code>.</div>
+      <div class="rec"><b>Recomendación:</b> nombrar el proyecto y unificar la versión en una sola fuente de verdad.</div>
+    </div>
+
+    <div class="finding baja">
+      <h3><span class="badge b-baja">Baja</span> 8 · Dependencias en versiones bleeding-edge</h3>
+      <div class="ev"><b>Evidencia:</b> <code>typescript ^7.0.2</code> (compilador nativo, muy reciente),
+      <code>vite ^8</code>, <code>react ^19</code>, <code>firebase ^13</code>.</div>
+      <p>Estar al día es bueno, pero TS 7 y Vite 8 son muy nuevos: riesgo de incompatibilidades y bugs de herramienta
+      difíciles de diagnosticar.</p>
+      <div class="rec"><b>Recomendación:</b> fijar versiones (evitar <code>^</code> en las críticas), validar el build
+      reproducible y actualizar con intención, no por defecto.</div>
+    </div>
+
+    <div class="finding baja">
+      <h3><span class="badge b-baja">Baja</span> 9 · Ruido en producción y peso de bundle</h3>
+      <div class="ev"><b>Evidencia:</b> 19 <code>console.*</code> en el código; <code>initialData.ts</code> (~878 líneas
+      de datos semilla) se importa en <code>MaintenanceContext</code> y viaja en el bundle del cliente.</div>
+      <div class="rec"><b>Recomendación:</b> quitar/condicionar los <code>console</code> en producción; cargar los datos
+      semilla de forma diferida o fuera del bundle principal si solo sirven para demo/reset.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Plan de acción (por retorno de inversión)</h2>
+    <ol class="prio">
+      <li><b>Tests de <code>calibrationMetrology.ts</code> y <code>maintenanceEngine.ts</code></b> con Vitest. Máximo valor, mínimo costo, protege lo crítico.</li>
+      <li><b>ESLint + <code>react-hooks</code> + Prettier</b> al CI existente. Atrapa bugs y ordena al equipo.</li>
+      <li><b>Activar <code>strict</code> en TypeScript</b>, gradual por archivo.</li>
+      <li><b>Extraer la capa de repositorios</b> desde <code>MaintenanceContext</code> y partirlo por dominio. El mayor impacto de mantenibilidad.</li>
+      <li><b>Romper los god components</b> a medida que se tocan, no en un big-bang.</li>
+      <li>Limpieza: identidad del proyecto, versiones fijadas, <code>console</code> y seed data.</li>
+    </ol>
+    <div class="callout"><b>Nota de criterio:</b> nada de esto bloquea el lanzamiento <i>funcional</i>. Bloquea la
+    capacidad de <b>crecer, corregir y confiar</b> en el código con el tiempo. Lo primero —tests sobre el cálculo— sí lo
+    pondría antes de que haya datos reales de clientes.</div>
+  </section>
+
+  <footer>
+    Documento técnico · Prodexus · 2026-11-18<br>
+    Basado en métricas del repositorio y lectura de configuración y arquitectura. No incluye análisis de seguridad.
+  </footer>
+
+</div>
+</body>
+</html>

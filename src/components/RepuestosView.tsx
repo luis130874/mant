@@ -16,22 +16,12 @@ import {
   Edit2,
   Trash2,
   History,
-  Building2,
-  Cpu,
   Package,
   DollarSign,
-  AlertCircle,
-  CheckCircle2,
   Printer,
   FileDown,
-  Layers,
   ShieldAlert,
-  Wrench,
   Clock,
-  ExternalLink,
-  Phone,
-  Mail,
-  Info,
   Loader2,
   X,
   FileSpreadsheet
@@ -39,10 +29,11 @@ import {
 import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
 import { hasActionAccess } from '../utils/rbac';
-import { Repuesto, CriticidadRepuesto, MovimientoRepuesto } from '../types';
+import { Repuesto, CriticidadRepuesto } from '../types';
 import { formatFechaDDMMYYYY } from '../utils/maintenanceEngine';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { resolveSheetClientes } from '../utils/logoResolver';
+import { devError, devWarn } from '../utils/logger';
 
 const CATEGORIAS_REPUESTOS = [
   'Rodamientos',
@@ -398,7 +389,7 @@ export const RepuestosView: React.FC = () => {
       );
       addToast('Inventario descargado en PDF exitosamente.', 'success');
     } catch (err) {
-      console.error(err);
+      devError('Error generating spare parts PDF:', err);
       addToast('Error al generar el PDF del inventario. Intente nuevamente.', 'error');
     } finally {
       setIsGeneratingPDF(false);
@@ -415,7 +406,7 @@ export const RepuestosView: React.FC = () => {
       window.print();
       addToast('Si su navegador bloquea la impresión en vista embebida, use "Descargar PDF" para imprimir.', 'info');
     } catch (err) {
-      console.warn('window.print() blocked, falling back to PDF download', err);
+      devWarn('window.print() blocked, falling back to PDF download', err);
       handleDownloadPDF();
     }
   };

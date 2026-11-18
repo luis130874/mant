@@ -11,13 +11,9 @@ import {
   Filter,
   Edit2,
   Trash2,
-  FileText,
   AlertCircle,
-  Wrench,
   CalendarPlus,
   Info,
-  Layers,
-  CheckCircle2,
   Printer,
   Building2
 } from 'lucide-react';
@@ -828,7 +824,7 @@ export const EquiposView: React.FC = () => {
                   </label>
                   <select
                     value={formCriticidad}
-                    onChange={(e) => setFormCriticidad(e.target.value as any)}
+                    onChange={(e) => setFormCriticidad(e.target.value as 'Alta' | 'Media' | 'Baja')}
                     className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Alta">Alta (Crítico para producción)</option>

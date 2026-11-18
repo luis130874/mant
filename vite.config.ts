@@ -4,7 +4,10 @@ import fs from 'fs';
 import path from 'path';
 import {defineConfig, Plugin} from 'vite';
 
-const APP_VERSION = '57.4.0';
+const pkgJson = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
+) as { version?: string };
+const APP_VERSION = pkgJson.version || '57.4.0';
 const APP_BUILD_ID = `${APP_VERSION}-${Date.now()}`;
 
 function prodexusVersionPlugin(): Plugin {

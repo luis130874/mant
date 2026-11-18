@@ -20,6 +20,7 @@ import { formatFechaDDMMYYYY, parseFecha } from '../utils/maintenanceEngine';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { resolveSheetClientes } from '../utils/logoResolver';
 import { useMaintenance } from '../context/MaintenanceContext';
+import { devError, devWarn } from '../utils/logger';
 
 interface CatalogoListadoModalProps {
   mode: 'equipos' | 'instrumentos';
@@ -239,7 +240,7 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
       await exportElementToPDF(printContainerRef.current, baseName, 'landscape');
       addToast('Listado descargado en PDF exitosamente.', 'success');
     } catch (err) {
-      console.error(err);
+      devError('Error generating catalog PDF:', err);
       addToast('Error al generar el PDF del listado. Intente nuevamente.', 'error');
     } finally {
       setIsGeneratingPDF(false);
@@ -356,7 +357,7 @@ export const CatalogoListadoModal: React.FC<CatalogoListadoModalProps> = ({
         'info'
       );
     } catch (err) {
-      console.warn('window.print() blocked, falling back to PDF download', err);
+      devWarn('window.print() blocked, falling back to PDF download', err);
       void handleDownloadPDF();
     }
   };

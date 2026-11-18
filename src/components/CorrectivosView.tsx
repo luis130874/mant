@@ -6,15 +6,9 @@
 import React, { useState } from 'react';
 import {
   AlertTriangle,
-  Plus,
   Printer,
-  CheckCircle2,
-  Clock,
   Search,
-  Download,
   Trash2,
-  CheckSquare,
-  Wrench,
   Share2,
   Smartphone
 } from 'lucide-react';
@@ -22,7 +16,7 @@ import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
 import { hasActionAccess } from '../utils/rbac';
 import { formatFechaDDMMYYYY, parseFecha, tecnicoPerteneceAEmpresa } from '../utils/maintenanceEngine';
-import { OrdenCorrectivo, Equipo } from '../types';
+import { OrdenCorrectivo } from '../types';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
 import { PrintableDocument } from './PrintModal';
 import { DigitalOrderTarget } from '../utils/digitalOrderLink';
@@ -342,7 +336,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                   </label>
                   <select
                     value={prioridad}
-                    onChange={(e) => setPrioridad(e.target.value as any)}
+                    onChange={(e) => setPrioridad(e.target.value as 'Urgente' | 'Alta' | 'Media' | 'Baja')}
                     className="w-full font-medium text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Urgente">Urgente (Parada de línea)</option>

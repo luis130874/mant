@@ -14,9 +14,7 @@ import {
   Mail,
   MapPin,
   Upload,
-  Image as ImageIcon,
-  X,
-  FileText
+  X
 } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
