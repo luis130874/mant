@@ -19,12 +19,15 @@ import {
   PuntoCalibracion,
   Instrumento,
   Repuesto,
-  MovimientoRepuesto
+  MovimientoRepuesto,
+  AccionKey
 } from '../types';
 import {
   formatFechaDDMMYYYY,
   parseFecha,
-  addFrequencyStep
+  addFrequencyStep,
+  isTecnicoDeTodasLasEmpresas,
+  tecnicoPerteneceAEmpresa
 } from '../utils/maintenanceEngine';
 import {
   auth,
@@ -42,13 +45,15 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
-import { makeSafeDocId } from '../utils/rbac';
+import { canValidateDigitalOrder, hasActionAccess, makeSafeDocId } from '../utils/rbac';
 import { devError } from '../utils/logger';
 import {
   importBackupRepo,
   LEGACY_STORAGE_KEYS,
   MODULOS_DATOS,
   ModuloDatosName,
+  mutateCatalogoTransactionRepo,
+  mutateEmpresaModuloTransactionRepo,
   persistCatalogoRepo,
   persistEmpresaModuloRepo,
   resetAllDataRepo,
@@ -367,6 +372,11 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Per-company store maps for real-time aggregation
   const empresasMapRef = useRef<Record<string, Cliente>>({});
   const modulesMapRef = useRef<Record<string, Partial<Record<ModuloDatosName, unknown[]>>>>({});
+  const globalSistemasRef = useRef<Sistema[]>([]);
+  const globalTecnicosRef = useRef<Tecnico[]>([]);
+  const backfilledTecnicosEmpRef = useRef<Set<string>>(new Set());
+  const isSuperAdminRef = useRef<boolean>(isSuperAdmin);
+  isSuperAdminRef.current = isSuperAdmin;
 
   const recomputeAggregatedState = useCallback(() => {
     const empList = Object.values(empresasMapRef.current).sort((a, b) =>
@@ -394,6 +404,46 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCalibraciones(mergeMod<OrdenCalibracion>('calibraciones'));
     setRepuestos(mergeMod<Repuesto>('repuestos'));
     setMovimientosRepuestos(mergeMod<MovimientoRepuesto>('movimientosRepuestos'));
+
+    // Per-company isolated technicians (plus global mirror merge only for super_admin)
+    const tecMap = new Map<string, Tecnico>();
+    for (const emp of empList) {
+      const empId = makeSafeDocId(emp.codigo);
+      const arr = modulesMapRef.current[empId]?.tecnicos;
+      if (Array.isArray(arr)) {
+        for (const t of arr as Tecnico[]) {
+          if (!isSuperAdminRef.current && !tecnicoPerteneceAEmpresa(t, emp.nombre)) continue;
+          const key = t.codigo_tec.trim().toUpperCase();
+          if (!tecMap.has(key)) {
+            tecMap.set(key, t);
+          }
+        }
+      }
+    }
+    if (isSuperAdminRef.current) {
+      for (const t of globalTecnicosRef.current) {
+        const key = t.codigo_tec.trim().toUpperCase();
+        if (!tecMap.has(key)) {
+          tecMap.set(key, t);
+        }
+      }
+    }
+    setTecnicos(
+      Array.from(tecMap.values()).sort((a, b) => a.codigo_tec.localeCompare(b.codigo_tec))
+    );
+
+    // Company-level systems override when non-empty; otherwise fall back to global systems
+    if (!isSuperAdminRef.current && empList.length > 0) {
+      const ownEmpId = makeSafeDocId(empList[0].codigo);
+      const ownSis = modulesMapRef.current[ownEmpId]?.sistemas as Sistema[] | undefined;
+      if (Array.isArray(ownSis) && ownSis.length > 0) {
+        setSistemas(ownSis);
+      } else {
+        setSistemas(globalSistemasRef.current);
+      }
+    } else {
+      setSistemas(globalSistemasRef.current);
+    }
   }, []);
 
   const addToast = useCallback(
@@ -473,7 +523,31 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     empresasMapRef.current = {};
     modulesMapRef.current = {};
+    globalSistemasRef.current = [];
+    globalTecnicosRef.current = [];
+    backfilledTecnicosEmpRef.current.clear();
     setCloudLoading(true);
+
+    const tryBackfillCompanyTecnicos = (empId: string) => {
+      if (!isSuperAdmin || !auth.currentUser) return;
+      if (backfilledTecnicosEmpRef.current.has(empId)) return;
+      const emp = empresasMapRef.current[empId];
+      const existingBucket = modulesMapRef.current[empId]?.tecnicos;
+      if (!emp || existingBucket === undefined) return;
+      if (existingBucket.length > 0 || globalTecnicosRef.current.length === 0) return;
+
+      const scoped = globalTecnicosRef.current.filter((t) =>
+        tecnicoPerteneceAEmpresa(t, emp.nombre)
+      );
+      if (scoped.length === 0) {
+        backfilledTecnicosEmpRef.current.add(empId);
+        return;
+      }
+      backfilledTecnicosEmpRef.current.add(empId);
+      void persistEmpresaModuloRepo(empId, 'tecnicos', scoped, auth.currentUser.uid).catch(() => {
+        backfilledTecnicosEmpRef.current.delete(empId);
+      });
+    };
 
     const attachCompanyListeners = (empId: string) => {
       if (companyUnsubs.has(empId)) return;
@@ -485,18 +559,19 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           (snap) => {
             if (snap.exists()) {
               empresasMapRef.current[empId] = snap.data() as Cliente;
+              tryBackfillCompanyTecnicos(empId);
             } else {
               delete empresasMapRef.current[empId];
             }
             recomputeAggregatedState();
             setCloudLoading(false);
           },
-            (err) => {
-              setCloudLoading(false);
-              handleFirestoreError(err, OperationType.GET, `empresas/${empId}`);
-            }
-          )
-        );
+          (err) => {
+            setCloudLoading(false);
+            handleFirestoreError(err, OperationType.GET, `empresas/${empId}`);
+          }
+        )
+      );
 
       if (!modulesMapRef.current[empId]) modulesMapRef.current[empId] = {};
 
@@ -509,6 +584,9 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
               modulesMapRef.current[empId][mod] = snap.exists()
                 ? ((snap.data().items as unknown[]) || [])
                 : [];
+              if (mod === 'tecnicos' && !snap.exists()) {
+                tryBackfillCompanyTecnicos(empId);
+              }
               recomputeAggregatedState();
             },
             (err) => {
@@ -538,12 +616,15 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
         if (cancelled) return;
 
-        // Global Catalogs
+        // Global Catalogs (sistemas & frecuencias readable by all verified users)
         unsubs.push(
           onSnapshot(
             doc(db, 'catalogos', 'sistemas'),
             (snap) => {
-              if (snap.exists()) setSistemas((snap.data().items as Sistema[]) || []);
+              if (snap.exists()) {
+                globalSistemasRef.current = (snap.data().items as Sistema[]) || [];
+                recomputeAggregatedState();
+              }
             },
             (err) => {
               handleFirestoreError(err, OperationType.GET, 'catalogos/sistemas');
@@ -561,32 +642,38 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }
           )
         );
-        unsubs.push(
-          onSnapshot(
-            doc(db, 'catalogos', 'tecnicos'),
-            (snap) => {
-              if (snap.exists()) setTecnicos((snap.data().items as Tecnico[]) || []);
-            },
-            (err) => {
-              handleFirestoreError(err, OperationType.GET, 'catalogos/tecnicos');
-            }
-          )
-        );
 
+        // Global technicians mirror is strictly super_admin-only to prevent cross-company PII leaks
         if (isSuperAdmin) {
+          unsubs.push(
+            onSnapshot(
+              doc(db, 'catalogos', 'tecnicos'),
+              (snap) => {
+                globalTecnicosRef.current = snap.exists()
+                  ? ((snap.data().items as Tecnico[]) || [])
+                  : [];
+                for (const empId of Object.keys(empresasMapRef.current)) {
+                  tryBackfillCompanyTecnicos(empId);
+                }
+                recomputeAggregatedState();
+              },
+              (err) => {
+                handleFirestoreError(err, OperationType.GET, 'catalogos/tecnicos');
+              }
+            )
+          );
+
           unsubs.push(
             onSnapshot(
               doc(db, 'catalogos', 'empresas_index'),
               (snap) => {
                 const ids = snap.exists() ? ((snap.data().items as string[]) || []) : [];
                 const idSet = new Set(ids);
-                // Remove old company listeners
                 for (const existingId of Array.from(companyUnsubs.keys())) {
                   if (!idSet.has(existingId)) {
                     detachCompanyListeners(existingId);
                   }
                 }
-                // Attach new company listeners
                 for (const id of ids) {
                   attachCompanyListeners(id);
                 }
@@ -643,26 +730,56 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     [isSuperAdmin, userProfile]
   );
 
-  const persistEmpresaModulo = useCallback(
-    async (empId: string, modulo: ModuloDatosName, items: unknown[]) => {
-      if (!empId || !auth.currentUser) return;
+  const guardAction = useCallback(
+    (accion: AccionKey, deniedMsg = 'No tiene permisos para realizar esta acción.'): boolean => {
+      if (!auth.currentUser || !userProfile?.activo) {
+        addToast('Sesión inactiva o no autenticada.', 'error');
+        return false;
+      }
+      if (!hasActionAccess(userProfile, accion)) {
+        addToast(deniedMsg, 'error');
+        return false;
+      }
+      return true;
+    },
+    [userProfile, addToast]
+  );
+
+  const mutateEmpresaModulo = useCallback(
+    async <T,>(
+      empId: string,
+      modulo: ModuloDatosName,
+      mutator: (currentItems: T[]) => T[],
+      optimisticItems?: T[]
+    ): Promise<T[] | null> => {
+      if (!empId || !auth.currentUser) return null;
       if (!modulesMapRef.current[empId]) modulesMapRef.current[empId] = {};
-      modulesMapRef.current[empId][modulo] = items;
-      recomputeAggregatedState();
+      if (optimisticItems) {
+        modulesMapRef.current[empId][modulo] = optimisticItems;
+        recomputeAggregatedState();
+      }
 
       const docPath = `empresas/${empId}/datos/${modulo}`;
       try {
-        await persistEmpresaModuloRepo(empId, modulo, items, auth.currentUser.uid, (warnMsg) => {
-          addToast(warnMsg, 'warning');
-        });
+        const committed = await mutateEmpresaModuloTransactionRepo<T>(
+          empId,
+          modulo,
+          auth.currentUser.uid,
+          mutator,
+          (warnMsg) => addToast(warnMsg, 'warning')
+        );
+        modulesMapRef.current[empId][modulo] = committed;
+        recomputeAggregatedState();
+        return committed;
       } catch (err) {
         addToast(
           err instanceof Error && err.message.includes('1 MiB')
             ? err.message
-            : 'Error de permisos o red al guardar en la nube.',
+            : 'Error de permisos o concurrencia al guardar en la nube.',
           'error'
         );
         handleFirestoreError(err, OperationType.WRITE, docPath);
+        return null;
       }
     },
     [recomputeAggregatedState, addToast]
@@ -679,6 +796,29 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       } catch (err) {
         addToast('Error de permisos al guardar catálogo global.', 'error');
         handleFirestoreError(err, OperationType.WRITE, docPath);
+      }
+    },
+    [addToast]
+  );
+
+  const mutateCatalogo = useCallback(
+    async <T,>(
+      catalogo: 'sistemas' | 'frecuencias' | 'tecnicos' | 'empresas_index',
+      mutator: (currentItems: T[]) => T[]
+    ): Promise<T[] | null> => {
+      if (!auth.currentUser) return null;
+      const docPath = `catalogos/${catalogo}`;
+      try {
+        return await mutateCatalogoTransactionRepo<T>(
+          catalogo,
+          auth.currentUser.uid,
+          mutator,
+          (warnMsg) => addToast(warnMsg, 'warning')
+        );
+      } catch (err) {
+        addToast('Error de permisos al actualizar catálogo global.', 'error');
+        handleFirestoreError(err, OperationType.WRITE, docPath);
+        return null;
       }
     },
     [addToast]
@@ -790,27 +930,32 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
             'repuestos'
           ];
           for (const mod of modsToRename) {
-            const currentArr = (modulesMapRef.current[empId]?.[mod] as Array<Record<string, unknown>>) || [];
-            if (currentArr.length > 0) {
-              const updatedArr = currentArr.map((item) =>
+            void mutateEmpresaModulo<Record<string, unknown>>(empId, mod, (currentArr) =>
+              currentArr.map((item) =>
                 item.cliente === oldCliente.nombre ? { ...item, cliente: updated.nombre } : item
-              );
-              await persistEmpresaModulo(empId, mod, updatedArr);
-            }
+              )
+            );
           }
           await syncEmpresaNombreEnRoster(empId, updated.nombre);
-          const currentTecnicos = stateRef.current.tecnicos;
-          const hasTechMatch = currentTecnicos.some((t) =>
-            (t.empresas || []).some((emp) => emp === oldCliente.nombre)
-          );
-          if (hasTechMatch) {
-            const nextTecnicos = currentTecnicos.map((t) => ({
+
+          // Update company-scoped technicians atomically
+          void mutateEmpresaModulo<Tecnico>(empId, 'tecnicos', (currentTecs) =>
+            currentTecs.map((t) => ({
               ...t,
               empresas: t.empresas?.map((emp) => (emp === oldCliente.nombre ? updated.nombre : emp))
-            }));
-            setTecnicos(nextTecnicos);
-            await persistCatalogo('tecnicos', nextTecnicos);
+            }))
+          );
+
+          // Update global mirror only if super_admin
+          if (isSuperAdmin) {
+            void mutateCatalogo<Tecnico>('tecnicos', (currentTecs) =>
+              currentTecs.map((t) => ({
+                ...t,
+                empresas: t.empresas?.map((emp) => (emp === oldCliente.nombre ? updated.nombre : emp))
+              }))
+            );
           }
+
           if (selectedCliente === oldCliente.nombre) {
             setSelectedClienteState(updated.nombre);
           }
@@ -861,74 +1006,288 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     })();
   };
 
-  // Systems
+  // Systems (super_admin updates global catalog; company users isolate into empresas/{empId}/datos/sistemas)
   const addSistema = (s: Sistema) => {
-    const next = [...stateRef.current.sistemas, s];
-    setSistemas(next);
-    void persistCatalogo('sistemas', next);
+    if (!guardAction('crear_editar', 'Sin permisos para crear sistemas.')) return;
+    if (isSuperAdmin) {
+      globalSistemasRef.current = [...globalSistemasRef.current, s];
+      setSistemas(globalSistemasRef.current);
+      void mutateCatalogo<Sistema>('sistemas', (curr) => [
+        ...curr.filter((item) => item.codigo_sis !== s.codigo_sis),
+        s
+      ]);
+    } else {
+      const empId = resolveEmpresaId();
+      const base = stateRef.current.sistemas;
+      const next = [...base.filter((item) => item.codigo_sis !== s.codigo_sis), s];
+      void mutateEmpresaModulo<Sistema>(
+        empId,
+        'sistemas',
+        (curr) => {
+          const seed = curr.length > 0 ? curr : globalSistemasRef.current;
+          return [...seed.filter((item) => item.codigo_sis !== s.codigo_sis), s];
+        },
+        next
+      );
+    }
     addToast(`Sistema "${s.nombre}" agregado.`);
   };
 
   const updateSistema = (codigo: string, updated: Sistema) => {
-    const next = stateRef.current.sistemas.map((s) => (s.codigo_sis === codigo ? updated : s));
-    setSistemas(next);
-    void persistCatalogo('sistemas', next);
+    if (!guardAction('crear_editar', 'Sin permisos para editar sistemas.')) return;
+    if (isSuperAdmin) {
+      const next = globalSistemasRef.current.map((s) => (s.codigo_sis === codigo ? updated : s));
+      globalSistemasRef.current = next;
+      setSistemas(next);
+      void mutateCatalogo<Sistema>('sistemas', (curr) =>
+        curr.map((s) => (s.codigo_sis === codigo ? updated : s))
+      );
+    } else {
+      const empId = resolveEmpresaId();
+      const next = stateRef.current.sistemas.map((s) => (s.codigo_sis === codigo ? updated : s));
+      void mutateEmpresaModulo<Sistema>(
+        empId,
+        'sistemas',
+        (curr) => {
+          const seed = curr.length > 0 ? curr : globalSistemasRef.current;
+          return seed.map((s) => (s.codigo_sis === codigo ? updated : s));
+        },
+        next
+      );
+    }
     addToast(`Sistema "${updated.nombre}" actualizado.`);
   };
 
   const deleteSistema = (codigo: string) => {
-    const next = stateRef.current.sistemas.filter((s) => s.codigo_sis !== codigo);
-    setSistemas(next);
-    void persistCatalogo('sistemas', next);
+    if (!guardAction('eliminar', 'Sin permisos para eliminar sistemas.')) return;
+    if (isSuperAdmin) {
+      const next = globalSistemasRef.current.filter((s) => s.codigo_sis !== codigo);
+      globalSistemasRef.current = next;
+      setSistemas(next);
+      void mutateCatalogo<Sistema>('sistemas', (curr) =>
+        curr.filter((s) => s.codigo_sis !== codigo)
+      );
+    } else {
+      const empId = resolveEmpresaId();
+      const next = stateRef.current.sistemas.filter((s) => s.codigo_sis !== codigo);
+      void mutateEmpresaModulo<Sistema>(
+        empId,
+        'sistemas',
+        (curr) => {
+          const seed = curr.length > 0 ? curr : globalSistemasRef.current;
+          return seed.filter((s) => s.codigo_sis !== codigo);
+        },
+        next
+      );
+    }
     addToast(`Sistema eliminado.`, 'info');
   };
 
-  // Frequencies
+  // Frequencies (global standard, super_admin-only writes)
   const addFrecuencia = (f: FrecuenciaConfig) => {
+    if (!isSuperAdmin) {
+      addToast('Solo el Administrador General puede modificar frecuencias globales.', 'error');
+      return;
+    }
     const next = [...stateRef.current.frecuencias, f];
     setFrecuencias(next);
-    void persistCatalogo('frecuencias', next);
+    void mutateCatalogo<FrecuenciaConfig>('frecuencias', (curr) => [
+      ...curr.filter((item) => item.nombre_freq !== f.nombre_freq),
+      f
+    ]);
     addToast(`Frecuencia "${f.nombre_freq}" configurada.`);
   };
 
   const updateFrecuencia = (nombre: string, updated: FrecuenciaConfig) => {
+    if (!isSuperAdmin) {
+      addToast('Solo el Administrador General puede modificar frecuencias globales.', 'error');
+      return;
+    }
     const next = stateRef.current.frecuencias.map((f) => (f.nombre_freq === nombre ? updated : f));
     setFrecuencias(next);
-    void persistCatalogo('frecuencias', next);
+    void mutateCatalogo<FrecuenciaConfig>('frecuencias', (curr) =>
+      curr.map((f) => (f.nombre_freq === nombre ? updated : f))
+    );
     addToast(`Frecuencia "${updated.nombre_freq}" actualizada.`);
   };
 
   const deleteFrecuencia = (nombre: string) => {
+    if (!isSuperAdmin) {
+      addToast('Solo el Administrador General puede eliminar frecuencias globales.', 'error');
+      return;
+    }
     const next = stateRef.current.frecuencias.filter((f) => f.nombre_freq !== nombre);
     setFrecuencias(next);
-    void persistCatalogo('frecuencias', next);
+    void mutateCatalogo<FrecuenciaConfig>('frecuencias', (curr) =>
+      curr.filter((f) => f.nombre_freq !== nombre)
+    );
     addToast(`Frecuencia eliminada.`, 'info');
   };
 
-  // Technicians
+  // Technicians (strictly isolated per company under empresas/{empId}/datos/tecnicos)
   const addTecnico = (t: Tecnico) => {
-    const next = [...stateRef.current.tecnicos, t];
-    setTecnicos(next);
-    void persistCatalogo('tecnicos', next);
+    if (!guardAction('crear_editar', 'Sin permisos para registrar técnicos.')) return;
+
+    if (!isSuperAdmin) {
+      const ownEmpId = resolveEmpresaId();
+      const ownCompany =
+        stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === ownEmpId)?.nombre ||
+        userProfile?.empresaNombre ||
+        '';
+      const scopedTec: Tecnico = {
+        ...t,
+        empresas: ownCompany ? [ownCompany] : []
+      };
+      const curr = (modulesMapRef.current[ownEmpId]?.tecnicos as Tecnico[]) || [];
+      void mutateEmpresaModulo<Tecnico>(
+        ownEmpId,
+        'tecnicos',
+        (latest) => [...latest.filter((x) => x.codigo_tec !== scopedTec.codigo_tec), scopedTec],
+        [...curr.filter((x) => x.codigo_tec !== scopedTec.codigo_tec), scopedTec]
+      );
+      addToast(`Técnico "${scopedTec.nombre}" dado de alta.`);
+      return;
+    }
+
+    // Super Admin: update target companies + global mirror atomically
+    globalTecnicosRef.current = [
+      ...globalTecnicosRef.current.filter((x) => x.codigo_tec !== t.codigo_tec),
+      t
+    ];
+    void mutateCatalogo<Tecnico>('tecnicos', (curr) => [
+      ...curr.filter((x) => x.codigo_tec !== t.codigo_tec),
+      t
+    ]);
+    for (const cli of stateRef.current.clientes) {
+      if (tecnicoPerteneceAEmpresa(t, cli.nombre)) {
+        const empId = makeSafeDocId(cli.codigo);
+        const curr = (modulesMapRef.current[empId]?.tecnicos as Tecnico[]) || [];
+        void mutateEmpresaModulo<Tecnico>(
+          empId,
+          'tecnicos',
+          (latest) => [...latest.filter((x) => x.codigo_tec !== t.codigo_tec), t],
+          [...curr.filter((x) => x.codigo_tec !== t.codigo_tec), t]
+        );
+      }
+    }
     addToast(`Técnico "${t.nombre}" dado de alta.`);
   };
 
   const updateTecnico = (codigo: string, updated: Tecnico) => {
-    const next = stateRef.current.tecnicos.map((t) => (t.codigo_tec === codigo ? updated : t));
-    setTecnicos(next);
-    void persistCatalogo('tecnicos', next);
+    if (!guardAction('crear_editar', 'Sin permisos para editar técnicos.')) return;
+    const existing = stateRef.current.tecnicos.find((t) => t.codigo_tec === codigo);
+
+    if (!isSuperAdmin) {
+      const ownEmpId = resolveEmpresaId();
+      const ownCompany =
+        stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === ownEmpId)?.nombre ||
+        userProfile?.empresaNombre ||
+        '';
+      if (
+        existing &&
+        (isTecnicoDeTodasLasEmpresas(existing) ||
+          (existing.empresas || []).length > 1 ||
+          !tecnicoPerteneceAEmpresa(existing, ownCompany))
+      ) {
+        addToast('No puede modificar técnicos compartidos con otras empresas.', 'error');
+        return;
+      }
+      const scopedUpdated: Tecnico = {
+        ...updated,
+        empresas: ownCompany ? [ownCompany] : []
+      };
+      const curr = (modulesMapRef.current[ownEmpId]?.tecnicos as Tecnico[]) || [];
+      void mutateEmpresaModulo<Tecnico>(
+        ownEmpId,
+        'tecnicos',
+        (latest) => latest.map((t) => (t.codigo_tec === codigo ? scopedUpdated : t)),
+        curr.map((t) => (t.codigo_tec === codigo ? scopedUpdated : t))
+      );
+      addToast(`Técnico "${updated.nombre}" actualizado.`);
+      return;
+    }
+
+    globalTecnicosRef.current = globalTecnicosRef.current.map((t) =>
+      t.codigo_tec === codigo ? updated : t
+    );
+    void mutateCatalogo<Tecnico>('tecnicos', (curr) =>
+      curr.map((t) => (t.codigo_tec === codigo ? updated : t))
+    );
+    for (const cli of stateRef.current.clientes) {
+      const empId = makeSafeDocId(cli.codigo);
+      const belongsNow = tecnicoPerteneceAEmpresa(updated, cli.nombre);
+      const curr = (modulesMapRef.current[empId]?.tecnicos as Tecnico[]) || [];
+      const hadBefore = curr.some((t) => t.codigo_tec === codigo);
+      if (belongsNow || hadBefore) {
+        const nextArr = belongsNow
+          ? [...curr.filter((t) => t.codigo_tec !== codigo), updated]
+          : curr.filter((t) => t.codigo_tec !== codigo);
+        void mutateEmpresaModulo<Tecnico>(
+          empId,
+          'tecnicos',
+          (latest) =>
+            belongsNow
+              ? [...latest.filter((t) => t.codigo_tec !== codigo), updated]
+              : latest.filter((t) => t.codigo_tec !== codigo),
+          nextArr
+        );
+      }
+    }
     addToast(`Técnico "${updated.nombre}" actualizado.`);
   };
 
   const deleteTecnico = (codigo: string) => {
-    const next = stateRef.current.tecnicos.filter((t) => t.codigo_tec !== codigo);
-    setTecnicos(next);
-    void persistCatalogo('tecnicos', next);
+    if (!guardAction('eliminar', 'Sin permisos para eliminar técnicos.')) return;
+    const existing = stateRef.current.tecnicos.find((t) => t.codigo_tec === codigo);
+
+    if (!isSuperAdmin) {
+      const ownEmpId = resolveEmpresaId();
+      const ownCompany =
+        stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === ownEmpId)?.nombre ||
+        userProfile?.empresaNombre ||
+        '';
+      if (
+        existing &&
+        (isTecnicoDeTodasLasEmpresas(existing) ||
+          (existing.empresas || []).length > 1 ||
+          !tecnicoPerteneceAEmpresa(existing, ownCompany))
+      ) {
+        addToast('No puede eliminar técnicos compartidos con otras empresas.', 'error');
+        return;
+      }
+      const curr = (modulesMapRef.current[ownEmpId]?.tecnicos as Tecnico[]) || [];
+      void mutateEmpresaModulo<Tecnico>(
+        ownEmpId,
+        'tecnicos',
+        (latest) => latest.filter((t) => t.codigo_tec !== codigo),
+        curr.filter((t) => t.codigo_tec !== codigo)
+      );
+      addToast(`Técnico eliminado de la lista de activos.`, 'info');
+      return;
+    }
+
+    globalTecnicosRef.current = globalTecnicosRef.current.filter((t) => t.codigo_tec !== codigo);
+    void mutateCatalogo<Tecnico>('tecnicos', (curr) =>
+      curr.filter((t) => t.codigo_tec !== codigo)
+    );
+    for (const cli of stateRef.current.clientes) {
+      const empId = makeSafeDocId(cli.codigo);
+      const curr = (modulesMapRef.current[empId]?.tecnicos as Tecnico[]) || [];
+      if (curr.some((t) => t.codigo_tec === codigo)) {
+        void mutateEmpresaModulo<Tecnico>(
+          empId,
+          'tecnicos',
+          (latest) => latest.filter((t) => t.codigo_tec !== codigo),
+          curr.filter((t) => t.codigo_tec !== codigo)
+        );
+      }
+    }
     addToast(`Técnico eliminado de la lista de activos.`, 'info');
   };
 
   // Equipment
   const addEquipo = (e: Equipo) => {
+    if (!guardAction('crear_editar', 'Sin permisos para registrar equipos.')) return;
     const empId = resolveEmpresaId(e.cliente);
     const clienteObj = stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === empId);
     const equipoConId: Equipo = {
@@ -937,11 +1296,17 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       id: e.id || `${e.codigo_eq}___${e.frecuencia.trim()}`
     };
     const currentEmpItems = (modulesMapRef.current[empId]?.equipos as Equipo[]) || [];
-    void persistEmpresaModulo(empId, 'equipos', [...currentEmpItems, equipoConId]);
+    void mutateEmpresaModulo<Equipo>(
+      empId,
+      'equipos',
+      (latest) => [...latest.filter((item) => item.id !== equipoConId.id), equipoConId],
+      [...currentEmpItems.filter((item) => item.id !== equipoConId.id), equipoConId]
+    );
     addToast(`Equipo "${e.nombre}" (${e.codigo_eq} - ${e.frecuencia}) registrado con éxito.`);
   };
 
   const updateEquipo = (keyOrCodigo: string, updated: Equipo) => {
+    if (!guardAction('crear_editar', 'Sin permisos para editar equipos.')) return;
     const target = stateRef.current.equipos.find(
       (e) =>
         (e.id && e.id === keyOrCodigo) ||
@@ -949,19 +1314,30 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         (e.codigo_eq === keyOrCodigo && (!e.id || e.frecuencia === updated.frecuencia))
     );
     const empId = resolveEmpresaId(updated.cliente || target?.cliente);
-    const currentEmpItems = (modulesMapRef.current[empId]?.equipos as Equipo[]) || [];
-    const nextEmpItems = currentEmpItems.map((e) => {
-      const match =
+    const matchEquipo = (e: Equipo) =>
+      Boolean(
         (e.id && e.id === keyOrCodigo) ||
-        `${e.codigo_eq}___${e.frecuencia}` === keyOrCodigo ||
-        (e.codigo_eq === keyOrCodigo && (!e.id || e.frecuencia === updated.frecuencia));
-      return match ? { ...updated, id: updated.id || e.id || keyOrCodigo } : e;
-    });
-    void persistEmpresaModulo(empId, 'equipos', nextEmpItems);
+          `${e.codigo_eq}___${e.frecuencia}` === keyOrCodigo ||
+          (e.codigo_eq === keyOrCodigo && (!e.id || e.frecuencia === updated.frecuencia))
+      );
+    const currentEmpItems = (modulesMapRef.current[empId]?.equipos as Equipo[]) || [];
+    const nextEmpItems = currentEmpItems.map((e) =>
+      matchEquipo(e) ? { ...updated, id: updated.id || e.id || keyOrCodigo } : e
+    );
+    void mutateEmpresaModulo<Equipo>(
+      empId,
+      'equipos',
+      (latest) =>
+        latest.map((e) =>
+          matchEquipo(e) ? { ...updated, id: updated.id || e.id || keyOrCodigo } : e
+        ),
+      nextEmpItems
+    );
     addToast(`Equipo "${updated.nombre}" (${updated.frecuencia}) actualizado.`);
   };
 
   const deleteEquipo = (codigo_eq: string, frecuencia?: string) => {
+    if (!guardAction('eliminar', 'Sin permisos para eliminar equipos.')) return;
     const target = stateRef.current.equipos.find(
       (e) =>
         (e.id && e.id === codigo_eq) ||
@@ -972,8 +1348,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           : e.codigo_eq === codigo_eq)
     );
     const empId = resolveEmpresaId(target?.cliente);
-    const currentEmpItems = (modulesMapRef.current[empId]?.equipos as Equipo[]) || [];
-    const nextEmpItems = currentEmpItems.filter((e) => {
+    const keepEquipo = (e: Equipo) => {
       if (e.id && e.id === codigo_eq) return false;
       if (`${e.codigo_eq}___${e.frecuencia.trim()}` === codigo_eq) return false;
       if (frecuencia) {
@@ -983,64 +1358,97 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         );
       }
       return e.codigo_eq !== codigo_eq;
-    });
-    void persistEmpresaModulo(empId, 'equipos', nextEmpItems);
+    };
+    const currentEmpItems = (modulesMapRef.current[empId]?.equipos as Equipo[]) || [];
+    void mutateEmpresaModulo<Equipo>(
+      empId,
+      'equipos',
+      (latest) => latest.filter(keepEquipo),
+      currentEmpItems.filter(keepEquipo)
+    );
     addToast(`Registro de mantenimiento para el equipo eliminado.`, 'info');
   };
 
   // Instrumentos Metrológicos
   const addInstrumento = (inst: Instrumento) => {
+    if (!guardAction('crear_editar', 'Sin permisos para registrar instrumentos.')) return;
     const empId = resolveEmpresaId(inst.cliente);
     const clienteObj = stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === empId);
     const instClean = { ...inst, cliente: clienteObj?.nombre || inst.cliente };
     const currentEmpItems = (modulesMapRef.current[empId]?.instrumentos as Instrumento[]) || [];
-    void persistEmpresaModulo(empId, 'instrumentos', [...currentEmpItems, instClean]);
+    void mutateEmpresaModulo<Instrumento>(
+      empId,
+      'instrumentos',
+      (latest) => [...latest.filter((i) => i.codigo_inst !== instClean.codigo_inst), instClean],
+      [...currentEmpItems.filter((i) => i.codigo_inst !== instClean.codigo_inst), instClean]
+    );
     addToast(`Instrumento "${inst.nombre}" (${inst.codigo_inst}) registrado exitosamente.`);
   };
 
   const updateInstrumento = (codigo_inst: string, updated: Instrumento) => {
+    if (!guardAction('crear_editar', 'Sin permisos para editar instrumentos.')) return;
     const target = stateRef.current.instrumentos.find((i) => i.codigo_inst === codigo_inst);
     const empId = resolveEmpresaId(updated.cliente || target?.cliente);
     const currentEmpItems = (modulesMapRef.current[empId]?.instrumentos as Instrumento[]) || [];
-    const nextEmpItems = currentEmpItems.map((i) => (i.codigo_inst === codigo_inst ? updated : i));
-    void persistEmpresaModulo(empId, 'instrumentos', nextEmpItems);
+    void mutateEmpresaModulo<Instrumento>(
+      empId,
+      'instrumentos',
+      (latest) => latest.map((i) => (i.codigo_inst === codigo_inst ? updated : i)),
+      currentEmpItems.map((i) => (i.codigo_inst === codigo_inst ? updated : i))
+    );
     addToast(`Instrumento "${updated.nombre}" actualizado.`);
   };
 
   const darDeBajaInstrumento = (codigo_inst: string, fecha_baja: string, motivo_baja: string) => {
+    if (!guardAction('eliminar', 'Sin permisos para dar de baja instrumentos.')) return;
     const target = stateRef.current.instrumentos.find((i) => i.codigo_inst === codigo_inst);
     const empId = resolveEmpresaId(target?.cliente);
     const currentEmpItems = (modulesMapRef.current[empId]?.instrumentos as Instrumento[]) || [];
-    const nextEmpItems = currentEmpItems.map((i) =>
+    const mapFn = (i: Instrumento) =>
       i.codigo_inst === codigo_inst
         ? { ...i, estado: 'Baja' as const, fecha_baja, motivo_baja }
-        : i
+        : i;
+    void mutateEmpresaModulo<Instrumento>(
+      empId,
+      'instrumentos',
+      (latest) => latest.map(mapFn),
+      currentEmpItems.map(mapFn)
     );
-    void persistEmpresaModulo(empId, 'instrumentos', nextEmpItems);
     addToast(`Instrumento "${codigo_inst}" dado de baja del servicio activo.`, 'warning');
   };
 
   const reactivarInstrumento = (codigo_inst: string) => {
+    if (!guardAction('crear_editar', 'Sin permisos para reactivar instrumentos.')) return;
     const target = stateRef.current.instrumentos.find((i) => i.codigo_inst === codigo_inst);
     const empId = resolveEmpresaId(target?.cliente);
     const currentEmpItems = (modulesMapRef.current[empId]?.instrumentos as Instrumento[]) || [];
-    const nextEmpItems = currentEmpItems.map((i) => {
+    const mapFn = (i: Instrumento) => {
       if (i.codigo_inst === codigo_inst) {
         const { fecha_baja: _fb, motivo_baja: _mb, ...rest } = i;
         return { ...rest, estado: 'Activo' as const };
       }
       return i;
-    });
-    void persistEmpresaModulo(empId, 'instrumentos', nextEmpItems);
+    };
+    void mutateEmpresaModulo<Instrumento>(
+      empId,
+      'instrumentos',
+      (latest) => latest.map(mapFn),
+      currentEmpItems.map(mapFn)
+    );
     addToast(`Instrumento "${codigo_inst}" reactivado a estado Activo.`, 'success');
   };
 
   const deleteInstrumento = (codigo_inst: string) => {
+    if (!guardAction('eliminar', 'Sin permisos para eliminar instrumentos.')) return;
     const target = stateRef.current.instrumentos.find((i) => i.codigo_inst === codigo_inst);
     const empId = resolveEmpresaId(target?.cliente);
     const currentEmpItems = (modulesMapRef.current[empId]?.instrumentos as Instrumento[]) || [];
-    const nextEmpItems = currentEmpItems.filter((i) => i.codigo_inst !== codigo_inst);
-    void persistEmpresaModulo(empId, 'instrumentos', nextEmpItems);
+    void mutateEmpresaModulo<Instrumento>(
+      empId,
+      'instrumentos',
+      (latest) => latest.filter((i) => i.codigo_inst !== codigo_inst),
+      currentEmpItems.filter((i) => i.codigo_inst !== codigo_inst)
+    );
     addToast(`Instrumento "${codigo_inst}" eliminado permanentemente.`, 'info');
   };
 
@@ -1063,6 +1471,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     fecha_firma_digital?: string;
     ejecucion_digital?: boolean;
   }) => {
+    if (!guardAction('cerrar_ordenes', 'Sin permisos para cerrar órdenes preventivas.')) return;
     const eqMatch = stateRef.current.equipos.find(
       (e) =>
         e.codigo_eq.trim().toUpperCase() === data.codigo_eq.trim().toUpperCase() &&
@@ -1082,7 +1491,23 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
           }
         : {})
     };
-    void persistEmpresaModulo(empId, 'historial', [...currentEmpItems, nuevoRegistro]);
+    const upsertHistorial = (list: RegistroHistorialMP[]) => {
+      const filtered = list.filter(
+        (h) =>
+          !(
+            h.id_ot.trim().toLowerCase() === data.id_ot.trim().toLowerCase() &&
+            h.codigo_eq.trim().toUpperCase() === data.codigo_eq.trim().toUpperCase() &&
+            h.mes_n === data.mes_n
+          )
+      );
+      return [...filtered, nuevoRegistro];
+    };
+    void mutateEmpresaModulo<RegistroHistorialMP>(
+      empId,
+      'historial',
+      upsertHistorial,
+      upsertHistorial(currentEmpItems)
+    );
     addToast(
       `Cierre preventivo de ${data.id_ot} registrado. El plan del año actual permanece inalterado; la fecha real ajustará el plan del año siguiente.`
     );
@@ -1094,12 +1519,17 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       id_ot?: string;
     }
   ): string => {
+    if (!guardAction('emitir_ordenes', 'Sin permisos para emitir órdenes correctivas.')) return '';
     const dateObj = parseFecha(data.fecha_emision) || new Date();
     const mes = dateObj.getMonth() + 1;
     const anio = dateObj.getFullYear();
     const prefix = `MC-${anio}-${String(mes).padStart(2, '0')}-`;
-    const countThisMonth = stateRef.current.correctivos.filter((c) => c.id_ot.startsWith(prefix)).length + 1;
-    const folio = data.id_ot || `MC-${anio}-${String(mes).padStart(2, '0')}-${String(countThisMonth).padStart(4, '0')}`;
+    const existingSet = new Set(stateRef.current.correctivos.map((c) => c.id_ot));
+    let seq = stateRef.current.correctivos.filter((c) => c.id_ot.startsWith(prefix)).length + 1;
+    while (existingSet.has(`${prefix}${String(seq).padStart(4, '0')}`)) {
+      seq++;
+    }
+    const folio = data.id_ot || `${prefix}${String(seq).padStart(4, '0')}`;
 
     const empId = resolveEmpresaId(data.cliente);
     const clienteObj = stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === empId);
@@ -1112,7 +1542,12 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       acciones_realizadas: ''
     };
     const currentEmpItems = (modulesMapRef.current[empId]?.correctivos as OrdenCorrectivo[]) || [];
-    void persistEmpresaModulo(empId, 'correctivos', [nuevaOrden, ...currentEmpItems]);
+    void mutateEmpresaModulo<OrdenCorrectivo>(
+      empId,
+      'correctivos',
+      (latest) => [nuevaOrden, ...latest.filter((c) => c.id_ot !== folio)],
+      [nuevaOrden, ...currentEmpItems.filter((c) => c.id_ot !== folio)]
+    );
     addToast(`Orden Correctiva ${folio} emitida.`);
     return folio;
   };
@@ -1132,56 +1567,65 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       ejecucion_digital?: boolean;
     }
   ) => {
+    if (!guardAction('cerrar_ordenes', 'Sin permisos para cerrar órdenes correctivas.')) return;
     const target = stateRef.current.correctivos.find((c) => c.id_ot === id_ot);
     const empId = resolveEmpresaId(target?.cliente);
-    const currentEmpItems = (modulesMapRef.current[empId]?.correctivos as OrdenCorrectivo[]) || [];
-    const nextEmpItems = currentEmpItems.map((c) => {
-      if (c.id_ot === id_ot) {
-        const fTent = parseFecha(c.fecha_tentativa);
-        const fReal = parseFecha(data.fecha_real) || new Date();
-        let nuevoEstado: EstadoOrden = 'Cerrada (A tiempo)';
-        if (fTent) {
-          fTent.setHours(0, 0, 0, 0);
-          fReal.setHours(0, 0, 0, 0);
-          const diffDays = Math.round((fReal.getTime() - fTent.getTime()) / (1000 * 60 * 60 * 24));
-          if (diffDays > c.dias_tolerancia) {
-            nuevoEstado = 'Cerrada (Fuera de término)';
+    const transform = (list: OrdenCorrectivo[]) =>
+      list.map((c) => {
+        if (c.id_ot === id_ot) {
+          const fTent = parseFecha(c.fecha_tentativa);
+          const fReal = parseFecha(data.fecha_real) || new Date();
+          let nuevoEstado: EstadoOrden = 'Cerrada (A tiempo)';
+          if (fTent) {
+            fTent.setHours(0, 0, 0, 0);
+            fReal.setHours(0, 0, 0, 0);
+            const diffDays = Math.round((fReal.getTime() - fTent.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays > c.dias_tolerancia) {
+              nuevoEstado = 'Cerrada (Fuera de término)';
+            }
           }
+          return {
+            ...c,
+            estado: nuevoEstado,
+            fecha_real: data.fecha_real,
+            tecnico: data.tecnico,
+            acciones_realizadas: data.acciones_realizadas,
+            repuestos_utilizados: data.repuestos_utilizados || c.repuestos_utilizados,
+            ...(data.firma_tecnico !== undefined ? { firma_tecnico: data.firma_tecnico } : {}),
+            ...(data.firma_supervisor !== undefined ? { firma_supervisor: data.firma_supervisor } : {}),
+            ...(data.firmado_por !== undefined ? { firmado_por: data.firmado_por } : {}),
+            ...(data.firmado_supervisor_por !== undefined ? { firmado_supervisor_por: data.firmado_supervisor_por } : {}),
+            ...(data.fecha_firma_digital !== undefined ? { fecha_firma_digital: data.fecha_firma_digital } : {}),
+            ...(data.ejecucion_digital !== undefined ? { ejecucion_digital: data.ejecucion_digital } : {}),
+            ...(data.firma_supervisor
+              ? {
+                  validado_supervisor: true,
+                  fecha_validacion_supervisor: data.fecha_firma_digital || data.fecha_real
+                }
+              : {})
+          };
         }
-        return {
-          ...c,
-          estado: nuevoEstado,
-          fecha_real: data.fecha_real,
-          tecnico: data.tecnico,
-          acciones_realizadas: data.acciones_realizadas,
-          repuestos_utilizados: data.repuestos_utilizados || c.repuestos_utilizados,
-          ...(data.firma_tecnico !== undefined ? { firma_tecnico: data.firma_tecnico } : {}),
-          ...(data.firma_supervisor !== undefined ? { firma_supervisor: data.firma_supervisor } : {}),
-          ...(data.firmado_por !== undefined ? { firmado_por: data.firmado_por } : {}),
-          ...(data.firmado_supervisor_por !== undefined ? { firmado_supervisor_por: data.firmado_supervisor_por } : {}),
-          ...(data.fecha_firma_digital !== undefined ? { fecha_firma_digital: data.fecha_firma_digital } : {}),
-          ...(data.ejecucion_digital !== undefined ? { ejecucion_digital: data.ejecucion_digital } : {}),
-          ...(data.firma_supervisor
-            ? {
-                validado_supervisor: true,
-                fecha_validacion_supervisor: data.fecha_firma_digital || data.fecha_real
-              }
-            : {})
-        };
-      }
-      return c;
-    });
-    void persistEmpresaModulo(empId, 'correctivos', nextEmpItems);
+        return c;
+      });
+    const currentEmpItems = (modulesMapRef.current[empId]?.correctivos as OrdenCorrectivo[]) || [];
+    void mutateEmpresaModulo<OrdenCorrectivo>(
+      empId,
+      'correctivos',
+      transform,
+      transform(currentEmpItems)
+    );
     addToast(`Orden ${id_ot} cerrada.`);
   };
 
   const deleteCorrectivo = (id_ot: string) => {
+    if (!guardAction('eliminar', 'Sin permisos para eliminar órdenes correctivas.')) return;
     const target = stateRef.current.correctivos.find((c) => c.id_ot === id_ot);
     const empId = resolveEmpresaId(target?.cliente);
     const currentEmpItems = (modulesMapRef.current[empId]?.correctivos as OrdenCorrectivo[]) || [];
-    void persistEmpresaModulo(
+    void mutateEmpresaModulo<OrdenCorrectivo>(
       empId,
       'correctivos',
+      (latest) => latest.filter((c) => c.id_ot !== id_ot),
       currentEmpItems.filter((c) => c.id_ot !== id_ot)
     );
     addToast(`Orden Correctiva ${id_ot} eliminada.`, 'info');
@@ -1193,12 +1637,17 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       id_ot?: string;
     }
   ): string => {
+    if (!guardAction('emitir_ordenes', 'Sin permisos para emitir órdenes de trabajo.')) return '';
     const dateObj = parseFecha(data.fecha_emision) || new Date();
     const mes = dateObj.getMonth() + 1;
     const anio = dateObj.getFullYear();
     const prefix = `OT-${anio}-${String(mes).padStart(2, '0')}-`;
-    const countThisMonth = stateRef.current.ordenesTrabajo.filter((o) => o.id_ot.startsWith(prefix)).length + 1;
-    const folio = data.id_ot || `OT-${anio}-${String(mes).padStart(2, '0')}-${String(countThisMonth).padStart(4, '0')}`;
+    const existingSet = new Set(stateRef.current.ordenesTrabajo.map((o) => o.id_ot));
+    let seq = stateRef.current.ordenesTrabajo.filter((o) => o.id_ot.startsWith(prefix)).length + 1;
+    while (existingSet.has(`${prefix}${String(seq).padStart(4, '0')}`)) {
+      seq++;
+    }
+    const folio = data.id_ot || `${prefix}${String(seq).padStart(4, '0')}`;
 
     const empId = resolveEmpresaId(data.cliente);
     const clienteObj = stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === empId);
@@ -1211,7 +1660,12 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       acciones_realizadas: ''
     };
     const currentEmpItems = (modulesMapRef.current[empId]?.ordenesTrabajo as OrdenTrabajoOT[]) || [];
-    void persistEmpresaModulo(empId, 'ordenesTrabajo', [nuevaOrden, ...currentEmpItems]);
+    void mutateEmpresaModulo<OrdenTrabajoOT>(
+      empId,
+      'ordenesTrabajo',
+      (latest) => [nuevaOrden, ...latest.filter((o) => o.id_ot !== folio)],
+      [nuevaOrden, ...currentEmpItems.filter((o) => o.id_ot !== folio)]
+    );
     addToast(`Orden de Trabajo ${folio} emitida.`);
     return folio;
   };
@@ -1231,56 +1685,65 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       ejecucion_digital?: boolean;
     }
   ) => {
+    if (!guardAction('cerrar_ordenes', 'Sin permisos para cerrar órdenes de trabajo.')) return;
     const target = stateRef.current.ordenesTrabajo.find((o) => o.id_ot === id_ot);
     const empId = resolveEmpresaId(target?.cliente);
-    const currentEmpItems = (modulesMapRef.current[empId]?.ordenesTrabajo as OrdenTrabajoOT[]) || [];
-    const nextEmpItems = currentEmpItems.map((o) => {
-      if (o.id_ot === id_ot) {
-        const fTent = parseFecha(o.fecha_tentativa);
-        const fReal = parseFecha(data.fecha_real) || new Date();
-        let nuevoEstado: EstadoOrden = 'Cerrada (A tiempo)';
-        if (fTent) {
-          fTent.setHours(0, 0, 0, 0);
-          fReal.setHours(0, 0, 0, 0);
-          const diffDays = Math.round((fReal.getTime() - fTent.getTime()) / (1000 * 60 * 60 * 24));
-          if (diffDays > o.dias_tolerancia) {
-            nuevoEstado = 'Cerrada (Fuera de término)';
+    const transform = (list: OrdenTrabajoOT[]) =>
+      list.map((o) => {
+        if (o.id_ot === id_ot) {
+          const fTent = parseFecha(o.fecha_tentativa);
+          const fReal = parseFecha(data.fecha_real) || new Date();
+          let nuevoEstado: EstadoOrden = 'Cerrada (A tiempo)';
+          if (fTent) {
+            fTent.setHours(0, 0, 0, 0);
+            fReal.setHours(0, 0, 0, 0);
+            const diffDays = Math.round((fReal.getTime() - fTent.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays > o.dias_tolerancia) {
+              nuevoEstado = 'Cerrada (Fuera de término)';
+            }
           }
+          return {
+            ...o,
+            estado: nuevoEstado,
+            fecha_real: data.fecha_real,
+            tecnico: data.tecnico,
+            acciones_realizadas: data.acciones_realizadas,
+            materiales_utilizados: data.materiales_utilizados || o.materiales_utilizados,
+            ...(data.firma_tecnico !== undefined ? { firma_tecnico: data.firma_tecnico } : {}),
+            ...(data.firma_supervisor !== undefined ? { firma_supervisor: data.firma_supervisor } : {}),
+            ...(data.firmado_por !== undefined ? { firmado_por: data.firmado_por } : {}),
+            ...(data.firmado_supervisor_por !== undefined ? { firmado_supervisor_por: data.firmado_supervisor_por } : {}),
+            ...(data.fecha_firma_digital !== undefined ? { fecha_firma_digital: data.fecha_firma_digital } : {}),
+            ...(data.ejecucion_digital !== undefined ? { ejecucion_digital: data.ejecucion_digital } : {}),
+            ...(data.firma_supervisor
+              ? {
+                  validado_supervisor: true,
+                  fecha_validacion_supervisor: data.fecha_firma_digital || data.fecha_real
+                }
+              : {})
+          };
         }
-        return {
-          ...o,
-          estado: nuevoEstado,
-          fecha_real: data.fecha_real,
-          tecnico: data.tecnico,
-          acciones_realizadas: data.acciones_realizadas,
-          materiales_utilizados: data.materiales_utilizados || o.materiales_utilizados,
-          ...(data.firma_tecnico !== undefined ? { firma_tecnico: data.firma_tecnico } : {}),
-          ...(data.firma_supervisor !== undefined ? { firma_supervisor: data.firma_supervisor } : {}),
-          ...(data.firmado_por !== undefined ? { firmado_por: data.firmado_por } : {}),
-          ...(data.firmado_supervisor_por !== undefined ? { firmado_supervisor_por: data.firmado_supervisor_por } : {}),
-          ...(data.fecha_firma_digital !== undefined ? { fecha_firma_digital: data.fecha_firma_digital } : {}),
-          ...(data.ejecucion_digital !== undefined ? { ejecucion_digital: data.ejecucion_digital } : {}),
-          ...(data.firma_supervisor
-            ? {
-                validado_supervisor: true,
-                fecha_validacion_supervisor: data.fecha_firma_digital || data.fecha_real
-              }
-            : {})
-        };
-      }
-      return o;
-    });
-    void persistEmpresaModulo(empId, 'ordenesTrabajo', nextEmpItems);
+        return o;
+      });
+    const currentEmpItems = (modulesMapRef.current[empId]?.ordenesTrabajo as OrdenTrabajoOT[]) || [];
+    void mutateEmpresaModulo<OrdenTrabajoOT>(
+      empId,
+      'ordenesTrabajo',
+      transform,
+      transform(currentEmpItems)
+    );
     addToast(`Orden de Trabajo ${id_ot} finalizada.`);
   };
 
   const deleteOrdenTrabajo = (id_ot: string) => {
+    if (!guardAction('eliminar', 'Sin permisos para eliminar órdenes de trabajo.')) return;
     const target = stateRef.current.ordenesTrabajo.find((o) => o.id_ot === id_ot);
     const empId = resolveEmpresaId(target?.cliente);
     const currentEmpItems = (modulesMapRef.current[empId]?.ordenesTrabajo as OrdenTrabajoOT[]) || [];
-    void persistEmpresaModulo(
+    void mutateEmpresaModulo<OrdenTrabajoOT>(
       empId,
       'ordenesTrabajo',
+      (latest) => latest.filter((o) => o.id_ot !== id_ot),
       currentEmpItems.filter((o) => o.id_ot !== id_ot)
     );
     addToast(`Orden de Trabajo ${id_ot} eliminada.`, 'info');
@@ -1292,6 +1755,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       id_ot?: string;
     }
   ): string => {
+    if (!guardAction('emitir_ordenes', 'Sin permisos para emitir órdenes de calibración.')) return '';
     const dateObj = parseFecha(data.fecha_programada) || parseFecha(data.fecha_emision) || new Date();
     const mes = dateObj.getMonth() + 1;
     const anio = dateObj.getFullYear();
@@ -1313,7 +1777,12 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       fecha_real: ''
     };
     const currentEmpItems = (modulesMapRef.current[empId]?.calibraciones as OrdenCalibracion[]) || [];
-    void persistEmpresaModulo(empId, 'calibraciones', [nuevaCal, ...currentEmpItems]);
+    void mutateEmpresaModulo<OrdenCalibracion>(
+      empId,
+      'calibraciones',
+      (latest) => [nuevaCal, ...latest.filter((c) => c.id_ot !== folio)],
+      [nuevaCal, ...currentEmpItems.filter((c) => c.id_ot !== folio)]
+    );
     addToast(`Orden de Calibración ${folio} emitida.`);
     return folio;
   };
@@ -1327,6 +1796,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     >
   ): OrdenCalibracion[] => {
+    if (!guardAction('emitir_ordenes', 'Sin permisos para emitir lotes de calibración.')) return [];
     if (!orders.length) return [];
 
     const existingSet = new Set(stateRef.current.calibraciones.map((c) => c.id_ot));
@@ -1354,7 +1824,6 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       });
     }
 
-    // Group by company and persist per company
     const byEmp = new Map<string, OrdenCalibracion[]>();
     for (const ord of nuevasOrdenes) {
       const empId = resolveEmpresaId(ord.cliente);
@@ -1363,8 +1832,14 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     for (const [empId, list] of byEmp.entries()) {
+      const newIds = new Set(list.map((o) => o.id_ot));
       const currentEmpItems = (modulesMapRef.current[empId]?.calibraciones as OrdenCalibracion[]) || [];
-      void persistEmpresaModulo(empId, 'calibraciones', [...list, ...currentEmpItems]);
+      void mutateEmpresaModulo<OrdenCalibracion>(
+        empId,
+        'calibraciones',
+        (latest) => [...list, ...latest.filter((c) => !newIds.has(c.id_ot))],
+        [...list, ...currentEmpItems.filter((c) => !newIds.has(c.id_ot))]
+      );
     }
 
     addToast(
@@ -1404,66 +1879,73 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       ejecucion_digital?: boolean;
     }
   ) => {
+    if (!guardAction('cerrar_ordenes', 'Sin permisos para certificar calibraciones.')) return;
     const target = stateRef.current.calibraciones.find((c) => c.id_ot === id_ot);
     const empId = resolveEmpresaId(target?.cliente);
-    const currentEmpItems = (modulesMapRef.current[empId]?.calibraciones as OrdenCalibracion[]) || [];
-    const nextEmpItems = currentEmpItems.map((c) => {
-      if (c.id_ot === id_ot) {
-        const fTent = parseFecha(c.fecha_tentativa);
-        const fReal = parseFecha(data.fecha_real) || new Date();
-        let nuevoEstado: EstadoCalibracion = 'Conforme (A tiempo)';
-        if (data.dictamen === 'No Conforme') {
-          nuevoEstado = 'No Conforme / Fuera de Tolerancia';
-        } else if (fTent) {
-          fTent.setHours(0, 0, 0, 0);
-          fReal.setHours(0, 0, 0, 0);
-          const diffDays = Math.round((fReal.getTime() - fTent.getTime()) / (1000 * 60 * 60 * 24));
-          if (diffDays > c.dias_tolerancia) {
-            nuevoEstado = 'Conforme (Fuera de término)';
+    const transform = (list: OrdenCalibracion[]) =>
+      list.map((c) => {
+        if (c.id_ot === id_ot) {
+          const fTent = parseFecha(c.fecha_tentativa);
+          const fReal = parseFecha(data.fecha_real) || new Date();
+          let nuevoEstado: EstadoCalibracion = 'Conforme (A tiempo)';
+          if (data.dictamen === 'No Conforme') {
+            nuevoEstado = 'No Conforme / Fuera de Tolerancia';
+          } else if (fTent) {
+            fTent.setHours(0, 0, 0, 0);
+            fReal.setHours(0, 0, 0, 0);
+            const diffDays = Math.round((fReal.getTime() - fTent.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays > c.dias_tolerancia) {
+              nuevoEstado = 'Conforme (Fuera de término)';
+            }
           }
-        }
-        const calcNextDate = addFrequencyStep(fReal, c.frecuencia_calibracion, stateRef.current.frecuencias, fReal.getDate());
-        const nextCalStr = data.proxima_calibracion || formatFechaDDMMYYYY(calcNextDate);
+          const calcNextDate = addFrequencyStep(fReal, c.frecuencia_calibracion, stateRef.current.frecuencias, fReal.getDate());
+          const nextCalStr = data.proxima_calibracion || formatFechaDDMMYYYY(calcNextDate);
 
-        return {
-          ...c,
-          estado: nuevoEstado,
-          fecha_real: data.fecha_real,
-          dictamen: data.dictamen,
-          error_max_hallado: data.error_max_hallado,
-          patron_utilizado: data.patron_utilizado || c.patron_utilizado,
-          trazabilidad_patron: data.trazabilidad_patron || c.trazabilidad_patron,
-          metrologo_laboratorio: data.metrologo_laboratorio,
-          puntos_calibracion: data.puntos_calibracion || c.puntos_calibracion,
-          ...(data.magnitud !== undefined ? { magnitud: data.magnitud } : {}),
-          ...(data.unidad_medida !== undefined ? { unidad_medida: data.unidad_medida } : {}),
-          ...(data.rango_min !== undefined ? { rango_min: data.rango_min } : {}),
-          ...(data.rango_max !== undefined ? { rango_max: data.rango_max } : {}),
-          ...(data.puntos_prueba !== undefined ? { puntos_prueba: data.puntos_prueba } : {}),
-          ...(data.variable_medicion !== undefined ? { variable_medicion: data.variable_medicion } : {}),
-          ...(data.rango_operacion !== undefined ? { rango_operacion: data.rango_operacion } : {}),
-          ...(data.tolerancia_emp !== undefined ? { tolerancia_emp: data.tolerancia_emp } : {}),
-          observaciones: data.observaciones || c.observaciones,
-          repuestos_utilizados: data.repuestos_utilizados || c.repuestos_utilizados,
-          numero_certificado: data.numero_certificado || `CERT-${id_ot.replace('CAL-', '')}`,
-          proxima_calibracion: nextCalStr,
-          ...(data.firma_tecnico !== undefined ? { firma_tecnico: data.firma_tecnico } : {}),
-          ...(data.firma_supervisor !== undefined ? { firma_supervisor: data.firma_supervisor } : {}),
-          ...(data.firmado_por !== undefined ? { firmado_por: data.firmado_por } : {}),
-          ...(data.firmado_supervisor_por !== undefined ? { firmado_supervisor_por: data.firmado_supervisor_por } : {}),
-          ...(data.fecha_firma_digital !== undefined ? { fecha_firma_digital: data.fecha_firma_digital } : {}),
-          ...(data.ejecucion_digital !== undefined ? { ejecucion_digital: data.ejecucion_digital } : {}),
-          ...(data.firma_supervisor
-            ? {
-                validado_supervisor: true,
-                fecha_validacion_supervisor: data.fecha_firma_digital || data.fecha_real
-              }
-            : {})
-        };
-      }
-      return c;
-    });
-    void persistEmpresaModulo(empId, 'calibraciones', nextEmpItems);
+          return {
+            ...c,
+            estado: nuevoEstado,
+            fecha_real: data.fecha_real,
+            dictamen: data.dictamen,
+            error_max_hallado: data.error_max_hallado,
+            patron_utilizado: data.patron_utilizado || c.patron_utilizado,
+            trazabilidad_patron: data.trazabilidad_patron || c.trazabilidad_patron,
+            metrologo_laboratorio: data.metrologo_laboratorio,
+            puntos_calibracion: data.puntos_calibracion || c.puntos_calibracion,
+            ...(data.magnitud !== undefined ? { magnitud: data.magnitud } : {}),
+            ...(data.unidad_medida !== undefined ? { unidad_medida: data.unidad_medida } : {}),
+            ...(data.rango_min !== undefined ? { rango_min: data.rango_min } : {}),
+            ...(data.rango_max !== undefined ? { rango_max: data.rango_max } : {}),
+            ...(data.puntos_prueba !== undefined ? { puntos_prueba: data.puntos_prueba } : {}),
+            ...(data.variable_medicion !== undefined ? { variable_medicion: data.variable_medicion } : {}),
+            ...(data.rango_operacion !== undefined ? { rango_operacion: data.rango_operacion } : {}),
+            ...(data.tolerancia_emp !== undefined ? { tolerancia_emp: data.tolerancia_emp } : {}),
+            observaciones: data.observaciones || c.observaciones,
+            repuestos_utilizados: data.repuestos_utilizados || c.repuestos_utilizados,
+            numero_certificado: data.numero_certificado || `CERT-${id_ot.replace('CAL-', '')}`,
+            proxima_calibracion: nextCalStr,
+            ...(data.firma_tecnico !== undefined ? { firma_tecnico: data.firma_tecnico } : {}),
+            ...(data.firma_supervisor !== undefined ? { firma_supervisor: data.firma_supervisor } : {}),
+            ...(data.firmado_por !== undefined ? { firmado_por: data.firmado_por } : {}),
+            ...(data.firmado_supervisor_por !== undefined ? { firmado_supervisor_por: data.firmado_supervisor_por } : {}),
+            ...(data.fecha_firma_digital !== undefined ? { fecha_firma_digital: data.fecha_firma_digital } : {}),
+            ...(data.ejecucion_digital !== undefined ? { ejecucion_digital: data.ejecucion_digital } : {}),
+            ...(data.firma_supervisor
+              ? {
+                  validado_supervisor: true,
+                  fecha_validacion_supervisor: data.fecha_firma_digital || data.fecha_real
+                }
+              : {})
+          };
+        }
+        return c;
+      });
+    const currentEmpItems = (modulesMapRef.current[empId]?.calibraciones as OrdenCalibracion[]) || [];
+    void mutateEmpresaModulo<OrdenCalibracion>(
+      empId,
+      'calibraciones',
+      transform,
+      transform(currentEmpItems)
+    );
     addToast(
       `Calibración ${id_ot} certificada (${data.dictamen}). El plan del año en curso se mantiene inalterado; la fecha real ajustará el plan del próximo año.`
     );
@@ -1503,6 +1985,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       ejecucion_digital?: boolean;
     }
   ): string => {
+    if (!guardAction('cerrar_ordenes', 'Sin permisos para certificar calibraciones proyectadas.')) return '';
     const dateObj = parseFecha(orderData.fecha_programada) || parseFecha(orderData.fecha_emision) || new Date();
     const mes = orderData.mes_objetivo || dateObj.getMonth() + 1;
     const anio = orderData.anio_objetivo || dateObj.getFullYear() || selectedAnio;
@@ -1579,7 +2062,12 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     const currentEmpItems = (modulesMapRef.current[empId]?.calibraciones as OrdenCalibracion[]) || [];
-    void persistEmpresaModulo(empId, 'calibraciones', [nuevaCertificada, ...currentEmpItems]);
+    void mutateEmpresaModulo<OrdenCalibracion>(
+      empId,
+      'calibraciones',
+      (latest) => [nuevaCertificada, ...latest.filter((c) => c.id_ot !== folio)],
+      [nuevaCertificada, ...currentEmpItems.filter((c) => c.id_ot !== folio)]
+    );
     addToast(
       `Calibración ${folio} certificada (${cierreData.dictamen}). El plan actual permanece intacto; la fecha real ajustará el plan del año siguiente.`
     );
@@ -1587,12 +2075,14 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const deleteOrdenCalibracion = (id_ot: string) => {
+    if (!guardAction('eliminar', 'Sin permisos para eliminar órdenes de calibración.')) return;
     const target = stateRef.current.calibraciones.find((c) => c.id_ot === id_ot);
     const empId = resolveEmpresaId(target?.cliente);
     const currentEmpItems = (modulesMapRef.current[empId]?.calibraciones as OrdenCalibracion[]) || [];
-    void persistEmpresaModulo(
+    void mutateEmpresaModulo<OrdenCalibracion>(
       empId,
       'calibraciones',
+      (latest) => latest.filter((c) => c.id_ot !== id_ot),
       currentEmpItems.filter((c) => c.id_ot !== id_ot)
     );
     addToast(`Orden de Calibración ${id_ot} eliminada.`, 'info');
@@ -1610,6 +2100,10 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     fecha_validacion_supervisor: string;
     observacion_supervisor?: string;
   }) => {
+    if (!canValidateDigitalOrder(userProfile)) {
+      addToast('Solo supervisión o administradores autorizados pueden validar órdenes.', 'error');
+      return;
+    }
     const empId = resolveEmpresaId(params.cliente);
     if (!empId) {
       addToast('No se pudo identificar la empresa de la orden para validar.', 'error');
@@ -1627,70 +2121,68 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     if (params.tipo === 'MP') {
       const current = (modulesMapRef.current[empId]?.historial as RegistroHistorialMP[]) || [];
-      let updatedAny = false;
-      const next = current.map((h) => {
-        const isMatch =
+      const existsLocal = current.some(
+        (h) =>
           (params.historialId && h.id === params.historialId) ||
           (!params.historialId &&
             h.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase() &&
             (!params.codigo_eq || h.codigo_eq.trim().toUpperCase() === params.codigo_eq.trim().toUpperCase()) &&
-            (!params.mes_n || h.mes_n === params.mes_n));
-        if (isMatch) {
-          updatedAny = true;
-          return { ...h, ...validationPatch };
-        }
-        return h;
-      });
-      if (!updatedAny) {
+            (!params.mes_n || h.mes_n === params.mes_n))
+      );
+      if (!existsLocal) {
         addToast(`No se encontró el registro MP ${params.id_ot} para validar.`, 'warning');
         return;
       }
-      void persistEmpresaModulo(empId, 'historial', next);
+      const transform = (list: RegistroHistorialMP[]) =>
+        list.map((h) => {
+          const isMatch =
+            (params.historialId && h.id === params.historialId) ||
+            (!params.historialId &&
+              h.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase() &&
+              (!params.codigo_eq || h.codigo_eq.trim().toUpperCase() === params.codigo_eq.trim().toUpperCase()) &&
+              (!params.mes_n || h.mes_n === params.mes_n));
+          return isMatch ? { ...h, ...validationPatch } : h;
+        });
+      void mutateEmpresaModulo<RegistroHistorialMP>(empId, 'historial', transform, transform(current));
     } else if (params.tipo === 'MC') {
       const current = (modulesMapRef.current[empId]?.correctivos as OrdenCorrectivo[]) || [];
-      let updatedAny = false;
-      const next = current.map((c) => {
-        if (c.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase()) {
-          updatedAny = true;
-          return { ...c, ...validationPatch };
-        }
-        return c;
-      });
-      if (!updatedAny) {
+      if (!current.some((c) => c.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase())) {
         addToast(`No se encontró la orden correctiva ${params.id_ot} para validar.`, 'warning');
         return;
       }
-      void persistEmpresaModulo(empId, 'correctivos', next);
+      const transform = (list: OrdenCorrectivo[]) =>
+        list.map((c) =>
+          c.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase()
+            ? { ...c, ...validationPatch }
+            : c
+        );
+      void mutateEmpresaModulo<OrdenCorrectivo>(empId, 'correctivos', transform, transform(current));
     } else if (params.tipo === 'OT') {
       const current = (modulesMapRef.current[empId]?.ordenesTrabajo as OrdenTrabajoOT[]) || [];
-      let updatedAny = false;
-      const next = current.map((o) => {
-        if (o.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase()) {
-          updatedAny = true;
-          return { ...o, ...validationPatch };
-        }
-        return o;
-      });
-      if (!updatedAny) {
+      if (!current.some((o) => o.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase())) {
         addToast(`No se encontró la orden de trabajo ${params.id_ot} para validar.`, 'warning');
         return;
       }
-      void persistEmpresaModulo(empId, 'ordenesTrabajo', next);
+      const transform = (list: OrdenTrabajoOT[]) =>
+        list.map((o) =>
+          o.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase()
+            ? { ...o, ...validationPatch }
+            : o
+        );
+      void mutateEmpresaModulo<OrdenTrabajoOT>(empId, 'ordenesTrabajo', transform, transform(current));
     } else if (params.tipo === 'CAL') {
       const current = (modulesMapRef.current[empId]?.calibraciones as OrdenCalibracion[]) || [];
-      let updatedAny = false;
-      const next = current.map((c) => {
-        if (c.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase()) {
-          updatedAny = true;
-          return { ...c, ...validationPatch };
-        }
-        return c;
-      });
-      if (!updatedAny) {
+      if (!current.some((c) => c.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase())) {
         addToast(`No se encontró la orden de calibración ${params.id_ot} para validar.`, 'warning');
         return;
       }
-      void persistEmpresaModulo(empId, 'calibraciones', next);
+      const transform = (list: OrdenCalibracion[]) =>
+        list.map((c) =>
+          c.id_ot.trim().toLowerCase() === params.id_ot.trim().toLowerCase()
+            ? { ...c, ...validationPatch }
+            : c
+        );
+      void mutateEmpresaModulo<OrdenCalibracion>(empId, 'calibraciones', transform, transform(current));
     }
 
     addToast(
@@ -1701,6 +2193,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Gestión de Repuestos & Stock Crítico
   const addRepuesto = (rep: Repuesto) => {
+    if (!guardAction('crear_editar', 'Sin permisos para crear repuestos.')) return;
     const empId = resolveEmpresaId(rep.cliente);
     const clienteObj = stateRef.current.clientes.find((c) => makeSafeDocId(c.codigo) === empId);
     const nuevoRepuesto: Repuesto = {
@@ -1710,7 +2203,12 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     const currentRepItems = (modulesMapRef.current[empId]?.repuestos as Repuesto[]) || [];
-    void persistEmpresaModulo(empId, 'repuestos', [nuevoRepuesto, ...currentRepItems]);
+    void mutateEmpresaModulo<Repuesto>(
+      empId,
+      'repuestos',
+      (latest) => [nuevoRepuesto, ...latest.filter((r) => r.id !== nuevoRepuesto.id)],
+      [nuevoRepuesto, ...currentRepItems.filter((r) => r.id !== nuevoRepuesto.id)]
+    );
 
     if (nuevoRepuesto.stock_actual > 0) {
       const hoy = new Date();
@@ -1728,57 +2226,79 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         solicitante: userProfile?.nombre || 'Administrador de Almacén'
       };
       const currentMovs = (modulesMapRef.current[empId]?.movimientosRepuestos as MovimientoRepuesto[]) || [];
-      void persistEmpresaModulo(empId, 'movimientosRepuestos', [movInicial, ...currentMovs]);
+      void mutateEmpresaModulo<MovimientoRepuesto>(
+        empId,
+        'movimientosRepuestos',
+        (latest) => [movInicial, ...latest],
+        [movInicial, ...currentMovs]
+      );
     }
 
     addToast(`Repuesto "${nuevoRepuesto.nombre}" (${nuevoRepuesto.codigo_repuesto}) ingresado al inventario.`);
   };
 
   const updateRepuesto = (id: string, updated: Repuesto) => {
+    if (!guardAction('crear_editar', 'Sin permisos para modificar repuestos.')) return;
     const target = stateRef.current.repuestos.find((r) => r.id === id || r.codigo_repuesto === id);
     const empId = resolveEmpresaId(target?.cliente || updated.cliente);
     const currentRepItems = (modulesMapRef.current[empId]?.repuestos as Repuesto[]) || [];
-    let ajusteMov: MovimientoRepuesto | null = null;
+    const hoy = new Date();
+    const fechaStr = `${formatFechaDDMMYYYY(hoy)} ${String(hoy.getHours()).padStart(2, '0')}:${String(hoy.getMinutes()).padStart(2, '0')}`;
 
-    const nextRepItems = currentRepItems.map((r) => {
-      if (r.id === id || r.codigo_repuesto === id) {
-        if (updated.stock_actual !== r.stock_actual) {
-          const hoy = new Date();
-          const dif = updated.stock_actual - r.stock_actual;
-          ajusteMov = {
-            id: `MOV-${Date.now()}`,
-            repuesto_id: r.id,
-            codigo_repuesto: updated.codigo_repuesto,
-            nombre_repuesto: updated.nombre,
-            tipo: 'Ajuste',
-            cantidad: Math.abs(dif),
-            stock_anterior: r.stock_actual,
-            stock_nuevo: updated.stock_actual,
-            fecha: `${formatFechaDDMMYYYY(hoy)} ${String(hoy.getHours()).padStart(2, '0')}:${String(hoy.getMinutes()).padStart(2, '0')}`,
-            motivo: 'Ajuste manual de inventario en modificación de ficha',
-            solicitante: userProfile?.nombre || 'Control de Almacén'
-          };
-        }
-        return { ...updated, id: r.id };
+    void (async () => {
+      let ajusteMov: MovimientoRepuesto | null = null;
+      const committed = await mutateEmpresaModulo<Repuesto>(
+        empId,
+        'repuestos',
+        (latest) => {
+          ajusteMov = null;
+          return latest.map((r) => {
+            if (r.id === id || r.codigo_repuesto === id) {
+              if (updated.stock_actual !== r.stock_actual) {
+                const dif = updated.stock_actual - r.stock_actual;
+                ajusteMov = {
+                  id: `MOV-${Date.now()}`,
+                  repuesto_id: r.id,
+                  codigo_repuesto: updated.codigo_repuesto,
+                  nombre_repuesto: updated.nombre,
+                  tipo: 'Ajuste',
+                  cantidad: Math.abs(dif),
+                  stock_anterior: r.stock_actual,
+                  stock_nuevo: updated.stock_actual,
+                  fecha: fechaStr,
+                  motivo: 'Ajuste manual de inventario en modificación de ficha',
+                  solicitante: userProfile?.nombre || 'Control de Almacén'
+                };
+              }
+              return { ...updated, id: r.id };
+            }
+            return r;
+          });
+        },
+        currentRepItems.map((r) => (r.id === id || r.codigo_repuesto === id ? { ...updated, id: r.id } : r))
+      );
+
+      if (committed && ajusteMov) {
+        const mov = ajusteMov;
+        await mutateEmpresaModulo<MovimientoRepuesto>(empId, 'movimientosRepuestos', (latest) => [
+          mov,
+          ...latest
+        ]);
       }
-      return r;
-    });
+    })();
 
-    void persistEmpresaModulo(empId, 'repuestos', nextRepItems);
-    if (ajusteMov) {
-      const currentMovs = (modulesMapRef.current[empId]?.movimientosRepuestos as MovimientoRepuesto[]) || [];
-      void persistEmpresaModulo(empId, 'movimientosRepuestos', [ajusteMov, ...currentMovs]);
-    }
     addToast(`Ficha del repuesto "${updated.nombre}" actualizada.`);
   };
 
   const deleteRepuesto = (id: string) => {
+    if (!guardAction('eliminar', 'Sin permisos para eliminar repuestos.')) return;
     const target = stateRef.current.repuestos.find((r) => r.id === id || r.codigo_repuesto === id);
     const empId = resolveEmpresaId(target?.cliente);
     const currentRepItems = (modulesMapRef.current[empId]?.repuestos as Repuesto[]) || [];
-    void persistEmpresaModulo(
+    void mutateEmpresaModulo<Repuesto>(
       empId,
       'repuestos',
+      (latest) => latest.filter((r) => r.id !== id && r.codigo_repuesto !== id),
       currentRepItems.filter((r) => r.id !== id && r.codigo_repuesto !== id)
     );
     addToast(`Repuesto eliminado del catálogo de almacén.`, 'info');
@@ -1795,6 +2315,7 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     numero_factura?: string;
     solicitante: string;
   }) => {
+    if (!guardAction('gestionar_stock', 'Sin permisos para registrar movimientos de stock.')) return;
     const target = stateRef.current.repuestos.find(
       (r) => r.id === data.repuesto_id || r.codigo_repuesto === data.repuesto_id
     );
@@ -1804,59 +2325,74 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     const empId = resolveEmpresaId(target.cliente);
-    const stockAnterior = target.stock_actual;
-    let stockNuevo = stockAnterior;
-    if (data.tipo === 'Entrada') stockNuevo = stockAnterior + Math.max(0, data.cantidad);
-    else if (data.tipo === 'Salida') stockNuevo = Math.max(0, stockAnterior - Math.max(0, data.cantidad));
-    else if (data.tipo === 'Ajuste') stockNuevo = Math.max(0, data.cantidad);
-
-    const currentRepItems = (modulesMapRef.current[empId]?.repuestos as Repuesto[]) || [];
-    const nextRepItems = currentRepItems.map((r) => {
-      if (r.id === target.id) {
-        return {
-          ...r,
-          stock_actual: stockNuevo,
-          fecha_ultima_compra:
-            data.tipo === 'Entrada' ? formatFechaDDMMYYYY(new Date()) : r.fecha_ultima_compra
-        };
-      }
-      return r;
-    });
-
     const hoy = new Date();
-    const nuevoMov: MovimientoRepuesto = {
-      id: `MOV-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      repuesto_id: target.id,
-      codigo_repuesto: target.codigo_repuesto,
-      nombre_repuesto: target.nombre,
-      tipo: data.tipo,
-      cantidad: data.cantidad,
-      stock_anterior: stockAnterior,
-      stock_nuevo: stockNuevo,
-      fecha: `${formatFechaDDMMYYYY(hoy)} ${String(hoy.getHours()).padStart(2, '0')}:${String(hoy.getMinutes()).padStart(2, '0')}`,
-      motivo: data.motivo,
-      ot_asociada: data.ot_asociada,
-      equipo_asociado: data.equipo_asociado,
-      proveedor: data.proveedor,
-      numero_factura: data.numero_factura,
-      solicitante: data.solicitante
-    };
+    const fechaStr = `${formatFechaDDMMYYYY(hoy)} ${String(hoy.getHours()).padStart(2, '0')}:${String(hoy.getMinutes()).padStart(2, '0')}`;
+    const fechaCompra = formatFechaDDMMYYYY(hoy);
 
-    const currentMovs = (modulesMapRef.current[empId]?.movimientosRepuestos as MovimientoRepuesto[]) || [];
-    void persistEmpresaModulo(empId, 'repuestos', nextRepItems);
-    void persistEmpresaModulo(empId, 'movimientosRepuestos', [nuevoMov, ...currentMovs]);
+    void (async () => {
+      let createdMov: MovimientoRepuesto | null = null;
+      let finalStock = target.stock_actual;
+      let finalMinimo = target.stock_minimo;
 
-    if (stockNuevo <= target.stock_minimo) {
-      addToast(
-        `Movimiento registrado. ¡ALERTA! El stock de ${target.nombre} está en ${stockNuevo} (Mínimo: ${target.stock_minimo}).`,
-        'warning'
-      );
-    } else {
-      addToast(
-        `Movimiento de ${data.tipo} (${data.cantidad}) registrado. Nuevo stock: ${stockNuevo} ${target.unidad_medida}.`,
-        'success'
-      );
-    }
+      const committed = await mutateEmpresaModulo<Repuesto>(empId, 'repuestos', (latest) => {
+        createdMov = null;
+        return latest.map((r) => {
+          if (r.id === target.id || r.codigo_repuesto === target.codigo_repuesto) {
+            const stockAnterior = r.stock_actual;
+            let stockNuevo = stockAnterior;
+            if (data.tipo === 'Entrada') stockNuevo = stockAnterior + Math.max(0, data.cantidad);
+            else if (data.tipo === 'Salida') stockNuevo = Math.max(0, stockAnterior - Math.max(0, data.cantidad));
+            else if (data.tipo === 'Ajuste') stockNuevo = Math.max(0, data.cantidad);
+
+            finalStock = stockNuevo;
+            finalMinimo = r.stock_minimo;
+            createdMov = {
+              id: `MOV-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              repuesto_id: r.id,
+              codigo_repuesto: r.codigo_repuesto,
+              nombre_repuesto: r.nombre,
+              tipo: data.tipo,
+              cantidad: data.cantidad,
+              stock_anterior: stockAnterior,
+              stock_nuevo: stockNuevo,
+              fecha: fechaStr,
+              motivo: data.motivo,
+              ot_asociada: data.ot_asociada,
+              equipo_asociado: data.equipo_asociado,
+              proveedor: data.proveedor,
+              numero_factura: data.numero_factura,
+              solicitante: data.solicitante
+            };
+
+            return {
+              ...r,
+              stock_actual: stockNuevo,
+              fecha_ultima_compra: data.tipo === 'Entrada' ? fechaCompra : r.fecha_ultima_compra
+            };
+          }
+          return r;
+        });
+      });
+
+      if (committed && createdMov) {
+        const mov = createdMov;
+        await mutateEmpresaModulo<MovimientoRepuesto>(empId, 'movimientosRepuestos', (latest) => [
+          mov,
+          ...latest
+        ]);
+        if (finalStock <= finalMinimo) {
+          addToast(
+            `Movimiento registrado. ¡ALERTA! El stock de ${target.nombre} está en ${finalStock} (Mínimo: ${finalMinimo}).`,
+            'warning'
+          );
+        } else {
+          addToast(
+            `Movimiento de ${data.tipo} (${data.cantidad}) registrado. Nuevo stock: ${finalStock} ${target.unidad_medida}.`,
+            'success'
+          );
+        }
+      }
+    })();
   };
 
   const registrarSalidasStockBatch = (
@@ -1868,6 +2404,16 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       solicitante: string;
     }
   ): string[] => {
+    if (
+      !auth.currentUser ||
+      !userProfile?.activo ||
+      (!hasActionAccess(userProfile, 'cerrar_ordenes') &&
+        !hasActionAccess(userProfile, 'gestionar_stock'))
+    ) {
+      addToast('Sin permisos para descontar repuestos del stock.', 'error');
+      return [];
+    }
+
     const validItems = items.filter((i) => i.cantidad > 0);
     if (validItems.length === 0) return [];
 
@@ -1880,52 +2426,60 @@ export const MaintenanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const fechaStr = `${formatFechaDDMMYYYY(hoy)} ${String(hoy.getHours()).padStart(2, '0')}:${String(hoy.getMinutes()).padStart(2, '0')}`;
     const summaryLabels: string[] = [];
     const lowStockAlerts: string[] = [];
-    const movsByEmp = new Map<string, MovimientoRepuesto[]>();
     const qtyByEmpAndRep = new Map<string, Map<string, number>>();
 
     for (const [repId, qty] of qtyById.entries()) {
       const target = stateRef.current.repuestos.find((r) => r.id === repId || r.codigo_repuesto === repId);
       if (!target) continue;
       const empId = resolveEmpresaId(target.cliente);
-      const stockAnterior = target.stock_actual;
-      const stockNuevo = Math.max(0, stockAnterior - qty);
+      const stockNuevoEst = Math.max(0, target.stock_actual - qty);
 
       summaryLabels.push(`[${target.codigo_repuesto}] ${target.nombre} (x${qty} ${target.unidad_medida})`);
-      if (stockNuevo <= target.stock_minimo) {
-        lowStockAlerts.push(`${target.nombre} (${stockNuevo} ${target.unidad_medida})`);
+      if (stockNuevoEst <= target.stock_minimo) {
+        lowStockAlerts.push(`${target.nombre} (${stockNuevoEst} ${target.unidad_medida})`);
       }
-
-      if (!movsByEmp.has(empId)) movsByEmp.set(empId, []);
-      movsByEmp.get(empId)!.push({
-        id: `MOV-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        repuesto_id: target.id,
-        codigo_repuesto: target.codigo_repuesto,
-        nombre_repuesto: target.nombre,
-        tipo: 'Salida',
-        cantidad: qty,
-        stock_anterior: stockAnterior,
-        stock_nuevo: stockNuevo,
-        fecha: fechaStr,
-        motivo: meta.motivo,
-        ot_asociada: meta.ot_asociada,
-        equipo_asociado: meta.equipo_asociado,
-        solicitante: meta.solicitante
-      });
 
       if (!qtyByEmpAndRep.has(empId)) qtyByEmpAndRep.set(empId, new Map());
       qtyByEmpAndRep.get(empId)!.set(target.id, qty);
     }
 
     for (const [empId, repQtyMap] of qtyByEmpAndRep.entries()) {
-      const currentRepItems = (modulesMapRef.current[empId]?.repuestos as Repuesto[]) || [];
-      const nextRepItems = currentRepItems.map((r) => {
-        const qty = repQtyMap.get(r.id);
-        return qty ? { ...r, stock_actual: Math.max(0, r.stock_actual - qty) } : r;
-      });
-      const currentMovs = (modulesMapRef.current[empId]?.movimientosRepuestos as MovimientoRepuesto[]) || [];
-      const newMovs = movsByEmp.get(empId) || [];
-      void persistEmpresaModulo(empId, 'repuestos', nextRepItems);
-      void persistEmpresaModulo(empId, 'movimientosRepuestos', [...newMovs, ...currentMovs]);
+      void (async () => {
+        let txMovs: MovimientoRepuesto[] = [];
+        const committed = await mutateEmpresaModulo<Repuesto>(empId, 'repuestos', (latest) => {
+          txMovs = [];
+          return latest.map((r) => {
+            const qty = repQtyMap.get(r.id);
+            if (!qty) return r;
+            const stockAnterior = r.stock_actual;
+            const stockNuevo = Math.max(0, stockAnterior - qty);
+            txMovs.push({
+              id: `MOV-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              repuesto_id: r.id,
+              codigo_repuesto: r.codigo_repuesto,
+              nombre_repuesto: r.nombre,
+              tipo: 'Salida',
+              cantidad: qty,
+              stock_anterior: stockAnterior,
+              stock_nuevo: stockNuevo,
+              fecha: fechaStr,
+              motivo: meta.motivo,
+              ot_asociada: meta.ot_asociada,
+              equipo_asociado: meta.equipo_asociado,
+              solicitante: meta.solicitante
+            });
+            return { ...r, stock_actual: stockNuevo };
+          });
+        });
+        if (committed && txMovs.length > 0) {
+          const movsToAdd = txMovs;
+          await mutateEmpresaModulo<MovimientoRepuesto>(
+            empId,
+            'movimientosRepuestos',
+            (latest) => [...movsToAdd, ...latest]
+          );
+        }
+      })();
     }
 
     if (summaryLabels.length > 0) {

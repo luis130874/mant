@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Printer,
-  Search,
   Trash2,
   Share2,
   Smartphone
@@ -20,6 +19,8 @@ import { OrdenCorrectivo } from '../types';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
 import { PrintableDocument } from './PrintModal';
 import { DigitalOrderTarget } from '../utils/digitalOrderLink';
+import { ModuleFilterBar } from './ui/ModuleFilterBar';
+import { EmptyState } from './ui/EmptyState';
 
 interface CorrectivosViewProps {
   onPrintOrder?: (order: PrintableDocument) => void;
@@ -52,6 +53,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
 
   const [activeSubTab, setActiveSubTab] = useState<'emitir' | 'cierre' | 'historial'>('emitir');
   const [searchQuery, setSearchQuery] = useState('');
+  const [listFilter, setListFilter] = useState<'todos' | 'pendientes' | 'vencidos' | 'cerrados'>('todos');
 
   // Form states for Emission
   const [selectedEquipoCode, setSelectedEquipoCode] = useState('');
@@ -78,8 +80,36 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
     ? correctivos
     : correctivos.filter(c => c.cliente.trim() === selectedCliente.trim());
 
+  const isCorrectivoVencido = (c: OrdenCorrectivo) => {
+    if (c.estado !== 'Pendiente') return false;
+    const dTent = parseFecha(c.fecha_tentativa);
+    if (!dTent) return false;
+    const limite = new Date(dTent.getFullYear(), dTent.getMonth(), dTent.getDate() + (c.dias_tolerancia || 0));
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    return hoy > limite;
+  };
+
   const pendientesList = correctivosCliente.filter(c => c.estado === 'Pendiente');
+  const vencidosList = pendientesList.filter(isCorrectivoVencido);
   const cerradosList = correctivosCliente.filter(c => c.estado.startsWith('Cerrada'));
+
+  const filteredCorrectivosHistorial = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return correctivosCliente.filter(c => {
+      if (listFilter === 'pendientes' && c.estado !== 'Pendiente') return false;
+      if (listFilter === 'vencidos' && !isCorrectivoVencido(c)) return false;
+      if (listFilter === 'cerrados' && !c.estado.startsWith('Cerrada')) return false;
+      if (!q) return true;
+      return (
+        c.id_ot.toLowerCase().includes(q) ||
+        c.codigo_eq.toLowerCase().includes(q) ||
+        c.falla_reportada.toLowerCase().includes(q) ||
+        (c.acciones_realizadas || '').toLowerCase().includes(q) ||
+        (c.tecnico || '').toLowerCase().includes(q)
+      );
+    });
+  }, [correctivosCliente, listFilter, searchQuery]);
 
   const handleEmitirSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,8 +277,11 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
             Cierre de Correctivos ({pendientesList.length})
           </button>
           <button
-            onClick={() => setActiveSubTab('historial')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+            onClick={() => {
+              setActiveSubTab('historial');
+              setListFilter('todos');
+            }}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all tabular-nums ${
               activeSubTab === 'historial'
                 ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white prodexus:hover:text-[#132B36]'
@@ -388,7 +421,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
               {canEmit ? (
                 <button
                   type="submit"
-                  className="w-full py-2.5 px-4 font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors shadow-xs"
+                  className="w-full min-h-[44px] py-2.5 px-4 font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors shadow-xs whitespace-nowrap"
                 >
                   Emitir Orden Correctiva (MC)
                 </button>
@@ -403,45 +436,66 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
           {/* Pending List and Printable sheets */}
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider tabular-nums">
                 Órdenes Correctivas en Curso ({pendientesList.length})
               </h2>
             </div>
 
             {pendientesList.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 p-8 text-center rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] text-slate-500 dark:text-slate-400 text-xs">
-                No hay órdenes correctivas pendientes. Todos los equipos se encuentran operativos.
-              </div>
+              <EmptyState
+                icon={AlertTriangle}
+                title="Sin averías pendientes"
+                description="No hay órdenes correctivas pendientes en curso. Todos los equipos reportados se encuentran operativos."
+                secondaryLabel={cerradosList.length > 0 ? `Ver historial (${cerradosList.length})` : undefined}
+                onSecondaryAction={
+                  cerradosList.length > 0
+                    ? () => {
+                        setListFilter('cerrados');
+                        setActiveSubTab('historial');
+                      }
+                    : undefined
+                }
+              />
             ) : (
               <div className="space-y-3">
                 {pendientesList.map(c => {
                   const eq = equipos.find(e => e.codigo_eq === c.codigo_eq);
+                  const vencida = isCorrectivoVencido(c);
                   return (
                     <div
                       key={c.id_ot}
-                      className="bg-white dark:bg-slate-900 rounded-xl border border-amber-200 dark:border-amber-800/70 p-4 space-y-2.5 shadow-xs"
+                      className={`bg-white dark:bg-slate-900 rounded-xl border p-4 space-y-2.5 shadow-xs ${
+                        vencida
+                          ? 'border-rose-300 dark:border-rose-800/80'
+                          : 'border-amber-200 dark:border-amber-800/70'
+                      }`}
                     >
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-bold text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800/70">
                               {c.id_ot}
                             </span>
                             <span className="text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                               {eq?.nombre || c.codigo_eq}
                             </span>
+                            {vencida && (
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                Vencida
+                              </span>
+                            )}
                           </div>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                            Reportada: {c.fecha_emision} · Compromiso: <strong className="text-slate-800 dark:text-slate-200">{c.fecha_tentativa}</strong> (±{c.dias_tolerancia}d tol.)
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 tabular-nums">
+                            Reportada: <span className="font-mono">{c.fecha_emision}</span> · Compromiso: <strong className="font-mono text-slate-800 dark:text-slate-200">{c.fecha_tentativa}</strong> (±{c.dias_tolerancia}d tol.)
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        <div className="flex items-center gap-1.5 flex-wrap sm:justify-end">
                           {onShareOrder && (
                             <button
                               type="button"
                               onClick={() => onShareOrder(buildDigitalTargetMC(c))}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-md flex items-center gap-1"
+                              className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-lg flex items-center gap-1.5 whitespace-nowrap shrink-0"
                               title="Enviar enlace o WhatsApp al técnico"
                             >
                               <Share2 className="w-3.5 h-3.5" />
@@ -452,7 +506,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                             <button
                               type="button"
                               onClick={() => onOpenDigitalExecution(buildDigitalTargetMC(c))}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/70 rounded-md flex items-center gap-1"
+                              className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/70 rounded-lg flex items-center gap-1.5 whitespace-nowrap shrink-0"
                               title="Completar y firmar digitalmente"
                             >
                               <Smartphone className="w-3.5 h-3.5" />
@@ -463,7 +517,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                             <button
                               type="button"
                               onClick={() => handlePrint(c)}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md flex items-center gap-1"
+                              className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1.5 whitespace-nowrap shrink-0"
                               title="Imprimir Orden en papel / PDF"
                             >
                               <Printer className="w-3.5 h-3.5" />
@@ -483,10 +537,11 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                                   deleteCorrectivo(c.id_ot);
                                 }
                               }}
-                              className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded"
+                              className="min-h-[44px] min-w-[44px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                               title="Eliminar"
+                              aria-label={`Eliminar orden ${c.id_ot}`}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                             </button>
                           )}
                         </div>
@@ -635,7 +690,7 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
                   {canClose ? (
                     <button
                       type="submit"
-                      className="w-full py-2.5 px-4 font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#189A4C] transition-colors shadow-xs"
+                      className="w-full min-h-[44px] py-2.5 px-4 font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#189A4C] transition-colors shadow-xs"
                     >
                       Confirmar Cierre de Avería
                     </button>
@@ -651,100 +706,146 @@ export const CorrectivosView: React.FC<CorrectivosViewProps> = ({
         </div>
       )}
 
-      {/* SUBTAB 3: Historial de Correctivos */}
+      {/* SUBTAB 3: Historial y Listado General de Correctivos */}
       {activeSubTab === 'historial' && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden space-y-4 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Buscar por folio, equipo o falla..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
-              />
-            </div>
-          </div>
+        <div className="space-y-4">
+          <ModuleFilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder="Buscar por folio, equipo, falla o técnico..."
+            activeStatus={listFilter}
+            onStatusChange={(key) => setListFilter(key as 'todos' | 'pendientes' | 'vencidos' | 'cerrados')}
+            statusOptions={[
+              { key: 'todos', label: 'Todos', count: correctivosCliente.length, tone: 'neutral' },
+              { key: 'pendientes', label: 'Pendientes', count: pendientesList.length, tone: 'amber' },
+              { key: 'vencidos', label: 'Vencidos', count: vencidosList.length, tone: 'rose' },
+              { key: 'cerrados', label: 'Cerrados', count: cerradosList.length, tone: 'emerald' }
+            ]}
+            totalVisible={filteredCorrectivosHistorial.length}
+            totalLabel="órdenes"
+          />
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
-                <tr>
-                  <th className="py-2.5 px-3">Folio MC</th>
-                  <th className="py-2.5 px-3">Equipo</th>
-                  <th className="py-2.5 px-3">Falla Reportada</th>
-                  <th className="py-2.5 px-3 text-center">Emisión</th>
-                  <th className="py-2.5 px-3 text-center">Fecha Real</th>
-                  <th className="py-2.5 px-3 text-center">Estado</th>
-                  <th className="py-2.5 px-3">Técnico</th>
-                  <th className="py-2.5 px-3">Acciones Realizadas</th>
-                  <th className="py-2.5 px-3 text-right">PDF</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E6EEF2]">
-                {cerradosList
-                  .filter(c => {
-                    if (!searchQuery) return true;
-                    return c.id_ot.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      c.codigo_eq.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      c.falla_reportada.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      c.acciones_realizadas.toLowerCase().includes(searchQuery.toLowerCase());
-                  })
-                  .map(row => (
-                    <tr key={row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
-                      <td className="py-2.5 px-3 font-mono font-bold text-amber-700 dark:text-amber-400">
-                        {row.id_ot}
-                        {row.firma_tecnico && (
-                          <span className="block text-[9.5px] font-sans font-semibold text-emerald-700 dark:text-emerald-400">
-                            Firmada Digital
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
-                        {row.codigo_eq}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-xs truncate" title={row.falla_reportada}>
-                        {row.falla_reportada}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono text-slate-600 dark:text-slate-300">
-                        {row.fecha_emision}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700 dark:text-emerald-400">
-                        {row.fecha_real}
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                          row.estado.includes('A tiempo')
-                            ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
-                            : 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70'
-                        }`}>
-                          {row.estado}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 font-medium text-slate-700 dark:text-slate-200">
-                        {row.tecnico}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-xs truncate" title={row.acciones_realizadas}>
-                        {row.acciones_realizadas}
-                      </td>
-                      <td className="py-2.5 px-3 text-right">
-                        {canPrint && onPrintOrder && (
-                          <button
-                            type="button"
-                            onClick={() => handlePrint(row)}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded inline-flex items-center gap-1"
-                            title="Imprimir / PDF Orden Cerrada"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                            <span>PDF</span>
-                          </button>
-                        )}
-                      </td>
+          <div className="cmms-table-wrap">
+            {filteredCorrectivosHistorial.length === 0 ? (
+              <div className="p-4">
+                <EmptyState
+                  icon={AlertTriangle}
+                  title="Sin órdenes correctivas para mostrar"
+                  description={
+                    searchQuery || listFilter !== 'todos'
+                      ? 'No se encontraron registros que coincidan con el filtro o búsqueda aplicada.'
+                      : 'Aún no existen órdenes correctivas registradas para esta planta.'
+                  }
+                  actionLabel={canEmit && correctivosCliente.length === 0 ? 'Emitir Primera Orden MC' : undefined}
+                  onAction={canEmit && correctivosCliente.length === 0 ? () => setActiveSubTab('emitir') : undefined}
+                  secondaryLabel={searchQuery || listFilter !== 'todos' ? 'Ver todas' : undefined}
+                  onSecondaryAction={
+                    searchQuery || listFilter !== 'todos'
+                      ? () => {
+                          setSearchQuery('');
+                          setListFilter('todos');
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto max-h-[65vh]">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="cmms-th py-3 px-3">Folio MC</th>
+                      <th className="cmms-th py-3 px-3">Equipo</th>
+                      <th className="cmms-th py-3 px-3">Falla Reportada</th>
+                      <th className="cmms-th py-3 px-3 text-center">Emisión</th>
+                      <th className="cmms-th py-3 px-3 text-center">Fecha Real</th>
+                      <th className="cmms-th py-3 px-3 text-center">Estado</th>
+                      <th className="cmms-th py-3 px-3">Técnico</th>
+                      <th className="cmms-th py-3 px-3">Acciones Realizadas</th>
+                      <th className="cmms-th py-3 px-3 text-right">Acción</th>
                     </tr>
-                  ))}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {filteredCorrectivosHistorial.map(row => {
+                      const vencida = isCorrectivoVencido(row);
+                      const isPend = row.estado === 'Pendiente';
+                      return (
+                        <tr key={row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                          <td className="cmms-td py-2.5 px-3 font-mono font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap">
+                            {row.id_ot}
+                            {row.firma_tecnico && (
+                              <span className="block text-[10px] font-sans font-semibold text-emerald-700 dark:text-emerald-400">
+                                Firmada Digital
+                              </span>
+                            )}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] whitespace-nowrap">
+                            {row.codigo_eq}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-xs truncate" title={row.falla_reportada}>
+                            {row.falla_reportada}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-center font-mono tabular-nums text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                            {row.fecha_emision}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-center font-mono tabular-nums font-semibold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                            {row.fecha_real || '—'}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-center whitespace-nowrap">
+                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                              vencida
+                                ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/70'
+                                : isPend
+                                ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/70'
+                                : row.estado.includes('A tiempo')
+                                ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/70'
+                                : 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/70'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${
+                                vencida ? 'bg-rose-500' : isPend ? 'bg-amber-500' : row.estado.includes('A tiempo') ? 'bg-emerald-500' : 'bg-amber-500'
+                              }`} />
+                              {vencida ? 'Vencida' : row.estado}
+                            </span>
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                            {row.tecnico}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-xs truncate" title={row.acciones_realizadas}>
+                            {row.acciones_realizadas || '—'}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-right whitespace-nowrap">
+                            <div className="inline-flex items-center justify-end gap-1.5">
+                              {onOpenDigitalExecution && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenDigitalExecution(buildDigitalTargetMC(row))}
+                                  className="min-h-[36px] px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 border border-blue-200 dark:border-blue-800/70 rounded-md inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+                                  title="Abrir ejecución / detalle digital"
+                                >
+                                  <Smartphone className="w-3.5 h-3.5" />
+                                  <span>{isPend ? 'Digital' : 'Ver'}</span>
+                                </button>
+                              )}
+                              {canPrint && onPrintOrder && (
+                                <button
+                                  type="button"
+                                  onClick={() => handlePrint(row)}
+                                  className="min-h-[36px] px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+                                  title="Imprimir / PDF Orden"
+                                >
+                                  <Printer className="w-3.5 h-3.5" />
+                                  <span>PDF</span>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

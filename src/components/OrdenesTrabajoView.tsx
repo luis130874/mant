@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ClipboardList,
   Printer,
-  Search,
   Trash2,
   Share2,
   Smartphone
@@ -20,6 +19,8 @@ import { OrdenTrabajoOT } from '../types';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
 import { PrintableDocument } from './PrintModal';
 import { DigitalOrderTarget } from '../utils/digitalOrderLink';
+import { ModuleFilterBar } from './ui/ModuleFilterBar';
+import { EmptyState } from './ui/EmptyState';
 
 interface OrdenesTrabajoViewProps {
   onPrintOrder?: (order: PrintableDocument) => void;
@@ -52,6 +53,7 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
 
   const [activeSubTab, setActiveSubTab] = useState<'emitir' | 'cierre' | 'historial'>('emitir');
   const [searchQuery, setSearchQuery] = useState('');
+  const [listFilter, setListFilter] = useState<'todos' | 'pendientes' | 'vencidos' | 'cerrados'>('todos');
 
   // Form states for Emission
   const [selectedEquipoCode, setSelectedEquipoCode] = useState('');
@@ -78,8 +80,36 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
     ? ordenesTrabajo
     : ordenesTrabajo.filter(o => o.cliente.trim() === selectedCliente.trim());
 
+  const isOTVencida = (o: OrdenTrabajoOT) => {
+    if (o.estado !== 'Pendiente') return false;
+    const dTent = parseFecha(o.fecha_tentativa);
+    if (!dTent) return false;
+    const limite = new Date(dTent.getFullYear(), dTent.getMonth(), dTent.getDate() + (o.dias_tolerancia || 0));
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    return hoy > limite;
+  };
+
   const pendientesList = ordenesCliente.filter(o => o.estado === 'Pendiente');
+  const vencidosList = pendientesList.filter(isOTVencida);
   const cerradosList = ordenesCliente.filter(o => o.estado.startsWith('Cerrada'));
+
+  const filteredOrdenesHistorial = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return ordenesCliente.filter(o => {
+      if (listFilter === 'pendientes' && o.estado !== 'Pendiente') return false;
+      if (listFilter === 'vencidos' && !isOTVencida(o)) return false;
+      if (listFilter === 'cerrados' && !o.estado.startsWith('Cerrada')) return false;
+      if (!q) return true;
+      return (
+        o.id_ot.toLowerCase().includes(q) ||
+        o.codigo_eq.toLowerCase().includes(q) ||
+        o.trabajo_solicitado.toLowerCase().includes(q) ||
+        (o.acciones_realizadas || '').toLowerCase().includes(q) ||
+        (o.tecnico || '').toLowerCase().includes(q)
+      );
+    });
+  }, [ordenesCliente, listFilter, searchQuery]);
 
   const handleEmitirSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,8 +273,11 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
             Cierre de OT ({pendientesList.length})
           </button>
           <button
-            onClick={() => setActiveSubTab('historial')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+            onClick={() => {
+              setActiveSubTab('historial');
+              setListFilter('todos');
+            }}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all tabular-nums ${
               activeSubTab === 'historial'
                 ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 prodexus:text-[#4D6976] hover:text-slate-900 dark:hover:text-white'
@@ -383,7 +416,7 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
               {canEmit ? (
                 <button
                   type="submit"
-                  className="w-full py-2.5 px-4 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
+                  className="w-full min-h-[44px] py-2.5 px-4 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs whitespace-nowrap"
                 >
                   Emitir Orden de Trabajo (OT)
                 </button>
@@ -397,24 +430,40 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
 
           {/* Pending List and Printable sheets */}
           <div className="lg:col-span-7 space-y-4">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] uppercase tracking-wider tabular-nums">
               Órdenes en Ejecución ({pendientesList.length})
             </h2>
 
             {pendientesList.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 p-8 text-center rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] text-slate-500 dark:text-slate-400 text-xs">
-                No hay proyectos u órdenes de trabajo pendientes en esta planta.
-              </div>
+              <EmptyState
+                icon={ClipboardList}
+                title="Sin órdenes de trabajo pendientes"
+                description="No hay proyectos u órdenes de trabajo pendientes de ejecución en esta planta."
+                secondaryLabel={cerradosList.length > 0 ? `Ver historial (${cerradosList.length})` : undefined}
+                onSecondaryAction={
+                  cerradosList.length > 0
+                    ? () => {
+                        setListFilter('cerrados');
+                        setActiveSubTab('historial');
+                      }
+                    : undefined
+                }
+              />
             ) : (
               <div className="space-y-3">
                 {pendientesList.map(o => {
                   const eq = equipos.find(e => e.codigo_eq === o.codigo_eq);
+                  const vencida = isOTVencida(o);
                   return (
                     <div
                       key={o.id_ot}
-                      className="bg-white dark:bg-slate-900 rounded-xl border border-blue-200 dark:border-blue-800/70 prodexus:border-[#2F7CF6]/40 p-4 space-y-2.5 shadow-xs"
+                      className={`bg-white dark:bg-slate-900 rounded-xl border p-4 space-y-2.5 shadow-xs ${
+                        vencida
+                          ? 'border-rose-300 dark:border-rose-800/80'
+                          : 'border-blue-200 dark:border-blue-800/70 prodexus:border-[#2F7CF6]/40'
+                      }`}
                     >
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-bold text-sm text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EBF3FF] px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800/70">
@@ -423,18 +472,23 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                             <span className="text-xs font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                               {eq?.nombre || o.codigo_eq}
                             </span>
+                            {vencida && (
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                Vencida
+                              </span>
+                            )}
                           </div>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                            Emisión: {o.fecha_emision} · Entrega estimada: <strong className="text-slate-800 dark:text-slate-200">{o.fecha_tentativa}</strong> (±{o.dias_tolerancia}d tol.)
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 tabular-nums">
+                            Emisión: <span className="font-mono">{o.fecha_emision}</span> · Entrega estimada: <strong className="font-mono text-slate-800 dark:text-slate-200">{o.fecha_tentativa}</strong> (±{o.dias_tolerancia}d tol.)
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        <div className="flex items-center gap-1.5 flex-wrap sm:justify-end">
                           {onShareOrder && (
                             <button
                               type="button"
                               onClick={() => onShareOrder(buildDigitalTargetOT(o))}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-md flex items-center gap-1"
+                              className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-lg flex items-center gap-1.5 whitespace-nowrap shrink-0"
                               title="Enviar enlace o WhatsApp al técnico"
                             >
                               <Share2 className="w-3.5 h-3.5" />
@@ -445,7 +499,7 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                             <button
                               type="button"
                               onClick={() => onOpenDigitalExecution(buildDigitalTargetOT(o))}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EBF3FF] hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/70 rounded-md flex items-center gap-1"
+                              className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-blue-700 dark:text-blue-300 prodexus:text-[#2F7CF6] bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#EBF3FF] hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/70 rounded-lg flex items-center gap-1.5 whitespace-nowrap shrink-0"
                               title="Completar y firmar digitalmente"
                             >
                               <Smartphone className="w-3.5 h-3.5" />
@@ -456,7 +510,7 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                             <button
                               type="button"
                               onClick={() => handlePrint(o)}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md flex items-center gap-1"
+                              className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1.5 whitespace-nowrap shrink-0"
                               title="Imprimir Orden en papel / PDF"
                             >
                               <Printer className="w-3.5 h-3.5" />
@@ -476,10 +530,11 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                                   deleteOrdenTrabajo(o.id_ot);
                                 }
                               }}
-                              className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded"
+                              className="min-h-[44px] min-w-[44px] sm:min-h-[34px] sm:min-w-[34px] flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                               title="Eliminar"
+                              aria-label={`Eliminar orden ${o.id_ot}`}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                             </button>
                           )}
                         </div>
@@ -628,7 +683,7 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
                   {canClose ? (
                     <button
                       type="submit"
-                      className="w-full py-2.5 px-4 font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#199C4D] transition-colors shadow-xs"
+                      className="w-full min-h-[44px] py-2.5 px-4 font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#199C4D] transition-colors shadow-xs"
                     >
                       Confirmar Finalización de OT
                     </button>
@@ -644,100 +699,146 @@ export const OrdenesTrabajoView: React.FC<OrdenesTrabajoViewProps> = ({
         </div>
       )}
 
-      {/* SUBTAB 3: Historial de OT */}
+      {/* SUBTAB 3: Historial y Listado General de OT */}
       {activeSubTab === 'historial' && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden space-y-4 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Buscar por folio, ubicación o trabajo..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
-              />
-            </div>
-          </div>
+        <div className="space-y-4">
+          <ModuleFilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder="Buscar por folio, ubicación, trabajo o responsable..."
+            activeStatus={listFilter}
+            onStatusChange={(key) => setListFilter(key as 'todos' | 'pendientes' | 'vencidos' | 'cerrados')}
+            statusOptions={[
+              { key: 'todos', label: 'Todos', count: ordenesCliente.length, tone: 'neutral' },
+              { key: 'pendientes', label: 'Pendientes', count: pendientesList.length, tone: 'amber' },
+              { key: 'vencidos', label: 'Vencidos', count: vencidosList.length, tone: 'rose' },
+              { key: 'cerrados', label: 'Cerrados', count: cerradosList.length, tone: 'emerald' }
+            ]}
+            totalVisible={filteredOrdenesHistorial.length}
+            totalLabel="órdenes"
+          />
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
-                <tr>
-                  <th className="py-2.5 px-3">Folio OT</th>
-                  <th className="py-2.5 px-3">Ubicación / Equipo</th>
-                  <th className="py-2.5 px-3">Trabajo Realizado</th>
-                  <th className="py-2.5 px-3 text-center">Emisión</th>
-                  <th className="py-2.5 px-3 text-center">Entrega Real</th>
-                  <th className="py-2.5 px-3 text-center">Estado</th>
-                  <th className="py-2.5 px-3">Responsable</th>
-                  <th className="py-2.5 px-3">Materiales</th>
-                  <th className="py-2.5 px-3 text-right">PDF</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E6EEF2]">
-                {cerradosList
-                  .filter(o => {
-                    if (!searchQuery) return true;
-                    return o.id_ot.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      o.codigo_eq.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      o.trabajo_solicitado.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      o.acciones_realizadas.toLowerCase().includes(searchQuery.toLowerCase());
-                  })
-                  .map(row => (
-                    <tr key={row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="py-2.5 px-3 font-mono font-bold text-blue-700 dark:text-blue-400 prodexus:text-[#2F7CF6]">
-                        {row.id_ot}
-                        {row.firma_tecnico && (
-                          <span className="block text-[9.5px] font-sans font-semibold text-emerald-700 dark:text-emerald-400 prodexus:text-[#1FB85C]">
-                            Firmada Digital
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
-                        {row.codigo_eq}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-xs truncate" title={row.trabajo_solicitado}>
-                        {row.trabajo_solicitado}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono text-slate-600 dark:text-slate-400">
-                        {row.fecha_emision}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700 dark:text-emerald-400 prodexus:text-[#1FB85C]">
-                        {row.fecha_real}
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                          row.estado.includes('A tiempo')
-                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
-                            : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70'
-                        }`}>
-                          {row.estado}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 font-medium text-slate-700 dark:text-slate-200">
-                        {row.tecnico}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400 max-w-xs truncate" title={row.materiales_utilizados}>
-                        {row.materiales_utilizados || '-'}
-                      </td>
-                      <td className="py-2.5 px-3 text-right">
-                        {canPrint && onPrintOrder && (
-                          <button
-                            type="button"
-                            onClick={() => handlePrint(row)}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded inline-flex items-center gap-1"
-                            title="Imprimir / PDF Orden Cerrada"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                            <span>PDF</span>
-                          </button>
-                        )}
-                      </td>
+          <div className="cmms-table-wrap">
+            {filteredOrdenesHistorial.length === 0 ? (
+              <div className="p-4">
+                <EmptyState
+                  icon={ClipboardList}
+                  title="Sin órdenes de trabajo para mostrar"
+                  description={
+                    searchQuery || listFilter !== 'todos'
+                      ? 'No se encontraron órdenes de trabajo que coincidan con el filtro o búsqueda aplicada.'
+                      : 'Aún no existen órdenes de trabajo registradas para esta planta.'
+                  }
+                  actionLabel={canEmit && ordenesCliente.length === 0 ? 'Emitir Primera OT' : undefined}
+                  onAction={canEmit && ordenesCliente.length === 0 ? () => setActiveSubTab('emitir') : undefined}
+                  secondaryLabel={searchQuery || listFilter !== 'todos' ? 'Ver todas' : undefined}
+                  onSecondaryAction={
+                    searchQuery || listFilter !== 'todos'
+                      ? () => {
+                          setSearchQuery('');
+                          setListFilter('todos');
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto max-h-[65vh]">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="cmms-th py-3 px-3">Folio OT</th>
+                      <th className="cmms-th py-3 px-3">Ubicación / Equipo</th>
+                      <th className="cmms-th py-3 px-3">Trabajo Realizado</th>
+                      <th className="cmms-th py-3 px-3 text-center">Emisión</th>
+                      <th className="cmms-th py-3 px-3 text-center">Entrega Real</th>
+                      <th className="cmms-th py-3 px-3 text-center">Estado</th>
+                      <th className="cmms-th py-3 px-3">Responsable</th>
+                      <th className="cmms-th py-3 px-3">Materiales</th>
+                      <th className="cmms-th py-3 px-3 text-right">Acción</th>
                     </tr>
-                  ))}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {filteredOrdenesHistorial.map(row => {
+                      const vencida = isOTVencida(row);
+                      const isPend = row.estado === 'Pendiente';
+                      return (
+                        <tr key={row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                          <td className="cmms-td py-2.5 px-3 font-mono font-bold text-blue-700 dark:text-blue-400 prodexus:text-[#2F7CF6] whitespace-nowrap">
+                            {row.id_ot}
+                            {row.firma_tecnico && (
+                              <span className="block text-[10px] font-sans font-semibold text-emerald-700 dark:text-emerald-400 prodexus:text-[#1FB85C]">
+                                Firmada Digital
+                              </span>
+                            )}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] whitespace-nowrap">
+                            {row.codigo_eq}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-xs truncate" title={row.trabajo_solicitado}>
+                            {row.trabajo_solicitado}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-center font-mono tabular-nums text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                            {row.fecha_emision}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-center font-mono tabular-nums font-semibold text-emerald-700 dark:text-emerald-400 prodexus:text-[#1FB85C] whitespace-nowrap">
+                            {row.fecha_real || '—'}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-center whitespace-nowrap">
+                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                              vencida
+                                ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/70'
+                                : isPend
+                                ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/70'
+                                : row.estado.includes('A tiempo')
+                                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/70'
+                                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/70'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${
+                                vencida ? 'bg-rose-500' : isPend ? 'bg-amber-500' : row.estado.includes('A tiempo') ? 'bg-emerald-500' : 'bg-amber-500'
+                              }`} />
+                              {vencida ? 'Vencida' : row.estado}
+                            </span>
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                            {row.tecnico}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-slate-500 dark:text-slate-400 max-w-xs truncate" title={row.materiales_utilizados}>
+                            {row.materiales_utilizados || '—'}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-right whitespace-nowrap">
+                            <div className="inline-flex items-center justify-end gap-1.5">
+                              {onOpenDigitalExecution && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenDigitalExecution(buildDigitalTargetOT(row))}
+                                  className="min-h-[36px] px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 border border-blue-200 dark:border-blue-800/70 rounded-md inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+                                  title="Abrir ejecución / detalle digital"
+                                >
+                                  <Smartphone className="w-3.5 h-3.5" />
+                                  <span>{isPend ? 'Digital' : 'Ver'}</span>
+                                </button>
+                              )}
+                              {canPrint && onPrintOrder && (
+                                <button
+                                  type="button"
+                                  onClick={() => handlePrint(row)}
+                                  className="min-h-[36px] px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+                                  title="Imprimir / PDF Orden"
+                                >
+                                  <Printer className="w-3.5 h-3.5" />
+                                  <span>PDF</span>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

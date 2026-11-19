@@ -79,7 +79,7 @@
         "empresaCodigo": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
         "modulo": {
           "type": "string",
-          "enum": ["equipos", "instrumentos", "historial", "correctivos", "ordenesTrabajo", "calibraciones", "repuestos", "movimientosRepuestos"]
+          "enum": ["equipos", "instrumentos", "historial", "correctivos", "ordenesTrabajo", "calibraciones", "repuestos", "movimientosRepuestos", "tecnicos", "sistemas"]
         },
         "items": { "type": "array" },
         "updatedAt": { "type": "string", "format": "date-time" },

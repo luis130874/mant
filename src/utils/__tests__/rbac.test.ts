@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BOOTSTRAP_SUPER_ADMIN_EMAIL,
   buildPermisos,
   canValidateDigitalOrder,
   FULL_PERMISOS,
@@ -77,5 +78,9 @@ describe('rbac utilities', () => {
     const safe = makeSafeDocId('EMP / Planta #01 (Sur)');
     expect(safe).toBe('EMP-Planta-01-Sur');
     expect(safe.length).toBeLessThanOrEqual(120);
+  });
+
+  it('does not hardcode any personal super admin email', () => {
+    expect(BOOTSTRAP_SUPER_ADMIN_EMAIL).not.toBe('luismarcelosanchez1974@gmail.com');
   });
 });

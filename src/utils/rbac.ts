@@ -5,7 +5,12 @@
 
 import { AccionKey, ModuloKey, UserPermisos, UserProfile, UserRole } from '../types';
 
-export const BOOTSTRAP_SUPER_ADMIN_EMAIL = 'luismarcelosanchez1974@gmail.com';
+const rawBootstrapEmail =
+  typeof import.meta !== 'undefined' && import.meta.env
+    ? String(import.meta.env.VITE_INITIAL_SUPER_ADMIN_EMAIL || '')
+    : '';
+
+export const BOOTSTRAP_SUPER_ADMIN_EMAIL = rawBootstrapEmail.trim().toLowerCase();
 
 export const MODULOS_META: Array<{ key: ModuloKey; label: string; desc: string }> = [
   { key: 'dashboard', label: 'Panel de Control & KPI', desc: 'Indicadores ejecutivos y gráficos de cumplimiento' },

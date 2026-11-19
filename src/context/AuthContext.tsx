@@ -119,8 +119,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userPath = `users/${fbUser.uid}`;
 
       try {
-        // 1. Bootstrapped Super Admin path
-        if (email === BOOTSTRAP_SUPER_ADMIN_EMAIL) {
+        const tokenResult = await fbUser.getIdTokenResult();
+        const hasSuperAdminClaim = tokenResult.claims?.role === 'super_admin';
+        const isEnvBootstrapAdmin =
+          Boolean(BOOTSTRAP_SUPER_ADMIN_EMAIL) && email === BOOTSTRAP_SUPER_ADMIN_EMAIL;
+
+        // 1. Custom Claim or configured initial Super Admin bootstrap path
+        if (hasSuperAdminClaim || isEnvBootstrapAdmin) {
           const adminRef = doc(db, 'admins', fbUser.uid);
           let adminSnap;
           try {
@@ -601,8 +606,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // 2. If bootstrap super admin, also merge global user_invites & users collections directly
-      if (firebaseUser?.email?.toLowerCase() === BOOTSTRAP_SUPER_ADMIN_EMAIL) {
+      // 2. If custom-claim super_admin, also merge global user_invites & users collections directly
+      const tokenResult = firebaseUser ? await firebaseUser.getIdTokenResult().catch(() => null) : null;
+      if (tokenResult?.claims?.role === 'super_admin') {
         try {
           const invSnap = await getDocs(collection(db, 'user_invites'));
           invSnap.forEach((d) => {

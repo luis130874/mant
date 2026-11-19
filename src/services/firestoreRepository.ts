@@ -3,7 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  deleteDoc,
+  doc,
+  getDoc,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType, stripUndefinedDeep } from '../firebase';
 import {
   Cliente,
@@ -19,7 +27,11 @@ import {
   Sistema,
   Tecnico,
 } from '../types';
-import { formatFechaYYYYMMDD, parseFecha } from '../utils/maintenanceEngine';
+import {
+  formatFechaYYYYMMDD,
+  parseFecha,
+  tecnicoPerteneceAEmpresa,
+} from '../utils/maintenanceEngine';
 import { makeSafeDocId } from '../utils/rbac';
 
 export type ModuloDatosName =
@@ -30,7 +42,9 @@ export type ModuloDatosName =
   | 'ordenesTrabajo'
   | 'calibraciones'
   | 'repuestos'
-  | 'movimientosRepuestos';
+  | 'movimientosRepuestos'
+  | 'tecnicos'
+  | 'sistemas';
 
 export const MODULOS_DATOS: ModuloDatosName[] = [
   'equipos',
@@ -41,6 +55,8 @@ export const MODULOS_DATOS: ModuloDatosName[] = [
   'calibraciones',
   'repuestos',
   'movimientosRepuestos',
+  'tecnicos',
+  'sistemas',
 ];
 
 export const FIRESTORE_SOFT_WARN_BYTES = 750_000;
@@ -113,7 +129,6 @@ export async function persistEmpresaModuloRepo(
   uid: string,
   onWarn?: (msg: string) => void
 ): Promise<void> {
-  const docPath = `empresas/${empId}/datos/${modulo}`;
   checkModuloCapacity(items, modulo, onWarn);
 
   const docRef = doc(db, 'empresas', empId, 'datos', modulo);
@@ -134,7 +149,104 @@ export async function persistEmpresaModuloRepo(
   } else {
     await setDoc(docRef, payload);
   }
-  void docPath;
+}
+
+/**
+ * Atomically reads the latest Firestore array for a company module, transforms it via `mutator`,
+ * validates the 1 MiB / item-count boundaries, and commits inside a Firestore transaction so
+ * concurrent updates from multiple users never overwrite each other silently.
+ */
+export async function mutateEmpresaModuloTransactionRepo<T>(
+  empId: string,
+  modulo: ModuloDatosName,
+  uid: string,
+  mutator: (currentItems: T[]) => T[],
+  onWarn?: (msg: string) => void
+): Promise<T[]> {
+  const docRef = doc(db, 'empresas', empId, 'datos', modulo);
+
+  const result = await runTransaction(db, async (transaction) => {
+    const snap = await transaction.get(docRef);
+    const currentItems: T[] = snap.exists()
+      ? (((snap.data()?.items as T[]) || []).slice())
+      : [];
+
+    const nextItems = mutator(currentItems);
+    checkModuloCapacity(nextItems, modulo, onWarn);
+    const cleanItems = stripUndefinedDeep(nextItems) as T[];
+
+    if (
+      snap.exists() &&
+      snap.data()?.empresaCodigo === empId &&
+      snap.data()?.modulo === modulo
+    ) {
+      transaction.update(docRef, {
+        items: cleanItems,
+        updatedAt: serverTimestamp(),
+        updatedBy: uid,
+      });
+    } else {
+      transaction.set(docRef, {
+        empresaCodigo: empId,
+        modulo,
+        items: cleanItems,
+        updatedAt: serverTimestamp(),
+        updatedBy: uid,
+      });
+    }
+
+    return cleanItems;
+  });
+
+  return result;
+}
+
+export async function mutateCatalogoTransactionRepo<T>(
+  catalogo: 'sistemas' | 'frecuencias' | 'tecnicos' | 'empresas_index',
+  uid: string,
+  mutator: (currentItems: T[]) => T[],
+  onWarn?: (msg: string) => void
+): Promise<T[]> {
+  const docRef = doc(db, 'catalogos', catalogo);
+
+  const result = await runTransaction(db, async (transaction) => {
+    const snap = await transaction.get(docRef);
+    const currentItems: T[] = snap.exists()
+      ? (((snap.data()?.items as T[]) || []).slice())
+      : [];
+
+    const nextItems = mutator(currentItems);
+    const bytes = estimatePayloadBytes(nextItems);
+    if (bytes > FIRESTORE_HARD_LIMIT_BYTES) {
+      throw new Error(
+        `El catálogo "${catalogo}" (${Math.round(bytes / 1024)} KB) supera el límite seguro de 1 MiB.`
+      );
+    }
+    if (bytes > FIRESTORE_SOFT_WARN_BYTES && onWarn) {
+      onWarn(
+        `El catálogo "${catalogo}" ocupa ${Math.round(bytes / 1024)} KB (cerca del límite de 1 MiB).`
+      );
+    }
+
+    const cleanItems = stripUndefinedDeep(nextItems) as T[];
+    if (snap.exists() && snap.data()?.catalogo === catalogo) {
+      transaction.update(docRef, {
+        items: cleanItems,
+        updatedAt: serverTimestamp(),
+        updatedBy: uid,
+      });
+    } else {
+      transaction.set(docRef, {
+        catalogo,
+        items: cleanItems,
+        updatedAt: serverTimestamp(),
+        updatedBy: uid,
+      });
+    }
+    return cleanItems;
+  });
+
+  return result;
 }
 
 export async function persistCatalogoRepo(
@@ -225,6 +337,8 @@ async function writeCompanyBuckets(params: {
   calibraciones: OrdenCalibracion[];
   repuestos: Repuesto[];
   movimientosRepuestos: MovimientoRepuesto[];
+  tecnicos?: Tecnico[];
+  sistemas?: Sistema[];
   onPathChange?: (path: string) => void;
 }): Promise<void> {
   const { cli, empId, isFirstCompany, uid, onPathChange } = params;
@@ -242,6 +356,8 @@ async function writeCompanyBuckets(params: {
   );
   const repIds = new Set(repEmp.map((r) => r.id));
   const movEmp = params.movimientosRepuestos.filter((m) => repIds.has(m.repuesto_id));
+  const tecEmp = (params.tecnicos || []).filter((t) => tecnicoPerteneceAEmpresa(t, cli.nombre));
+  const sisEmp = params.sistemas || [];
 
   const buckets: Record<ModuloDatosName, unknown[]> = {
     equipos: eqEmp,
@@ -252,6 +368,8 @@ async function writeCompanyBuckets(params: {
     calibraciones: calEmp,
     repuestos: repEmp,
     movimientosRepuestos: movEmp,
+    tecnicos: tecEmp,
+    sistemas: sisEmp,
   };
 
   for (const mod of MODULOS_DATOS) {
@@ -403,6 +521,8 @@ export async function seedFirestoreIfEmptyRepo(uid: string): Promise<void> {
       calibraciones: rawCal,
       repuestos: rawRepuestos,
       movimientosRepuestos: rawMovs,
+      tecnicos: rawTecnicos,
+      sistemas: rawSistemas,
     });
   }
 
@@ -448,6 +568,8 @@ export async function resetAllDataRepo(existingClientes: Cliente[], uid: string)
         calibraciones: initial.INITIAL_CALIBRACIONES,
         repuestos: initial.INITIAL_REPUESTOS,
         movimientosRepuestos: initial.INITIAL_MOVIMIENTOS_REPUESTOS,
+        tecnicos: initial.INITIAL_TECNICOS,
+        sistemas: initial.INITIAL_SISTEMAS,
         onPathChange: (p) => {
           currentPath = p;
         },
@@ -491,17 +613,20 @@ export async function importBackupRepo(
 ): Promise<void> {
   let currentPath = 'catalogos/sistemas';
   try {
-    if (Array.isArray(backup.sistemas)) {
+    const bSistemas = Array.isArray(backup.sistemas) ? (backup.sistemas as Sistema[]) : undefined;
+    const bTecnicos = Array.isArray(backup.tecnicos) ? (backup.tecnicos as Tecnico[]) : undefined;
+
+    if (bSistemas) {
       currentPath = 'catalogos/sistemas';
-      await persistCatalogoRepo('sistemas', backup.sistemas, uid);
+      await persistCatalogoRepo('sistemas', bSistemas, uid);
     }
     if (Array.isArray(backup.frecuencias)) {
       currentPath = 'catalogos/frecuencias';
       await persistCatalogoRepo('frecuencias', backup.frecuencias, uid);
     }
-    if (Array.isArray(backup.tecnicos)) {
+    if (bTecnicos) {
       currentPath = 'catalogos/tecnicos';
-      await persistCatalogoRepo('tecnicos', backup.tecnicos, uid);
+      await persistCatalogoRepo('tecnicos', bTecnicos, uid);
     }
 
     const bClientes = Array.isArray(backup.clientes)
@@ -543,6 +668,8 @@ export async function importBackupRepo(
         calibraciones: bCal,
         repuestos: bRep,
         movimientosRepuestos: bMov,
+        tecnicos: bTecnicos,
+        sistemas: bSistemas,
         onPathChange: (p) => {
           currentPath = p;
         },

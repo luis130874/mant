@@ -7,7 +7,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Cpu,
   Plus,
-  Search,
   Filter,
   Edit2,
   Trash2,
@@ -23,6 +22,8 @@ import { hasActionAccess } from '../utils/rbac';
 import { Equipo } from '../types';
 import { tecnicoPerteneceAEmpresa } from '../utils/maintenanceEngine';
 import { CatalogoListadoModal } from './CatalogoListadoModal';
+import { ModuleFilterBar } from './ui/ModuleFilterBar';
+import { EmptyState } from './ui/EmptyState';
 
 export const EquiposView: React.FC = () => {
   const {
@@ -46,6 +47,7 @@ export const EquiposView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSistema, setSelectedSistema] = useState('Todos');
   const [selectedEmpresa, setSelectedEmpresa] = useState('Todas');
+  const [selectedCriticidad, setSelectedCriticidad] = useState<'Todas' | 'Alta' | 'Media' | 'Baja'>('Todas');
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [editingEquipoId, setEditingEquipoId] = useState<string | null>(null);
   const [showListadoModal, setShowListadoModal] = useState(false);
@@ -147,9 +149,15 @@ export const EquiposView: React.FC = () => {
 
   // Filter equipment for table view
   const equiposFiltrados = equiposBaseListado.filter(eq => {
-    if (!isTercerosViewEnabled || selectedEmpresa === 'Todas') return true;
-    if (selectedEmpresa === '__SIN_EMPRESA__') return !(eq.empresa_tercero || '').trim();
-    return (eq.empresa_tercero || '').trim() === selectedEmpresa.trim();
+    const matchesEmp =
+      !isTercerosViewEnabled || selectedEmpresa === 'Todas'
+        ? true
+        : selectedEmpresa === '__SIN_EMPRESA__'
+        ? !(eq.empresa_tercero || '').trim()
+        : (eq.empresa_tercero || '').trim() === selectedEmpresa.trim();
+    const crit = eq.criticidad || 'Media';
+    const matchesCrit = selectedCriticidad === 'Todas' || crit === selectedCriticidad;
+    return matchesEmp && matchesCrit;
   });
 
   const handleOpenCreate = () => {
@@ -361,7 +369,7 @@ export const EquiposView: React.FC = () => {
           {canPrint && (
             <button
               onClick={() => setShowListadoModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-2xs"
+              className="min-h-[40px] flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-2xs whitespace-nowrap shrink-0"
             >
               <Printer className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
               <span>Emitir Listado</span>
@@ -370,7 +378,7 @@ export const EquiposView: React.FC = () => {
           {canEdit && (
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
+              className="min-h-[40px] flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs whitespace-nowrap shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Nuevo Equipo / Frecuencia</span>
@@ -380,89 +388,111 @@ export const EquiposView: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Buscar por código, nombre, marca o frecuencia..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
-            />
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-            <select
-              value={selectedSistema}
-              onChange={(e) => setSelectedSistema(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg py-1.5 px-2.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none"
-            >
-              <option value="Todos">Todos los Sistemas</option>
-              {sistemas.map(s => (
-                <option key={s.codigo_sis} value={s.nombre}>
-                  {s.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {isTercerosViewEnabled && (
+      <ModuleFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Buscar por código, nombre, marca o frecuencia..."
+        activeStatus={selectedCriticidad}
+        onStatusChange={(key) => setSelectedCriticidad(key as 'Todas' | 'Alta' | 'Media' | 'Baja')}
+        statusOptions={[
+          { key: 'Todas', label: 'Todos', count: equiposScopeCliente.length, tone: 'neutral' },
+          { key: 'Alta', label: 'Criticidad Alta', count: equiposScopeCliente.filter(e => (e.criticidad || 'Media') === 'Alta').length, tone: 'rose' },
+          { key: 'Media', label: 'Criticidad Media', count: equiposScopeCliente.filter(e => (e.criticidad || 'Media') === 'Media').length, tone: 'amber' },
+          { key: 'Baja', label: 'Criticidad Baja', count: equiposScopeCliente.filter(e => (e.criticidad || 'Media') === 'Baja').length, tone: 'blue' }
+        ]}
+        totalVisible={equiposFiltrados.length}
+        totalLabel="planes"
+        rightSlot={
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
+              <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
               <select
-                value={selectedEmpresa}
-                onChange={(e) => setSelectedEmpresa(e.target.value)}
-                aria-label="Filtrar equipos por empresa"
-                className="bg-blue-50 dark:bg-blue-950/50 prodexus:bg-[#EEF5FF] border border-blue-200 dark:border-blue-800 prodexus:border-[#B9D2FA] rounded-lg py-1.5 px-2.5 text-xs font-semibold text-blue-900 dark:text-blue-200 prodexus:text-[#132B36] focus:outline-none"
+                value={selectedSistema}
+                onChange={(e) => setSelectedSistema(e.target.value)}
+                className="min-h-[40px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg py-1.5 px-2.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none"
               >
-                <option value="Todas">Todas las Empresas</option>
-                {empresasTercerosDisponibles.map(empName => (
-                  <option key={empName} value={empName}>
-                    {empName}
+                <option value="Todos">Todos los Sistemas</option>
+                {sistemas.map(s => (
+                  <option key={s.codigo_sis} value={s.nombre}>
+                    {s.nombre}
                   </option>
                 ))}
-                {hasEquiposSinEmpresa && (
-                  <option value="__SIN_EMPRESA__">Sin empresa asignada</option>
-                )}
               </select>
             </div>
-          )}
-        </div>
-
-        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
-          Mostrando {equiposFiltrados.length} planes registrados
-        </span>
-      </div>
+            {isTercerosViewEnabled && (
+              <div className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]" />
+                <select
+                  value={selectedEmpresa}
+                  onChange={(e) => setSelectedEmpresa(e.target.value)}
+                  aria-label="Filtrar equipos por empresa"
+                  className="min-h-[40px] bg-blue-50 dark:bg-blue-950/50 prodexus:bg-[#EEF5FF] border border-blue-200 dark:border-blue-800 prodexus:border-[#B9D2FA] rounded-lg py-1.5 px-2.5 text-xs font-semibold text-blue-900 dark:text-blue-200 prodexus:text-[#132B36] focus:outline-none"
+                >
+                  <option value="Todas">Todas las Empresas</option>
+                  {empresasTercerosDisponibles.map(empName => (
+                    <option key={empName} value={empName}>
+                      {empName}
+                    </option>
+                  ))}
+                  {hasEquiposSinEmpresa && (
+                    <option value="__SIN_EMPRESA__">Sin empresa asignada</option>
+                  )}
+                </select>
+              </div>
+            )}
+          </div>
+        }
+      />
 
       {/* Equipment Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
+      <div className="cmms-table-wrap">
+        {equiposFiltrados.length === 0 ? (
+          <div className="p-4">
+            <EmptyState
+              icon={Cpu}
+              title={equiposScopeCliente.length === 0 ? 'Sin equipos registrados' : 'Sin resultados para los filtros'}
+              description={
+                equiposScopeCliente.length === 0
+                  ? 'Registre el primer equipo o plan de mantenimiento preventivo para comenzar a programar órdenes en esta planta.'
+                  : 'No se encontraron equipos que coincidan con la búsqueda, sistema o criticidad seleccionada.'
+              }
+              actionLabel={canEdit && equiposScopeCliente.length === 0 ? 'Registrar Primer Equipo' : undefined}
+              onAction={canEdit && equiposScopeCliente.length === 0 ? handleOpenCreate : undefined}
+              secondaryLabel={
+                searchQuery || selectedSistema !== 'Todos' || selectedCriticidad !== 'Todas' || selectedEmpresa !== 'Todas'
+                  ? 'Limpiar filtros'
+                  : undefined
+              }
+              onSecondaryAction={
+                searchQuery || selectedSistema !== 'Todos' || selectedCriticidad !== 'Todas' || selectedEmpresa !== 'Todas'
+                  ? () => {
+                      setSearchQuery('');
+                      setSelectedSistema('Todos');
+                      setSelectedCriticidad('Todas');
+                      setSelectedEmpresa('Todas');
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        ) : (
+        <div className="overflow-x-auto max-h-[68vh]">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
               <tr>
-                <th className="py-3 px-4">Código (ID)</th>
-                <th className="py-3 px-4">Equipo & Planta</th>
-                {isTercerosViewEnabled && <th className="py-3 px-4">Empresa</th>}
-                <th className="py-3 px-4">Sistema</th>
-                <th className="py-3 px-4">Marca / Modelo</th>
-                <th className="py-3 px-4 text-center">Frecuencia</th>
-                <th className="py-3 px-4 text-center">Criticidad</th>
-                <th className="py-3 px-4">Técnico Habitual</th>
-                <th className="py-3 px-4 text-right">Acciones</th>
+                <th className="cmms-th py-3 px-4">Código (ID)</th>
+                <th className="cmms-th py-3 px-4">Equipo & Planta</th>
+                {isTercerosViewEnabled && <th className="cmms-th py-3 px-4">Empresa</th>}
+                <th className="cmms-th py-3 px-4">Sistema</th>
+                <th className="cmms-th py-3 px-4">Marca / Modelo</th>
+                <th className="cmms-th py-3 px-4 text-center">Frecuencia</th>
+                <th className="cmms-th py-3 px-4 text-center">Criticidad</th>
+                <th className="cmms-th py-3 px-4">Técnico Habitual</th>
+                <th className="cmms-th py-3 px-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E6EEF2]">
-              {equiposFiltrados.length === 0 ? (
-                <tr>
-                  <td colSpan={isTercerosViewEnabled ? 9 : 8} className="py-12 text-center text-slate-500 dark:text-slate-400">
-                    No se encontraron equipos registrados para los criterios seleccionados.
-                  </td>
-                </tr>
-              ) : (
-                equiposFiltrados.map((eq, rowIdx) => {
+            <tbody>
+              {equiposFiltrados.map((eq, rowIdx) => {
                   const keyRow = `${eq.cliente}_${eq.id || `${eq.codigo_eq}___${eq.frecuencia}`}_${rowIdx}`;
                   const planesMismoCodigo = equipos.filter(
                     e => e.cliente.trim() === eq.cliente.trim() && e.codigo_eq.toUpperCase() === eq.codigo_eq.toUpperCase()
@@ -555,11 +585,11 @@ export const EquiposView: React.FC = () => {
                       </td>
                     </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Modal Alta / Modificar */}

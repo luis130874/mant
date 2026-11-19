@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   X,
   CheckCircle2,
@@ -19,7 +19,8 @@ import {
   ShieldCheck,
   ShieldAlert,
   ClipboardCheck,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { useAuth } from '../context/AuthContext';
@@ -79,13 +80,16 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
     certificarCalibracionProyectada,
     registrarSalidasStockBatch,
     validarOrdenDigitalSupervisor,
-    addToast
+    addToast,
+    confirmAction
   } = useMaintenance();
   const { userProfile } = useAuth();
   const canClose = hasActionAccess(userProfile, 'cerrar_ordenes');
   const canPrint = hasActionAccess(userProfile, 'imprimir_pdf');
   const canValidate = canValidateDigitalOrder(userProfile);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const confirmingCloseRef = useRef(false);
   const [justCertifiedCalFolio, setJustCertifiedCalFolio] = useState<string | null>(null);
   const [submittedSnapshot, setSubmittedSnapshot] = useState<{
     fechaReal: string;
@@ -391,6 +395,74 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
     }
   }, [userProfile?.nombre, valSupervisorName]);
 
+  const isDirty = useMemo(() => {
+    if (isCerrada) {
+      return isPendingSupervisorValidation && Boolean(valSupervisorSignature || valSupervisorObs.trim());
+    }
+    const hasCalReadings =
+      target.tipo === 'CAL' && calPuntos.some(p => p.lectura_instrumento.trim() !== '');
+    return Boolean(
+      firmaTecnico ||
+        firmaSupervisor ||
+        notasAcciones.trim() ||
+        manualRepuestos.trim() ||
+        stockConsumido.length > 0 ||
+        Object.values(checkedMap).some(Boolean) ||
+        hasCalReadings
+    );
+  }, [
+    isCerrada,
+    isPendingSupervisorValidation,
+    valSupervisorSignature,
+    valSupervisorObs,
+    target.tipo,
+    calPuntos,
+    firmaTecnico,
+    firmaSupervisor,
+    notasAcciones,
+    manualRepuestos,
+    stockConsumido.length,
+    checkedMap
+  ]);
+
+  const handleAttemptClose = async () => {
+    if (isSubmitting || confirmingCloseRef.current) return;
+    if (!isDirty) {
+      onClose();
+      return;
+    }
+    confirmingCloseRef.current = true;
+    try {
+      const confirmed = await confirmAction({
+        title: 'Descartar cambios sin guardar',
+        message:
+          'Hay firmas, mediciones o notas registradas en esta orden que aún no se guardaron. ¿Desea salir y descartarlos?',
+        confirmText: 'Salir sin guardar',
+        cancelText: 'Seguir editando',
+        tone: 'warning'
+      });
+      if (confirmed) {
+        onClose();
+      }
+    } finally {
+      confirmingCloseRef.current = false;
+    }
+  };
+
+  const handleAttemptCloseRef = useRef(handleAttemptClose);
+  handleAttemptCloseRef.current = handleAttemptClose;
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        void handleAttemptCloseRef.current();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   const handleSelectAllTasks = () => {
     const all: Record<number, boolean> = {};
     protocolSteps.forEach((_, idx) => {
@@ -508,6 +580,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
 
   const handleValidateBySupervisor = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!canValidate) {
       addToast('Su perfil no tiene permisos de supervisión para validar órdenes.', 'error');
       return;
@@ -518,6 +591,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
       return;
     }
 
+    setIsSubmitting(true);
     const now = new Date();
     const fechaValStr = `${formatFechaDDMMYYYY(now)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const folioEfectivo = resolvedCal?.id_ot || target.folio;
@@ -548,10 +622,12 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
           : prev
       );
     }
+    setTimeout(() => setIsSubmitting(false), 300);
   };
 
   const handleSubmitDigitalClose = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!canClose) {
       addToast('Su perfil no tiene permiso para cerrar órdenes.', 'error');
       return;
@@ -573,6 +649,8 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
       return;
     }
 
+    setIsSubmitting(true);
+    setTimeout(() => setIsSubmitting(false), 300);
     const now = new Date();
     const dReal = parseFecha(fechaReal) || now;
     const fechaRealStr = formatFechaDDMMYYYY(dReal);
@@ -845,7 +923,12 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
   const HeaderIcon = tipoMeta.Icon;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-end sm:items-center justify-center sm:p-4 overflow-hidden no-print">
+    <div
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) void handleAttemptClose();
+      }}
+      className="fixed inset-0 z-50 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-end sm:items-center justify-center sm:p-4 overflow-hidden no-print"
+    >
       <div className="bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] w-full max-w-2xl h-[94dvh] sm:h-auto sm:max-h-[92vh] rounded-t-3xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] shadow-2xl flex flex-col overflow-hidden">
         {/* Sticky Compact Mobile-Friendly Header (<=15% viewport height) */}
         <div className="bg-white dark:bg-slate-900 px-4 sm:px-6 py-3.5 border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex items-center justify-between gap-3 shrink-0">
@@ -870,7 +953,7 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
               <button
                 type="button"
                 onClick={() => onOpenShare(target)}
-                className="min-h-[40px] min-w-[40px] px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] flex items-center justify-center gap-1 text-xs font-semibold"
+                className="min-h-[44px] min-w-[44px] px-3 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] flex items-center justify-center gap-1.5 text-xs font-semibold whitespace-nowrap shrink-0"
                 title="Compartir enlace"
               >
                 <Share2 className="w-4 h-4" />
@@ -879,8 +962,8 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
             )}
             <button
               type="button"
-              onClick={onClose}
-              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] hover:bg-slate-100 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] hover:text-slate-900 dark:hover:text-slate-100 prodexus:hover:text-[#132B36]"
+              onClick={() => void handleAttemptClose()}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] hover:bg-slate-100 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] hover:text-slate-900 dark:hover:text-slate-100 prodexus:hover:text-[#132B36]"
               aria-label="Cerrar"
             >
               <X className="w-5 h-5" />
@@ -1833,8 +1916,9 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
             <>
               <button
                 type="button"
-                onClick={onClose}
-                className="min-h-[44px] px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] transition-colors"
+                disabled={isSubmitting}
+                onClick={() => void handleAttemptClose()}
+                className="min-h-[44px] px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] disabled:opacity-60 transition-colors whitespace-nowrap shrink-0"
               >
                 Cerrar
               </button>
@@ -1842,8 +1926,9 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                 {canPrint && onOpenPrint && (
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => onOpenPrint(buildPrintDocFromCurrentState())}
-                    className="min-h-[44px] px-4 py-2.5 rounded-xl font-bold text-xs text-slate-800 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] hover:bg-slate-50 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] flex items-center justify-center gap-2 transition-colors shadow-xs"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl font-bold text-xs text-slate-800 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] hover:bg-slate-50 dark:hover:bg-slate-800 prodexus:hover:bg-[#E4ECF0] disabled:opacity-60 flex items-center justify-center gap-2 transition-colors shadow-xs whitespace-nowrap shrink-0"
                   >
                     <Printer className="w-4 h-4" />
                     <span className="hidden sm:inline">Ver / Descargar PDF</span>
@@ -1854,10 +1939,11 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                   <button
                     type="submit"
                     form="supervisor-validation-form"
-                    className="flex-1 sm:flex-initial min-h-[44px] px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-amber-600 hover:bg-amber-700 flex items-center justify-center gap-2 transition-colors shadow-sm"
+                    disabled={isSubmitting}
+                    className="flex-1 sm:flex-initial min-h-[44px] px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-60 flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap shrink-0"
                   >
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Validar Cierre Digital</span>
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                    <span>{isSubmitting ? 'Validando...' : 'Validar Cierre Digital'}</span>
                   </button>
                 )}
               </div>
@@ -1866,8 +1952,9 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
             <>
               <button
                 type="button"
-                onClick={onClose}
-                className="min-h-[44px] px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] transition-colors"
+                disabled={isSubmitting}
+                onClick={() => void handleAttemptClose()}
+                className="min-h-[44px] px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 prodexus:text-[#132B36] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#E4ECF0] hover:bg-slate-200 dark:hover:bg-slate-700 prodexus:hover:bg-[#D5E0E6] disabled:opacity-60 transition-colors whitespace-nowrap shrink-0"
               >
                 Cancelar
               </button>
@@ -1875,10 +1962,11 @@ export const DigitalOrderExecutionModal: React.FC<DigitalOrderExecutionModalProp
                 <button
                   type="submit"
                   form="digital-exec-form"
-                  className="flex-1 min-h-[46px] px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 prodexus:bg-[#1FB85C] hover:bg-emerald-700 prodexus:hover:bg-[#189B4C] flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  disabled={isSubmitting}
+                  className="flex-1 min-h-[46px] px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 prodexus:bg-[#1FB85C] hover:bg-emerald-700 prodexus:hover:bg-[#189B4C] disabled:opacity-60 flex items-center justify-center gap-2 transition-colors shadow-sm whitespace-nowrap shrink-0"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Completar y Firmar Orden Digitalmente</span>
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  <span>{isSubmitting ? 'Registrando firma...' : 'Completar y Firmar Orden Digitalmente'}</span>
                 </button>
               )}
             </>

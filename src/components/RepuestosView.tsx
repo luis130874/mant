@@ -7,7 +7,6 @@ import React, { useState, useMemo, useRef } from 'react';
 import {
   Boxes,
   Plus,
-  Search,
   Filter,
   AlertTriangle,
   ArrowUpDown,
@@ -34,6 +33,8 @@ import { formatFechaDDMMYYYY } from '../utils/maintenanceEngine';
 import { exportElementToPDF } from '../utils/pdfGenerator';
 import { resolveSheetClientes } from '../utils/logoResolver';
 import { devError, devWarn } from '../utils/logger';
+import { ModuleFilterBar } from './ui/ModuleFilterBar';
+import { EmptyState } from './ui/EmptyState';
 
 const CATEGORIAS_REPUESTOS = [
   'Rodamientos',
@@ -77,7 +78,7 @@ export const RepuestosView: React.FC = () => {
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoria, setSelectedCategoria] = useState('Todas');
-  const [filtroCriticidad, setFiltroCriticidad] = useState<'Todas' | 'Critico' | 'StockBajo'>('Todas');
+  const [filtroCriticidad, setFiltroCriticidad] = useState<'Todas' | 'Critico' | 'StockBajo' | 'Agotado'>('Todas');
 
   // Modals
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
@@ -125,6 +126,7 @@ export const RepuestosView: React.FC = () => {
       let matchesCrit = true;
       if (filtroCriticidad === 'Critico') matchesCrit = rep.criticidad === 'Crítico';
       if (filtroCriticidad === 'StockBajo') matchesCrit = rep.stock_actual <= rep.stock_minimo;
+      if (filtroCriticidad === 'Agotado') matchesCrit = rep.stock_actual === 0;
 
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch = !q ||
@@ -145,10 +147,11 @@ export const RepuestosView: React.FC = () => {
     const totalItems = scoped.length;
     const totalCriticos = scoped.filter(r => r.criticidad === 'Crítico').length;
     const stockBajoAlerts = scoped.filter(r => r.stock_actual <= r.stock_minimo).length;
+    const agotadosCount = scoped.filter(r => r.stock_actual === 0).length;
     const valorTotal = scoped.reduce((acc, r) => acc + (r.stock_actual * (r.precio_unitario || 0)), 0);
     const totalUnidades = scoped.reduce((acc, r) => acc + r.stock_actual, 0);
 
-    return { totalItems, totalCriticos, stockBajoAlerts, valorTotal, totalUnidades };
+    return { totalItems, totalCriticos, stockBajoAlerts, agotadosCount, valorTotal, totalUnidades };
   }, [repuestos, selectedCliente]);
 
   // Open Create Modal
@@ -564,14 +567,9 @@ export const RepuestosView: React.FC = () => {
           }`}
         >
           <div>
-            <div className="flex items-center gap-1.5">
-              <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">Alertas de Stock Bajo</p>
-              {kpis.stockBajoAlerts > 0 && (
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-              )}
-            </div>
-            <p className="text-2xl font-black text-amber-900 dark:text-amber-200 mt-0.5">{kpis.stockBajoAlerts}</p>
-            <p className="text-[10px] text-amber-700 dark:text-amber-400 mt-0.5 font-medium">
+            <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">Alertas de Stock Bajo</p>
+            <p className="text-2xl font-black tabular-nums text-amber-900 dark:text-amber-200 mt-0.5">{kpis.stockBajoAlerts}</p>
+            <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5 font-medium">
               {filtroCriticidad === 'StockBajo' ? 'Filtrando en tabla (clic para quitar)' : 'Existencia <= Stock mínimo'}
             </p>
           </div>
@@ -596,27 +594,28 @@ export const RepuestosView: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs no-print">
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Search */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Buscar por código, nombre, parte OEM, proveedor o equipo..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none focus:ring-2 focus:ring-blue-500 w-72"
-            />
-          </div>
-
-          {/* Categoría */}
+      <ModuleFilterBar
+        className="no-print"
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Buscar por código, nombre, parte OEM, proveedor o equipo..."
+        activeStatus={filtroCriticidad}
+        onStatusChange={(key) => setFiltroCriticidad(key as 'Todas' | 'Critico' | 'StockBajo' | 'Agotado')}
+        statusOptions={[
+          { key: 'Todas', label: 'Todos', count: kpis.totalItems, tone: 'neutral' },
+          { key: 'Critico', label: 'Solo Críticos', count: kpis.totalCriticos, tone: 'rose' },
+          { key: 'StockBajo', label: 'Stock Bajo', count: kpis.stockBajoAlerts, tone: 'amber' },
+          { key: 'Agotado', label: 'Agotados', count: kpis.agotadosCount, tone: 'rose' }
+        ]}
+        totalVisible={repuestosFiltrados.length}
+        totalLabel="repuestos"
+        rightSlot={
           <div className="flex items-center gap-1.5">
             <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]" />
             <select
               value={selectedCategoria}
               onChange={(e) => setSelectedCategoria(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg py-1.5 px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none"
+              className="min-h-[40px] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg py-1.5 px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none"
             >
               <option value="Todas">Todas las Categorías</option>
               {CATEGORIAS_REPUESTOS.map(cat => (
@@ -626,40 +625,8 @@ export const RepuestosView: React.FC = () => {
               ))}
             </select>
           </div>
-
-          {/* Filtro Criticidad */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 prodexus:bg-[#E4ECF0] p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] text-[11px] font-semibold text-slate-600 dark:text-slate-400 prodexus:text-[#4D6976]">
-            <button
-              onClick={() => setFiltroCriticidad('Todas')}
-              className={`px-2.5 py-1 rounded-md transition-colors ${
-                filtroCriticidad === 'Todas' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] shadow-2xs' : 'hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              Todos
-            </button>
-            <button
-              onClick={() => setFiltroCriticidad('Critico')}
-              className={`px-2.5 py-1 rounded-md transition-colors ${
-                filtroCriticidad === 'Critico' ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-400 shadow-2xs font-bold' : 'hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              Solo Críticos
-            </button>
-            <button
-              onClick={() => setFiltroCriticidad('StockBajo')}
-              className={`px-2.5 py-1 rounded-md transition-colors ${
-                filtroCriticidad === 'StockBajo' ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-400 shadow-2xs font-bold' : 'hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              Stock Bajo ({kpis.stockBajoAlerts})
-            </button>
-          </div>
-        </div>
-
-        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
-          Mostrando {repuestosFiltrados.length} de {repuestos.length} repuestos
-        </span>
-      </div>
+        }
+      />
 
       {/* Main Interactive Table Viewport */}
       <div ref={printAreaRef} className={`space-y-4 ${showPrintPreview ? 'no-print' : ''}`}>
@@ -701,10 +668,39 @@ export const RepuestosView: React.FC = () => {
         </div>
 
         {/* Repuestos Table */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900 prodexus:bg-[#132B36] text-white font-bold text-[10.5px] uppercase tracking-wider">
+        <div className="cmms-table-wrap">
+          {repuestosFiltrados.length === 0 ? (
+            <div className="p-4 no-print">
+              <EmptyState
+                icon={Boxes}
+                title={kpis.totalItems === 0 ? 'Sin repuestos en inventario' : 'Sin coincidencias en inventario'}
+                description={
+                  kpis.totalItems === 0
+                    ? 'Registre repuestos críticos, filtros, rodamientos y consumibles para controlar stock mínimo y descontarlos al cerrar órdenes.'
+                    : 'No se encontraron repuestos que coincidan con el filtro de estado, categoría o búsqueda actual.'
+                }
+                actionLabel={canEdit && kpis.totalItems === 0 ? 'Registrar Primer Repuesto' : undefined}
+                onAction={canEdit && kpis.totalItems === 0 ? handleOpenCreate : undefined}
+                secondaryLabel={
+                  searchQuery || selectedCategoria !== 'Todas' || filtroCriticidad !== 'Todas'
+                    ? 'Limpiar filtros'
+                    : undefined
+                }
+                onSecondaryAction={
+                  searchQuery || selectedCategoria !== 'Todas' || filtroCriticidad !== 'Todas'
+                    ? () => {
+                        setSearchQuery('');
+                        setSelectedCategoria('Todas');
+                        setFiltroCriticidad('Todas');
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          ) : (
+          <div className="overflow-x-auto max-h-[68vh]">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="sticky top-0 z-10 bg-slate-900 prodexus:bg-[#132B36] text-white font-bold text-[11px] uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-3.5">Código / OEM P/N</th>
                   <th className="py-3 px-3.5">Repuesto & Categoría</th>
@@ -719,14 +715,7 @@ export const RepuestosView: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#D5E0E6]">
-                {repuestosFiltrados.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="py-12 text-center text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-medium">
-                      No se encontraron repuestos registrados para los criterios seleccionados.
-                    </td>
-                  </tr>
-                ) : (
-                  repuestosFiltrados.map(rep => {
+                {repuestosFiltrados.map(rep => {
                     const isBajoStock = rep.stock_actual <= rep.stock_minimo;
                     const valorFila = rep.stock_actual * (rep.precio_unitario || 0);
 
@@ -802,18 +791,18 @@ export const RepuestosView: React.FC = () => {
                         <td className="py-3 px-3 text-center">
                           <div className="inline-flex flex-col items-center">
                             <div className="flex items-center gap-1">
-                              <span className={`font-mono text-xs font-black ${
+                              <span className={`font-mono tabular-nums text-xs font-black ${
                                 isBajoStock ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]'
                               }`}>
                                 {rep.stock_actual}
                               </span>
-                              <span className="text-[10px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">/ {rep.stock_minimo} min</span>
+                              <span className="text-[10px] tabular-nums text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976]">/ {rep.stock_minimo} min</span>
                             </div>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 ${
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded mt-0.5 ${
                               rep.stock_actual === 0
                                 ? 'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300'
                                 : isBajoStock
-                                ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 animate-pulse'
+                                ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
                                 : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
                             }`}>
                               {rep.stock_actual === 0
@@ -822,7 +811,7 @@ export const RepuestosView: React.FC = () => {
                                 ? 'Reorden'
                                 : 'En Stock'}
                             </span>
-                            <span className="text-[9px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] font-medium mt-0.5">
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] font-medium mt-0.5">
                               {rep.unidad_medida}
                             </span>
                           </div>
@@ -834,13 +823,13 @@ export const RepuestosView: React.FC = () => {
                         </td>
 
                         {/* Precio Unitario */}
-                        <td className="py-3 px-3 text-right font-mono font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
+                        <td className="py-3 px-3 text-right font-mono tabular-nums font-bold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">
                           ${rep.precio_unitario.toFixed(2)}
-                          <span className="text-[9px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] block font-normal">{rep.moneda || 'USD'}</span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] block font-normal">{rep.moneda || 'USD'}</span>
                         </td>
 
                         {/* Valor Total */}
-                        <td className="py-3 px-3 text-right font-mono font-black text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
+                        <td className="py-3 px-3 text-right font-mono tabular-nums font-black text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
                           ${valorFila.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
 
@@ -894,11 +883,11 @@ export const RepuestosView: React.FC = () => {
                         </td>
                       </tr>
                     );
-                  })
-                )}
+                  })}
               </tbody>
             </table>
           </div>
+          )}
         </div>
       </div>
 

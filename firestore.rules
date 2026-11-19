@@ -37,8 +37,8 @@ service cloud.firestore {
       return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function isBootstrapSuperAdmin() {
-      return isVerified() && authEmail() == 'luismarcelosanchez1974@gmail.com';
+    function isTokenSuperAdmin() {
+      return isVerified() && ('role' in request.auth.token) && request.auth.token.role == 'super_admin';
     }
 
     function userExists() {
@@ -50,13 +50,9 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return isBootstrapSuperAdmin() ||
+      return isTokenSuperAdmin() ||
         (isVerified() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))) ||
         (userExists() && userDoc().activo == true && userDoc().role == 'super_admin');
-    }
-
-    function isActiveUser() {
-      return isSuperAdmin() || (userExists() && userDoc().activo == true);
     }
 
     function isCompanyMember(empresaId) {
@@ -76,41 +72,45 @@ service cloud.firestore {
       );
     }
 
-    function canWriteCompanyData(empresaId) {
+    function hasMod(moduloKey) {
+      return userDoc().permisos is map &&
+        userDoc().permisos.modulos is map &&
+        moduloKey in userDoc().permisos.modulos &&
+        userDoc().permisos.modulos[moduloKey] == true;
+    }
+
+    function hasAct(accionKey) {
+      return userDoc().permisos is map &&
+        userDoc().permisos.acciones is map &&
+        accionKey in userDoc().permisos.acciones &&
+        userDoc().permisos.acciones[accionKey] == true;
+    }
+
+    function canWriteCompanyModulo(empresaId, moduloId) {
       return isSuperAdmin() || (
         userExists() &&
         userDoc().activo == true &&
         userDoc().empresaCodigo == empresaId && (
-          userDoc().role == 'company_admin' ||
-          (
-            userDoc().permisos is map &&
-            userDoc().permisos.acciones is map && (
-              userDoc().permisos.acciones.crear_editar == true ||
-              userDoc().permisos.acciones.emitir_ordenes == true ||
-              userDoc().permisos.acciones.cerrar_ordenes == true ||
-              userDoc().permisos.acciones.gestionar_stock == true ||
-              userDoc().permisos.acciones.eliminar == true
-            )
+          userDoc().role == 'company_admin' || (
+            (moduloId == 'equipos' && hasMod('equipos') && (hasAct('crear_editar') || hasAct('eliminar'))) ||
+            (moduloId == 'instrumentos' && (hasMod('instrumentos') || hasMod('calibracion')) && (hasAct('crear_editar') || hasAct('eliminar'))) ||
+            (moduloId == 'historial' && (hasMod('preventivos') || hasMod('plan')) && (hasAct('cerrar_ordenes') || hasAct('crear_editar') || hasAct('eliminar'))) ||
+            (moduloId == 'correctivos' && hasMod('correctivos') && (hasAct('emitir_ordenes') || hasAct('cerrar_ordenes') || hasAct('crear_editar') || hasAct('eliminar'))) ||
+            (moduloId == 'ordenesTrabajo' && hasMod('ordenes') && (hasAct('emitir_ordenes') || hasAct('cerrar_ordenes') || hasAct('crear_editar') || hasAct('eliminar'))) ||
+            (moduloId == 'calibraciones' && (hasMod('calibracion') || hasMod('instrumentos')) && (hasAct('emitir_ordenes') || hasAct('cerrar_ordenes') || hasAct('crear_editar') || hasAct('eliminar'))) ||
+            (moduloId in ['repuestos', 'movimientosRepuestos'] && (
+              (hasMod('repuestos') && (hasAct('gestionar_stock') || hasAct('crear_editar') || hasAct('eliminar'))) ||
+              (hasAct('cerrar_ordenes') && (hasMod('preventivos') || hasMod('correctivos') || hasMod('ordenes') || hasMod('calibracion')))
+            )) ||
+            (moduloId == 'tecnicos' && hasMod('tecnicos') && (hasAct('crear_editar') || hasAct('eliminar'))) ||
+            (moduloId == 'sistemas' && hasMod('configuracion') && (hasAct('crear_editar') || hasAct('eliminar')))
           )
         )
       );
     }
 
-    function canEditCatalog(catalogoId) {
-      return isSuperAdmin() || (
-        userExists() &&
-        userDoc().activo == true && (
-          userDoc().role == 'company_admin' ||
-          (
-            userDoc().permisos is map &&
-            userDoc().permisos.modulos is map &&
-            userDoc().permisos.acciones is map && (
-              (catalogoId == 'tecnicos' && userDoc().permisos.modulos.tecnicos == true && (userDoc().permisos.acciones.crear_editar == true || userDoc().permisos.acciones.eliminar == true)) ||
-              (catalogoId in ['sistemas', 'frecuencias'] && userDoc().permisos.modulos.configuracion == true && (userDoc().permisos.acciones.crear_editar == true || userDoc().permisos.acciones.eliminar == true))
-            )
-          )
-        )
-      );
+    function isActiveUser() {
+      return isSuperAdmin() || (userExists() && userDoc().activo == true);
     }
 
     // 3. Entity Validation Blueprints (Anti-Update-Gap & Type/Size Guards)
@@ -206,7 +206,7 @@ service cloud.firestore {
       return data.keys().hasAll(['empresaCodigo', 'modulo', 'items', 'updatedAt', 'updatedBy']) &&
         data.keys().hasOnly(['empresaCodigo', 'modulo', 'items', 'updatedAt', 'updatedBy']) &&
         data.empresaCodigo is string && data.empresaCodigo.size() >= 1 && data.empresaCodigo.size() <= 64 && data.empresaCodigo.matches('^[a-zA-Z0-9_\\-]+$') &&
-        data.modulo in ['equipos', 'instrumentos', 'historial', 'correctivos', 'ordenesTrabajo', 'calibraciones', 'repuestos', 'movimientosRepuestos'] &&
+        data.modulo in ['equipos', 'instrumentos', 'historial', 'correctivos', 'ordenesTrabajo', 'calibraciones', 'repuestos', 'movimientosRepuestos', 'tecnicos', 'sistemas'] &&
         data.items is list && data.items.size() <= 2500 &&
         (data.items.size() == 0 || data.items[0] is map) &&
         data.updatedAt is timestamp &&
@@ -237,10 +237,10 @@ service cloud.firestore {
 
     match /admins/{uid} {
       allow get: if isVerified() && isValidId(uid) && (request.auth.uid == uid || isSuperAdmin());
-      allow list: if isBootstrapSuperAdmin();
+      allow list: if isTokenSuperAdmin();
       allow create: if isVerified() && isValidId(uid) && isValidAdminRecord(incoming()) &&
         incoming().uid == uid && incoming().createdAt == request.time &&
-        ((isBootstrapSuperAdmin() && request.auth.uid == uid && incoming().email.lower() == authEmail()) || isSuperAdmin());
+        ((isTokenSuperAdmin() && request.auth.uid == uid && incoming().email.lower() == authEmail()) || isSuperAdmin());
       allow update: if false;
       allow delete: if isVerified() && isValidId(uid) && isSuperAdmin() && uid != request.auth.uid;
     }
@@ -251,13 +251,13 @@ service cloud.firestore {
         isSuperAdmin() ||
         (resource != null && isCompanyAdmin(existing().empresaCodigo))
       );
-      allow list: if isBootstrapSuperAdmin() || (isVerified() && resource.data.uid == request.auth.uid);
+      allow list: if isTokenSuperAdmin() || (isVerified() && resource.data.uid == request.auth.uid);
 
       allow create: if isVerified() && isValidId(uid) && isValidUserProfile(incoming()) &&
         incoming().uid == uid &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time && (
-          (isBootstrapSuperAdmin() && request.auth.uid == uid && incoming().email.lower() == authEmail() && incoming().role == 'super_admin' && incoming().activo == true) ||
+          (isTokenSuperAdmin() && request.auth.uid == uid && incoming().email.lower() == authEmail() && incoming().role == 'super_admin' && incoming().activo == true) ||
           isSuperAdmin() ||
           (
             request.auth.uid == uid &&
@@ -306,7 +306,7 @@ service cloud.firestore {
         isSuperAdmin() ||
         (resource != null && (existing().email.lower() == authEmail() || isCompanyAdmin(existing().empresaCodigo)))
       );
-      allow list: if isBootstrapSuperAdmin() || (isVerified() && resource.data.email == authEmail());
+      allow list: if isTokenSuperAdmin() || (isVerified() && resource.data.email == authEmail());
 
       allow create: if isVerified() && isValidId(inviteId) && isValidUserInvite(incoming()) &&
         incoming().id == inviteId &&
@@ -357,7 +357,7 @@ service cloud.firestore {
 
     match /empresas/{empresaId} {
       allow get: if isVerified() && isValidId(empresaId) && isCompanyMember(empresaId);
-      allow list: if isBootstrapSuperAdmin();
+      allow list: if isTokenSuperAdmin();
 
       allow create: if isVerified() && isValidId(empresaId) && isValidEmpresa(incoming()) &&
         incoming().codigo == empresaId &&
@@ -380,7 +380,7 @@ service cloud.firestore {
 
       match /datos/{moduloId} {
         allow get: if isVerified() && isValidId(empresaId) && isValidId(moduloId) && isCompanyMember(empresaId);
-        allow list: if isBootstrapSuperAdmin();
+        allow list: if isTokenSuperAdmin();
 
         allow create: if isVerified() && isValidId(empresaId) && isValidId(moduloId) &&
           isValidEmpresaModuloDatos(incoming()) &&
@@ -389,7 +389,7 @@ service cloud.firestore {
           incoming().updatedBy == request.auth.uid &&
           incoming().updatedAt == request.time &&
           (exists(/databases/$(database)/documents/empresas/$(empresaId)) || existsAfter(/databases/$(database)/documents/empresas/$(empresaId))) &&
-          canWriteCompanyData(empresaId);
+          canWriteCompanyModulo(empresaId, moduloId);
 
         allow update: if isVerified() && isValidId(empresaId) && isValidId(moduloId) &&
           isValidEmpresaModuloDatos(incoming()) &&
@@ -398,14 +398,14 @@ service cloud.firestore {
           incoming().updatedBy == request.auth.uid &&
           incoming().updatedAt == request.time &&
           incoming().diff(existing()).affectedKeys().hasOnly(['items', 'updatedAt', 'updatedBy']) &&
-          canWriteCompanyData(empresaId);
+          canWriteCompanyModulo(empresaId, moduloId);
 
         allow delete: if isVerified() && isValidId(empresaId) && isValidId(moduloId) && isSuperAdmin();
       }
 
       match /config/{docId} {
         allow get: if isVerified() && isValidId(empresaId) && isValidId(docId) && isCompanyAdmin(empresaId);
-        allow list: if isBootstrapSuperAdmin();
+        allow list: if isTokenSuperAdmin();
 
         allow create: if isVerified() && isValidId(empresaId) && isValidId(docId) &&
           docId == 'usuarios' &&
@@ -431,29 +431,25 @@ service cloud.firestore {
 
     match /catalogos/{catalogoId} {
       allow get: if isVerified() && isValidId(catalogoId) && (
-        (catalogoId in ['sistemas', 'frecuencias', 'tecnicos'] && isActiveUser()) ||
-        (catalogoId in ['empresas_index', 'global_users_index'] && isSuperAdmin())
+        (catalogoId in ['sistemas', 'frecuencias'] && isActiveUser()) ||
+        (catalogoId in ['tecnicos', 'empresas_index', 'global_users_index'] && isSuperAdmin())
       );
-      allow list: if isBootstrapSuperAdmin();
+      allow list: if isTokenSuperAdmin();
 
       allow create: if isVerified() && isValidId(catalogoId) &&
         isValidCatalogoGlobal(incoming()) &&
         incoming().catalogo == catalogoId &&
         incoming().updatedBy == request.auth.uid &&
-        incoming().updatedAt == request.time && (
-          isSuperAdmin() ||
-          (catalogoId in ['sistemas', 'frecuencias', 'tecnicos'] && canEditCatalog(catalogoId))
-        );
+        incoming().updatedAt == request.time &&
+        isSuperAdmin();
 
       allow update: if isVerified() && isValidId(catalogoId) &&
         isValidCatalogoGlobal(incoming()) &&
         incoming().catalogo == existing().catalogo &&
         incoming().updatedBy == request.auth.uid &&
         incoming().updatedAt == request.time &&
-        incoming().diff(existing()).affectedKeys().hasOnly(['items', 'updatedAt', 'updatedBy']) && (
-          isSuperAdmin() ||
-          (catalogoId in ['sistemas', 'frecuencias', 'tecnicos'] && canEditCatalog(catalogoId))
-        );
+        incoming().diff(existing()).affectedKeys().hasOnly(['items', 'updatedAt', 'updatedBy']) &&
+        isSuperAdmin();
 
       allow delete: if isVerified() && isValidId(catalogoId) && isSuperAdmin();
     }

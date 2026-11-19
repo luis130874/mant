@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   X,
   AlertTriangle,
@@ -11,7 +11,8 @@ import {
   ClipboardList,
   Plus,
   Compass,
-  Send
+  Send,
+  Loader2
 } from 'lucide-react';
 import { useMaintenance } from '../context/MaintenanceContext';
 import { formatFechaDDMMYYYY, parseFecha, tecnicoPerteneceAEmpresa } from '../utils/maintenanceEngine';
@@ -50,7 +51,8 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
     crearOrdenTrabajo,
     registrarCierrePreventivo,
     crearOrdenCalibracion,
-    addToast
+    addToast,
+    confirmAction
   } = useMaintenance();
 
   const [tipo, setTipo] = useState<'MC' | 'OT' | 'MP' | 'CAL'>('MC');
@@ -91,6 +93,74 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
     [calRangoMin, calRangoMax, calUnidad, calNumPuntos, calIncluirBajada]
   );
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const confirmingCloseRef = useRef(false);
+
+  const isDirty = useMemo(
+    () =>
+      Boolean(
+        descripcion.trim() ||
+          calInstrumentoNombre.trim() ||
+          selectedInstrumentId ||
+          equipoCode ||
+          tecnico
+      ),
+    [descripcion, calInstrumentoNombre, selectedInstrumentId, equipoCode, tecnico]
+  );
+
+  const resetForm = () => {
+    setDescripcion('');
+    setSelectedInstrumentId('');
+    setCalInstrumentoNombre('');
+    setEquipoCode('');
+    setTecnico('');
+    setIsSubmitting(false);
+  };
+
+  const handleCloseModal = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleAttemptClose = async () => {
+    if (isSubmitting || confirmingCloseRef.current) return;
+    if (!isDirty) {
+      handleCloseModal();
+      return;
+    }
+    confirmingCloseRef.current = true;
+    try {
+      const confirmed = await confirmAction({
+        title: 'Descartar nueva orden sin guardar',
+        message:
+          'Hay datos cargados en el formulario que aún no se guardaron. ¿Desea salir y descartarlos?',
+        confirmText: 'Salir sin guardar',
+        cancelText: 'Seguir editando',
+        tone: 'warning'
+      });
+      if (confirmed) {
+        handleCloseModal();
+      }
+    } finally {
+      confirmingCloseRef.current = false;
+    }
+  };
+
+  const handleAttemptCloseRef = useRef(handleAttemptClose);
+  handleAttemptCloseRef.current = handleAttemptClose;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        void handleAttemptCloseRef.current();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const equiposDisponibles =
@@ -103,19 +173,6 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
       ? instrumentos
       : instrumentos.filter((i) => i.cliente.trim() === selectedCliente.trim())
   ).filter((i) => i.estado === 'Activo');
-
-  const resetForm = () => {
-    setDescripcion('');
-    setSelectedInstrumentId('');
-    setCalInstrumentoNombre('');
-    setEquipoCode('');
-    setTecnico('');
-  };
-
-  const handleCloseModal = () => {
-    resetForm();
-    onClose();
-  };
 
   const handleSelectMagnitude = (magNombre: string) => {
     setCalMagnitud(magNombre);
@@ -155,6 +212,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
   };
 
   const createOrderAndMaybeDispatch = (dispatchMode: 'none' | 'share' | 'execute') => {
+    if (isSubmitting) return;
     const instObj = instrumentosDisponibles.find(
       (i) => `${i.cliente}___${i.codigo_inst}` === selectedInstrumentId
     );
@@ -175,6 +233,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
       return;
     }
 
+    setIsSubmitting(true);
     const clienteName =
       instObj?.cliente ||
       eqObj?.cliente ||
@@ -220,7 +279,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
           equipo: eqObj,
           correctivo: mcObj
         };
-        onClose();
+        handleCloseModal();
         if (dispatchMode === 'share') onShareOrder?.(target);
         else onOpenDigitalExecution?.(target);
         return;
@@ -262,7 +321,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
           equipo: eqObj,
           ordenTrabajo: otObj
         };
-        onClose();
+        handleCloseModal();
         if (dispatchMode === 'share') onShareOrder?.(target);
         else onOpenDigitalExecution?.(target);
         return;
@@ -356,7 +415,12 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
+    <div
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) void handleAttemptClose();
+      }}
+      className="fixed inset-0 z-50 bg-slate-900/50 dark:bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4"
+    >
       <div
         className={`bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 prodexus:border-[#D5E0E6] w-full p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto ${
           tipo === 'CAL' ? 'max-w-xl' : 'max-w-md'
@@ -369,8 +433,9 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
           </h2>
           <button
             type="button"
-            onClick={handleCloseModal}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-semibold p-1"
+            onClick={() => void handleAttemptClose()}
+            aria-label="Cerrar modal"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -721,26 +786,30 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({
           <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
             <button
               type="button"
-              onClick={handleCloseModal}
-              className="px-4 py-2 font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => void handleAttemptClose()}
+              disabled={isSubmitting}
+              className="min-h-[44px] px-4 py-2 font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-60 transition-colors whitespace-nowrap shrink-0"
             >
               Cancelar
             </button>
             {tipo !== 'MP' && onShareOrder && (
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => createOrderAndMaybeDispatch('share')}
-                className="px-3.5 py-2 font-bold text-indigo-700 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors flex items-center gap-1.5"
+                className="min-h-[44px] px-3.5 py-2 font-bold text-indigo-700 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/60 disabled:opacity-60 transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
               >
-                <Send className="w-3.5 h-3.5" />
-                Crear y Cierre Digital
+                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                <span>Crear y Cierre Digital</span>
               </button>
             )}
             <button
               type="submit"
-              className="px-4 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
+              disabled={isSubmitting}
+              className="min-h-[44px] px-4 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] disabled:opacity-60 transition-colors shadow-xs inline-flex items-center gap-1.5 whitespace-nowrap shrink-0"
             >
-              Crear Orden
+              {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              <span>{isSubmitting ? 'Creando...' : 'Crear Orden'}</span>
             </button>
           </div>
         </form>

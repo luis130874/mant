@@ -9,7 +9,6 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Search,
   Mail,
   Phone,
   Building2,
@@ -27,6 +26,8 @@ import {
   tecnicoPerteneceAEmpresa
 } from '../utils/maintenanceEngine';
 import { Tecnico } from '../types';
+import { ModuleFilterBar } from './ui/ModuleFilterBar';
+import { EmptyState } from './ui/EmptyState';
 
 export const TecnicosView: React.FC = () => {
   const {
@@ -46,6 +47,7 @@ export const TecnicosView: React.FC = () => {
   const canDelete = hasActionAccess(userProfile, 'eliminar');
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [estadoFilter, setEstadoFilter] = useState<'todos' | 'activo' | 'inactivo'>('todos');
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [editingCodigo, setEditingCodigo] = useState<string | null>(null);
 
@@ -71,6 +73,8 @@ export const TecnicosView: React.FC = () => {
   const kpiMap = new Map(kpis.map(k => [k.codigo_tec, k]));
 
   const filteredTecnicos = tecnicosScope.filter(t => {
+    if (estadoFilter === 'activo' && t.estado !== 'Activo') return false;
+    if (estadoFilter === 'inactivo' && t.estado !== 'Inactivo') return false;
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
     const empMatch = isTecnicoDeTodasLasEmpresas(t)
@@ -218,7 +222,7 @@ export const TecnicosView: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs"
+              className="min-h-[40px] flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 prodexus:bg-[#2F7CF6] rounded-lg hover:bg-blue-700 prodexus:hover:bg-[#2566D1] transition-colors shadow-xs whitespace-nowrap shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Nuevo Técnico</span>
@@ -228,36 +232,49 @@ export const TecnicosView: React.FC = () => {
       </div>
 
       {/* Search and Summary */}
-      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 prodexus:text-[#4D6976] absolute left-2.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre, código, especialidad o empresa..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] w-full sm:w-72"
-          />
-        </div>
-        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
-          {tecnicosScope.filter(t => t.estado === 'Activo').length} Activos · {tecnicosScope.filter(t => t.estado === 'Inactivo').length} Inactivos
-          {selectedCliente !== 'Todos' ? ` en ${selectedCliente}` : ''}
-        </span>
-      </div>
+      <ModuleFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Buscar por nombre, código, especialidad o empresa..."
+        activeStatus={estadoFilter}
+        onStatusChange={(key) => setEstadoFilter(key as 'todos' | 'activo' | 'inactivo')}
+        statusOptions={[
+          { key: 'todos', label: 'Todos', count: tecnicosScope.length, tone: 'neutral' },
+          { key: 'activo', label: 'Activos', count: tecnicosScope.filter(t => t.estado === 'Activo').length, tone: 'emerald' },
+          { key: 'inactivo', label: 'Inactivos', count: tecnicosScope.filter(t => t.estado === 'Inactivo').length, tone: 'amber' }
+        ]}
+        totalVisible={filteredTecnicos.length}
+        totalLabel="técnicos"
+      />
 
       {/* Technicians Grid */}
       {filteredTecnicos.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] p-10 text-center space-y-2">
-          <Users2 className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200 prodexus:text-[#132B36]">
-            No hay técnicos registrados para {selectedCliente === 'Todos' ? 'los criterios buscados' : selectedCliente}
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
-            {canEdit
-              ? 'Utilice "Nuevo Técnico" para agregar personal a la plantilla de esta empresa.'
-              : 'Consulte con un administrador para asignar técnicos a esta empresa.'}
-          </p>
-        </div>
+        <EmptyState
+          icon={Users2}
+          title={
+            tecnicosScope.length === 0
+              ? `Sin técnicos asignados${selectedCliente !== 'Todos' ? ` en ${selectedCliente}` : ''}`
+              : 'Sin técnicos para los filtros actuales'
+          }
+          description={
+            tecnicosScope.length === 0
+              ? canEdit
+                ? 'Agregue técnicos y especialistas a la cuadrilla de esta empresa para poder asignarlos en órdenes MP, MC, OT y Calibración.'
+                : 'Consulte con un administrador para asignar técnicos a la plantilla de esta empresa.'
+              : 'No se encontraron técnicos que coincidan con el estado o término buscado.'
+          }
+          actionLabel={canEdit && tecnicosScope.length === 0 ? 'Registrar Primer Técnico' : undefined}
+          onAction={canEdit && tecnicosScope.length === 0 ? handleOpenCreate : undefined}
+          secondaryLabel={searchQuery || estadoFilter !== 'todos' ? 'Limpiar filtros' : undefined}
+          onSecondaryAction={
+            searchQuery || estadoFilter !== 'todos'
+              ? () => {
+                  setSearchQuery('');
+                  setEstadoFilter('todos');
+                }
+              : undefined
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {filteredTecnicos.map(tec => {
@@ -362,15 +379,15 @@ export const TecnicosView: React.FC = () => {
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800 prodexus:border-[#D5E0E6] space-y-2 text-xs">
                   <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                     <span>Asignadas (MC + OT):</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{kpi?.asignadas_total || 0}</span>
+                    <span className="font-mono tabular-nums font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{kpi?.asignadas_total || 0}</span>
                   </div>
                   <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                     <span>Pendientes en curso:</span>
-                    <span className="font-mono font-bold text-amber-600 dark:text-amber-400">{kpi?.pendientes || 0}</span>
+                    <span className="font-mono tabular-nums font-bold text-amber-600 dark:text-amber-400">{kpi?.pendientes || 0}</span>
                   </div>
                   <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                     <span>Efectividad a tiempo:</span>
-                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="font-mono tabular-nums font-bold text-emerald-600 dark:text-emerald-400">
                       {kpi ? `${kpi.cumplimiento_pct.toFixed(1)}%` : '0.0%'}
                     </span>
                   </div>

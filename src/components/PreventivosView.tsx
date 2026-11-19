@@ -3,12 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FileCheck2,
   Printer,
   CheckCircle,
-  Search,
   CheckSquare,
   Share2,
   Smartphone
@@ -29,6 +28,8 @@ import { Equipo } from '../types';
 import { RepuestosConsumoSelector, SelectedRepuestoConsumo } from './RepuestosConsumoSelector';
 import { PrintableDocument } from './PrintModal';
 import { DigitalOrderTarget } from '../utils/digitalOrderLink';
+import { ModuleFilterBar } from './ui/ModuleFilterBar';
+import { EmptyState } from './ui/EmptyState';
 
 interface PreventivosViewProps {
   onPrintOrder?: (order: PrintableDocument) => void;
@@ -63,6 +64,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'emision' | 'cierre' | 'historial'>('emision');
   const [selectedMes, setSelectedMes] = useState<number>(new Date().getMonth() + 1);
   const [searchHistory, setSearchHistory] = useState('');
+  const [historyFilter, setHistoryFilter] = useState<'todos' | 'validados' | 'pend_validacion' | 'manual'>('todos');
 
   // Form State for Cierre
   const [selectedOrderToClose, setSelectedOrderToClose] = useState<string>('');
@@ -181,6 +183,31 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
   }
 
   const selectedPendingItem = pendientesCierreList.find(p => p.folio === selectedOrderToClose);
+
+  const historialScoped = useMemo(() => {
+    return historial.filter(h => {
+      const eqMatch = equipos.find(e => e.codigo_eq === h.codigo_eq);
+      return selectedCliente === 'Todos' || eqMatch?.cliente.trim() === selectedCliente.trim();
+    });
+  }, [historial, equipos, selectedCliente]);
+
+  const filteredHistorial = useMemo(() => {
+    const q = searchHistory.toLowerCase().trim();
+    return historialScoped.filter(h => {
+      const isDigital = Boolean(h.firma_tecnico);
+      const isValidado = Boolean(h.validado_supervisor || h.firma_supervisor);
+      if (historyFilter === 'validados' && !(isDigital && isValidado)) return false;
+      if (historyFilter === 'pend_validacion' && !(isDigital && !isValidado)) return false;
+      if (historyFilter === 'manual' && isDigital) return false;
+      if (!q) return true;
+      return (
+        h.id_ot.toLowerCase().includes(q) ||
+        h.codigo_eq.toLowerCase().includes(q) ||
+        h.comentarios.toLowerCase().includes(q) ||
+        (h.tecnico || '').toLowerCase().includes(q)
+      );
+    });
+  }, [historialScoped, historyFilter, searchHistory]);
 
   const handleCierreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -380,9 +407,11 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
 
           {/* List of Orders for Selected Month */}
           {ocurrenciasMes.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 p-12 text-center rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] text-slate-500 dark:text-slate-400 text-sm">
-              No hay mantenimientos preventivos programados para {MESES_L[selectedMes - 1]} {selectedAnio} en esta planta.
-            </div>
+            <EmptyState
+              icon={FileCheck2}
+              title={`Sin preventivos en ${MESES_L[selectedMes - 1]} ${selectedAnio}`}
+              description="No existen mantenimientos preventivos programados para el mes y año seleccionados en esta planta."
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {ocurrenciasMes.map((item) => {
@@ -420,12 +449,12 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-1.5 flex-wrap justify-end shrink-0">
+                      <div className="flex items-center gap-1.5 flex-wrap sm:justify-end shrink-0">
                         {onShareOrder && (
                           <button
                             type="button"
                             onClick={() => onShareOrder(buildDigitalTargetMP(item))}
-                            className="px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-md flex items-center gap-1 transition-colors"
+                            className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
                             title="Enviar enlace o WhatsApp al técnico"
                           >
                             <Share2 className="w-3.5 h-3.5" />
@@ -436,7 +465,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                           <button
                             type="button"
                             onClick={() => onOpenDigitalExecution(buildDigitalTargetMP(item))}
-                            className="px-2.5 py-1.5 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/70 rounded-md flex items-center gap-1 transition-colors"
+                            className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/70 rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
                             title={item.isCerrada ? 'Ver orden completada / firmas' : 'Completar y firmar digitalmente'}
                           >
                             <Smartphone className="w-3.5 h-3.5" />
@@ -447,7 +476,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handlePrintSingle(item)}
-                            className="px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-md flex items-center gap-1 transition-colors"
+                            className="min-h-[44px] sm:min-h-[34px] px-3 py-1.5 text-xs sm:text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
                             title="Imprimir protocolo en papel / PDF"
                           >
                             <Printer className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
@@ -653,7 +682,7 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
                       {canClose ? (
                         <button
                           type="submit"
-                          className="w-full py-2.5 px-4 text-xs font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#189A4C] transition-colors shadow-sm"
+                          className="w-full min-h-[44px] py-2.5 px-4 text-xs font-bold text-white bg-emerald-600 prodexus:bg-[#1FB85C] rounded-lg hover:bg-emerald-700 prodexus:hover:bg-[#189A4C] transition-colors shadow-sm"
                         >
                           Registrar Cierre y Sincronizar con Plan Maestro
                         </button>
@@ -673,128 +702,160 @@ export const PreventivosView: React.FC<PreventivosViewProps> = ({
 
       {/* SUBTAB 3: Historial */}
       {activeSubTab === 'historial' && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6] overflow-hidden space-y-4 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Buscar en historial por equipo o folio..."
-                value={searchHistory}
-                onChange={(e) => setSearchHistory(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
-              />
-            </div>
-          </div>
+        <div className="space-y-4">
+          <ModuleFilterBar
+            searchQuery={searchHistory}
+            onSearchChange={setSearchHistory}
+            searchPlaceholder="Buscar en historial por equipo, folio o técnico..."
+            activeStatus={historyFilter}
+            onStatusChange={(key) => setHistoryFilter(key as 'todos' | 'validados' | 'pend_validacion' | 'manual')}
+            statusOptions={[
+              { key: 'todos', label: 'Todos', count: historialScoped.length, tone: 'neutral' },
+              {
+                key: 'validados',
+                label: 'Digital Validado',
+                count: historialScoped.filter(h => Boolean(h.firma_tecnico) && Boolean(h.validado_supervisor || h.firma_supervisor)).length,
+                tone: 'emerald'
+              },
+              {
+                key: 'pend_validacion',
+                label: 'Pend. Validación',
+                count: historialScoped.filter(h => Boolean(h.firma_tecnico) && !(h.validado_supervisor || h.firma_supervisor)).length,
+                tone: 'amber'
+              },
+              {
+                key: 'manual',
+                label: 'Cierre Estándar',
+                count: historialScoped.filter(h => !h.firma_tecnico).length,
+                tone: 'blue'
+              }
+            ]}
+            totalVisible={filteredHistorial.length}
+            totalLabel="cierres"
+          />
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/80 prodexus:bg-[#F3F6F8] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 prodexus:border-[#D5E0E6]">
-                <tr>
-                  <th className="py-2.5 px-3">Folio OT</th>
-                  <th className="py-2.5 px-3">Equipo</th>
-                  <th className="py-2.5 px-3 text-center">Mes</th>
-                  <th className="py-2.5 px-3 text-center">Fecha Real</th>
-                  <th className="py-2.5 px-3">Técnico Ejecutor</th>
-                  <th className="py-2.5 px-3">Comentarios / Hallazgos</th>
-                  <th className="py-2.5 px-3">Repuestos</th>
-                  <th className="py-2.5 px-3 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 prodexus:divide-[#E6EEF2]">
-                {historial
-                  .filter(h => {
-                    const eqMatch = equipos.find(e => e.codigo_eq === h.codigo_eq);
-                    if (selectedCliente !== 'Todos' && eqMatch?.cliente.trim() !== selectedCliente.trim()) {
-                      return false;
-                    }
-                    if (!searchHistory) return true;
-                    return h.id_ot.toLowerCase().includes(searchHistory.toLowerCase()) ||
-                      h.codigo_eq.toLowerCase().includes(searchHistory.toLowerCase()) ||
-                      h.comentarios.toLowerCase().includes(searchHistory.toLowerCase());
-                  })
-                  .map(row => {
-                    const eqObj = equipos.find(e => e.codigo_eq === row.codigo_eq);
-                    const printHistoryDoc: PrintableDocument | null = eqObj
-                      ? {
-                          tipo: 'MP',
-                          folio: row.id_ot,
-                          equipo: eqObj,
-                          fechaProgramada: row.fecha_real,
-                          protocolo: eqObj.tareas.split('\n').filter(t => t.trim().length > 0),
-                          tecnico: row.tecnico,
-                          isCerrada: true,
-                          fechaReal: row.fecha_real,
-                          duracionHoras: row.duracion_horas,
-                          accionesRealizadas: row.comentarios,
-                          repuestos: row.repuestos_utilizados,
-                          tareasCompletadas: row.tareas_completadas,
-                          firmaTecnico: row.firma_tecnico,
-                          firmaSupervisor: row.firma_supervisor,
-                          firmadoPor: row.firmado_por,
-                          firmadoSupervisorPor: row.firmado_supervisor_por,
-                          fechaFirmaDigital: row.fecha_firma_digital,
-                          fechaValidacionSupervisor: row.fecha_validacion_supervisor,
-                          observacionSupervisor: row.observacion_supervisor,
-                          ejecucionDigital: row.ejecucion_digital
+          <div className="cmms-table-wrap">
+            {filteredHistorial.length === 0 ? (
+              <div className="p-4">
+                <EmptyState
+                  icon={FileCheck2}
+                  title="Sin historial de mantenimientos preventivos"
+                  description={
+                    searchHistory || historyFilter !== 'todos'
+                      ? 'No se encontraron cierres preventivos que coincidan con los filtros actuales.'
+                      : 'Aún no se han registrado cierres de mantenimiento preventivo en esta planta.'
+                  }
+                  secondaryLabel={searchHistory || historyFilter !== 'todos' ? 'Limpiar filtros' : undefined}
+                  onSecondaryAction={
+                    searchHistory || historyFilter !== 'todos'
+                      ? () => {
+                          setSearchHistory('');
+                          setHistoryFilter('todos');
                         }
-                      : null;
+                      : undefined
+                  }
+                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto max-h-[65vh]">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="cmms-th py-3 px-3">Folio OT</th>
+                      <th className="cmms-th py-3 px-3">Equipo</th>
+                      <th className="cmms-th py-3 px-3 text-center">Mes</th>
+                      <th className="cmms-th py-3 px-3 text-center">Fecha Real</th>
+                      <th className="cmms-th py-3 px-3">Técnico Ejecutor</th>
+                      <th className="cmms-th py-3 px-3">Comentarios / Hallazgos</th>
+                      <th className="cmms-th py-3 px-3">Repuestos</th>
+                      <th className="cmms-th py-3 px-3 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredHistorial.map(row => {
+                      const eqObj = equipos.find(e => e.codigo_eq === row.codigo_eq);
+                      const printHistoryDoc: PrintableDocument | null = eqObj
+                        ? {
+                            tipo: 'MP',
+                            folio: row.id_ot,
+                            equipo: eqObj,
+                            fechaProgramada: row.fecha_real,
+                            protocolo: eqObj.tareas.split('\n').filter(t => t.trim().length > 0),
+                            tecnico: row.tecnico,
+                            isCerrada: true,
+                            fechaReal: row.fecha_real,
+                            duracionHoras: row.duracion_horas,
+                            accionesRealizadas: row.comentarios,
+                            repuestos: row.repuestos_utilizados,
+                            tareasCompletadas: row.tareas_completadas,
+                            firmaTecnico: row.firma_tecnico,
+                            firmaSupervisor: row.firma_supervisor,
+                            firmadoPor: row.firmado_por,
+                            firmadoSupervisorPor: row.firmado_supervisor_por,
+                            fechaFirmaDigital: row.fecha_firma_digital,
+                            fechaValidacionSupervisor: row.fecha_validacion_supervisor,
+                            observacionSupervisor: row.observacion_supervisor,
+                            ejecucionDigital: row.ejecucion_digital
+                          }
+                        : null;
 
-                    return (
-                      <tr key={row.id || row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
-                        <td className="py-2.5 px-3 font-mono font-bold text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6]">
-                          {row.id_ot}
-                          {row.firma_tecnico && (
-                            <span
-                              className={`block text-[9.5px] font-sans font-semibold ${
-                                row.validado_supervisor || row.firma_supervisor
-                                  ? 'text-emerald-700 dark:text-emerald-400'
-                                  : 'text-amber-700 dark:text-amber-400'
-                              }`}
-                            >
-                              {row.validado_supervisor || row.firma_supervisor
-                                ? 'Firma Digital · Validada'
-                                : 'Firma Digital · Pend. Validación'}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
-                          {eqObj?.nombre || row.codigo_eq}
-                          <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-normal">{row.codigo_eq}</span>
-                        </td>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-600 dark:text-slate-300">
-                          {MESES_L[row.mes_n - 1] || row.mes_n}
-                        </td>
-                        <td className="py-2.5 px-3 text-center font-mono font-semibold text-emerald-700 dark:text-emerald-400">
-                          {row.fecha_real}
-                        </td>
-                        <td className="py-2.5 px-3 font-medium text-slate-700 dark:text-slate-200">
-                          {row.tecnico}
-                        </td>
-                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-xs truncate" title={row.comentarios}>
-                          {row.comentarios}
-                        </td>
-                        <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400 text-[11px]">
-                          {row.repuestos_utilizados || '-'}
-                        </td>
-                        <td className="py-2.5 px-3 text-right">
-                          {canPrint && printHistoryDoc && onPrintOrder && (
-                            <button
-                              type="button"
-                              onClick={() => onPrintOrder(printHistoryDoc)}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded inline-flex items-center gap-1"
-                              title="Imprimir / PDF Orden Cerrada"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                              <span>PDF</span>
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
+                      return (
+                        <tr key={row.id || row.id_ot} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                          <td className="cmms-td py-2.5 px-3 font-mono font-bold text-blue-600 dark:text-blue-400 prodexus:text-[#2F7CF6] whitespace-nowrap">
+                            {row.id_ot}
+                            {row.firma_tecnico && (
+                              <span
+                                className={`block text-[10px] font-sans font-semibold ${
+                                  row.validado_supervisor || row.firma_supervisor
+                                    ? 'text-emerald-700 dark:text-emerald-400'
+                                    : 'text-amber-700 dark:text-amber-400'
+                                }`}
+                              >
+                                {row.validado_supervisor || row.firma_supervisor
+                                  ? 'Firma Digital · Validada'
+                                  : 'Firma Digital · Pend. Validación'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">
+                            {eqObj?.nombre || row.codigo_eq}
+                            <span className="block text-[10px] font-mono text-slate-400 dark:text-slate-500 font-normal">{row.codigo_eq}</span>
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-center font-mono tabular-nums text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                            {MESES_L[row.mes_n - 1] || row.mes_n}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-center font-mono tabular-nums font-semibold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                            {row.fecha_real}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                            {row.tecnico}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-xs truncate" title={row.comentarios}>
+                            {row.comentarios}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-slate-500 dark:text-slate-400 text-[11px]">
+                            {row.repuestos_utilizados || '—'}
+                          </td>
+                          <td className="cmms-td py-2.5 px-3 text-right whitespace-nowrap">
+                            {canPrint && printHistoryDoc && onPrintOrder && (
+                              <button
+                                type="button"
+                                onClick={() => onPrintOrder(printHistoryDoc)}
+                                className="min-h-[36px] px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+                                title="Imprimir / PDF Orden Cerrada"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                                <span>PDF</span>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

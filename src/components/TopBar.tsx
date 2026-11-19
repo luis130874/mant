@@ -55,14 +55,14 @@ export const TopBar: React.FC<TopBarProps> = ({
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Zone 1: Brand Wordmark with Official Prodexus Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <div className="h-11 px-2.5 py-1 bg-white rounded-lg border border-slate-200 dark:border-slate-700 prodexus:border-white/20 shadow-xs flex items-center justify-center hover:border-slate-300 transition-colors">
+          <div className="h-10 px-2.5 py-1 bg-transparent dark:bg-white/95 prodexus:bg-white/95 dark:backdrop-blur-md prodexus:backdrop-blur-md rounded-xl dark:shadow-sm prodexus:shadow-sm dark:ring-1 dark:ring-white/20 prodexus:ring-1 prodexus:ring-white/20 flex items-center justify-center transition-all">
             <img
               src="/assets/aistudio/prodexus_921c729e.jpeg"
               alt="Prodexus Logo"
-              className="h-9 w-auto max-w-[170px] object-contain"
+              className="h-8 w-auto max-w-[165px] object-contain"
             />
           </div>
-          <span className="font-mono text-[11px] font-black tracking-wider uppercase px-2 py-1 rounded-md bg-slate-900 dark:bg-blue-600 prodexus:bg-[#1FB85C] text-white shadow-2xs">
+          <span className="font-mono text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md bg-slate-900 dark:bg-blue-600 prodexus:bg-[#1FB85C] text-white whitespace-nowrap shrink-0">
             CMMS
           </span>
         </div>

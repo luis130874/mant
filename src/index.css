@@ -2,14 +2,101 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant prodexus (&:where([data-theme="prodexus"], [data-theme="prodexus"] *));
 
+:root {
+  --cmms-canvas: #f8fafc;
+  --cmms-surface: #ffffff;
+  --cmms-surface-muted: #f1f5f9;
+  --cmms-topbar: #ffffff;
+  --cmms-sidebar: #ffffff;
+  --cmms-border: #e2e8f0;
+  --cmms-border-subtle: #f1f5f9;
+  --cmms-text: #0f172a;
+  --cmms-text-muted: #64748b;
+  --cmms-accent: #2563eb;
+  --cmms-accent-hover: #1d4ed8;
+  --cmms-success: #059669;
+}
+
+.dark {
+  --cmms-canvas: #020617;
+  --cmms-surface: #0f172a;
+  --cmms-surface-muted: #1e293b;
+  --cmms-topbar: #0f172a;
+  --cmms-sidebar: #0f172a;
+  --cmms-border: #1e293b;
+  --cmms-border-subtle: #1e293b;
+  --cmms-text: #f1f5f9;
+  --cmms-text-muted: #94a3b8;
+  --cmms-accent: #3b82f6;
+  --cmms-accent-hover: #2563eb;
+  --cmms-success: #10b981;
+}
+
+[data-theme="prodexus"] {
+  --cmms-canvas: #f3f6f8;
+  --cmms-surface: #ffffff;
+  --cmms-surface-muted: #e8eff3;
+  --cmms-topbar: #132b36;
+  --cmms-sidebar: #132b36;
+  --cmms-border: #d5e0e6;
+  --cmms-border-subtle: #e6eef2;
+  --cmms-text: #132b36;
+  --cmms-text-muted: #4d6976;
+  --cmms-accent: #2f7cf6;
+  --cmms-accent-hover: #2566d1;
+  --cmms-success: #1fb85c;
+}
+
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--cmms-canvas);
+    color: var(--cmms-text);
   }
 
   .dark select option {
     background-color: #0f172a;
     color: #f1f5f9;
+  }
+
+  [data-theme="prodexus"] header select option,
+  [data-theme="prodexus"] aside select option {
+    background-color: #132b36;
+    color: #f8fafc;
+  }
+}
+
+@layer components {
+  .cmms-card {
+    background-color: var(--cmms-surface);
+    border: 1px solid var(--cmms-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  }
+
+  .cmms-table-wrap {
+    background-color: var(--cmms-surface);
+    border: 1px solid var(--cmms-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  }
+
+  .cmms-th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--cmms-surface-muted);
+    color: var(--cmms-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cmms-border);
+  }
+
+  .cmms-td {
+    border-bottom: 1px solid var(--cmms-border-subtle);
   }
 }
 

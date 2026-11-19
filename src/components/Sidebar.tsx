@@ -222,7 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
           {currentClienteObj && (
             <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-700 prodexus:border-[#295468] text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#A5C3D0] space-y-1.5">
               {currentClienteObj.logo && (
-                <div className="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs">
+                <div className="flex items-center gap-2 p-1.5 bg-slate-50 dark:bg-white/95 prodexus:bg-white/95 rounded-lg ring-1 ring-slate-200/80 dark:ring-white/20 prodexus:ring-white/20 shadow-2xs">
                   <div className="h-6 w-14 flex items-center justify-center shrink-0">
                     <img
                       src={currentClienteObj.logo}
@@ -230,18 +230,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
                       className="max-h-full max-w-full object-contain"
                     />
                   </div>
-                  <span className="text-[10px] font-bold text-slate-700 truncate">
+                  <span className="text-[11px] font-bold text-slate-700 truncate">
                     Logo Activo
                   </span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>RUT:</span>
-                <span className="font-mono text-slate-700 dark:text-slate-200 prodexus:text-white">{currentClienteObj.rut}</span>
+                <span className="font-mono tabular-nums text-slate-700 dark:text-slate-200 prodexus:text-white">{currentClienteObj.rut}</span>
               </div>
               <div className="flex justify-between">
                 <span>Equipos protegidos:</span>
-                <span className="font-mono font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#1FB85C]">{equiposFiltrados.length}</span>
+                <span className="font-mono tabular-nums font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#1FB85C]">{equiposFiltrados.length}</span>
               </div>
             </div>
           )}
@@ -263,16 +263,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
                     onClick={() => onTabChange(item.id)}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
                       isActive
-                        ? 'bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#1E4050] text-blue-700 dark:text-blue-300 prodexus:text-white prodexus:border prodexus:border-[#2F7CF6]/45 font-semibold shadow-xs'
+                        ? 'bg-blue-50 dark:bg-blue-950/60 prodexus:bg-[#1E4050] text-blue-700 dark:text-blue-300 prodexus:text-white prodexus:ring-1 prodexus:ring-[#2F7CF6]/45 font-semibold shadow-2xs'
                         : 'text-slate-600 dark:text-slate-300 prodexus:text-slate-200 hover:text-slate-900 dark:hover:text-white prodexus:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/70 prodexus:hover:bg-[#1B3A48]'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600 dark:text-blue-400 prodexus:text-[#1FB85C]' : 'text-slate-400 dark:text-slate-400 prodexus:text-[#8FB4C4]'}`} />
-                      <span>{item.label}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-blue-600 dark:text-blue-400 prodexus:text-[#1FB85C]' : 'text-slate-400 dark:text-slate-400 prodexus:text-[#8FB4C4]'}`} />
+                      <span className="truncate">{item.label}</span>
                     </div>
                     {item.badge && (
-                      <span className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${item.badgeColor || 'bg-slate-100 dark:bg-slate-800 prodexus:bg-[#132B36] text-slate-600 dark:text-slate-300 prodexus:text-slate-200'}`}>
+                      <span className={`text-[11px] font-mono tabular-nums font-semibold px-1.5 py-0.5 rounded shrink-0 ${item.badgeColor || 'bg-slate-100 dark:bg-slate-800 prodexus:bg-[#132B36] text-slate-600 dark:text-slate-300 prodexus:text-slate-200'}`}>
                         {item.badge}
                       </span>
                     )}
@@ -287,16 +287,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
       {/* Footer Info */}
       <div className="pt-4 border-t border-slate-200 dark:border-slate-800 prodexus:border-[#1E4050] text-[11px] text-slate-400 prodexus:text-[#8FB4C4] space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <div className="h-9 max-w-[140px] px-2 py-0.5 bg-white rounded-lg border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-center">
+          <div className="h-9 max-w-[140px] px-2 py-0.5 bg-transparent dark:bg-white/95 prodexus:bg-white/95 rounded-lg dark:ring-1 dark:ring-white/20 prodexus:ring-1 prodexus:ring-white/20 dark:shadow-xs prodexus:shadow-xs flex items-center justify-center">
             <img
               src="/assets/aistudio/prodexus_921c729e.jpeg"
               alt="Prodexus Logo"
               className="max-h-full max-w-full object-contain"
             />
           </div>
-          <span className="font-mono text-[9.5px] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#1B3A48] text-slate-700 dark:text-slate-200 prodexus:text-white px-2 py-1 rounded-md font-bold shrink-0">v{APP_VERSION}</span>
+          <span className="font-mono tabular-nums text-[11px] bg-slate-100 dark:bg-slate-800 prodexus:bg-[#1B3A48] text-slate-700 dark:text-slate-200 prodexus:text-white px-2 py-1 rounded-md font-bold shrink-0">v{APP_VERSION}</span>
         </div>
-        <p className="text-[10px] text-slate-500 dark:text-slate-400 prodexus:text-[#8FB4C4] font-medium">CMMS Industrial Cloud · ISO 55001</p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#8FB4C4] font-medium">CMMS Industrial Cloud · ISO 55001</p>
       </div>
     </aside>
   );

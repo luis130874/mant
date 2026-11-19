@@ -116,7 +116,7 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
         <select
           value={pickedId}
           onChange={(e) => setPickedId(e.target.value)}
-          className="flex-1 font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 min-h-[44px] font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">-- Seleccionar repuesto registrado en stock --</option>
           {availableRepuestos.map(rep => {
@@ -131,23 +131,23 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
         </select>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 py-1">
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Cant:</span>
+          <div className="flex items-center gap-1 min-h-[44px] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2.5 py-1">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Cant:</span>
             <input
               type="number"
               min="1"
               value={pickedQty}
               onChange={(e) => setPickedQty(Math.max(1, Number(e.target.value) || 1))}
-              className="w-14 font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-transparent text-center focus:outline-none"
+              className="w-14 min-h-[36px] font-mono tabular-nums font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-transparent text-center focus:outline-none"
             />
           </div>
           <button
             type="button"
             onClick={handleAddRepuesto}
             disabled={!pickedId}
-            className="flex items-center gap-1 px-3 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] hover:bg-blue-700 prodexus:hover:bg-[#2566D1] disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg transition-colors shrink-0"
+            className="flex items-center justify-center gap-1.5 min-h-[44px] px-3.5 py-2 font-bold text-white bg-blue-600 prodexus:bg-[#2F7CF6] hover:bg-blue-700 prodexus:hover:bg-[#2566D1] disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg transition-colors whitespace-nowrap shrink-0"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4 shrink-0" />
             <span>Dar de baja</span>
           </button>
         </div>
@@ -176,10 +176,10 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
                     <span className="font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36]">{rep.codigo_repuesto}</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200 prodexus:text-[#132B36] truncate">{rep.nombre}</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-[10.5px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">
                     <span>
-                      Stock actual: <strong className="font-mono text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{rep.stock_actual}</strong> → Nuevo saldo:{' '}
-                      <strong className={`font-mono ${quedaBajo ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                      Stock actual: <strong className="font-mono tabular-nums text-slate-800 dark:text-slate-200 prodexus:text-[#132B36]">{rep.stock_actual}</strong> → Nuevo saldo:{' '}
+                      <strong className={`font-mono tabular-nums ${quedaBajo ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
                         {nuevoSaldo} {rep.unidad_medida}
                       </strong>
                     </span>
@@ -192,21 +192,22 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Cant:</label>
+                  <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 prodexus:text-[#4D6976]">Cant:</label>
                   <input
                     type="number"
                     min="1"
                     value={item.cantidad}
                     onChange={(e) => handleUpdateQty(item.repuestoId, Number(e.target.value))}
-                    className="w-16 font-mono font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-16 min-h-[44px] font-mono tabular-nums font-bold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-slate-50 dark:bg-slate-950 prodexus:bg-[#F3F6F8] border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-2 py-1 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemove(item.repuestoId)}
-                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded transition-colors"
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition-colors"
                     title="Quitar de la lista de baja"
+                    aria-label="Quitar repuesto de la lista"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -225,7 +226,7 @@ export const RepuestosConsumoSelector: React.FC<RepuestosConsumoSelectorProps> =
           placeholder={manualPlaceholder}
           value={manualText}
           onChange={(e) => onChangeManualText(e.target.value)}
-          className="w-full text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full min-h-[44px] text-xs font-medium text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
     </div>
