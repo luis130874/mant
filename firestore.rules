@@ -249,6 +249,7 @@ service cloud.firestore {
       allow get: if isVerified() && isValidId(uid) && (
         request.auth.uid == uid ||
         isSuperAdmin() ||
+        (resource == null && userExists() && userDoc().activo == true && userDoc().role == 'company_admin') ||
         (resource != null && isCompanyAdmin(existing().empresaCodigo))
       );
       allow list: if isTokenSuperAdmin() || (isVerified() && resource.data.uid == request.auth.uid);
@@ -304,6 +305,7 @@ service cloud.firestore {
     match /user_invites/{inviteId} {
       allow get: if isVerified() && isValidId(inviteId) && (
         isSuperAdmin() ||
+        (resource == null && userExists() && userDoc().activo == true && userDoc().role == 'company_admin') ||
         (resource != null && (existing().email.lower() == authEmail() || isCompanyAdmin(existing().empresaCodigo)))
       );
       allow list: if isTokenSuperAdmin() || (isVerified() && resource.data.email == authEmail());

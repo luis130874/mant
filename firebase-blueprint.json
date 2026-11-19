@@ -104,7 +104,7 @@
       "description": "Catálogos técnicos globales (Sistemas, Frecuencias, Cuadrilla de Técnicos).",
       "type": "object",
       "properties": {
-        "catalogo": { "type": "string", "enum": ["sistemas", "frecuencias", "tecnicos"] },
+        "catalogo": { "type": "string", "enum": ["sistemas", "frecuencias", "tecnicos", "empresas_index", "global_users_index"] },
         "items": { "type": "array" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "updatedBy": { "type": "string", "minLength": 1, "maxLength": 128 }

@@ -35,7 +35,8 @@ import { EmpresaUserSummary, UserInvite, UserPermisos, UserProfile, UserRole } f
 import {
   BOOTSTRAP_SUPER_ADMIN_EMAIL,
   FULL_PERMISOS,
-  makeInviteIdForEmail
+  makeInviteIdForEmail,
+  makeSafeDocId
 } from '../utils/rbac';
 import { devError, devWarn } from '../utils/logger';
 
@@ -57,6 +58,7 @@ export interface SaveUserAccessInput {
   activo: boolean;
   existingInviteId?: string;
   existingUid?: string;
+  previousEmpresaCodigo?: string;
 }
 
 interface AuthContextType {
@@ -371,49 +373,118 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setRefreshCounter((c) => c + 1);
   };
 
-  const upsertRosterMember = async (
-    empresaCodigo: string,
-    member: EmpresaUserSummary,
-    remove = false
-  ) => {
-    if (!empresaCodigo || !auth.currentUser) return;
-    const rosterPath = `empresas/${empresaCodigo}/config/usuarios`;
-    const rosterRef = doc(db, 'empresas', empresaCodigo, 'config', 'usuarios');
-    try {
-      const snap = await getDoc(rosterRef);
-      const currentMiembros: EmpresaUserSummary[] = snap.exists()
-        ? ((snap.data().miembros as EmpresaUserSummary[]) || [])
-        : [];
-      const filtered = currentMiembros.filter(
-        (m) =>
-          m.id !== member.id &&
-          m.email.toLowerCase() !== member.email.toLowerCase()
-      );
-      const nextMiembros = remove ? filtered : [...filtered, member];
-      if (!snap.exists()) {
-        await setDoc(
-          rosterRef,
-          stripUndefinedDeep({
-            empresaCodigo,
-            miembros: nextMiembros,
-            updatedAt: serverTimestamp(),
-            updatedBy: auth.currentUser.uid
-          })
+  const upsertRosterMember = useCallback(
+    async (
+      empresaCodigo: string,
+      member: EmpresaUserSummary,
+      remove = false
+    ) => {
+      if (!empresaCodigo || !auth.currentUser) return;
+      const empId = makeSafeDocId(empresaCodigo);
+      const rosterPath = `empresas/${empId}/config/usuarios`;
+      const rosterRef = doc(db, 'empresas', empId, 'config', 'usuarios');
+      try {
+        const snap = await getDoc(rosterRef);
+        const existingData = snap.exists() ? snap.data() : null;
+        const currentMiembros: EmpresaUserSummary[] = existingData
+          ? ((existingData.miembros as EmpresaUserSummary[]) || [])
+          : [];
+        const filtered = currentMiembros.filter(
+          (m) =>
+            m.id !== member.id &&
+            m.email.toLowerCase() !== member.email.toLowerCase()
         );
-      } else {
-        await updateDoc(
-          rosterRef,
-          stripUndefinedDeep({
-            miembros: nextMiembros,
-            updatedAt: serverTimestamp(),
-            updatedBy: auth.currentUser.uid
-          })
-        );
+        const nextMiembros = remove ? filtered : [...filtered, member];
+        const cleanPayload = stripUndefinedDeep({
+          empresaCodigo: empId,
+          miembros: nextMiembros,
+          updatedAt: serverTimestamp(),
+          updatedBy: auth.currentUser.uid
+        });
+
+        if (!snap.exists()) {
+          await setDoc(rosterRef, cleanPayload);
+        } else if (
+          existingData?.empresaCodigo === empId &&
+          !('createdAt' in (existingData || {}))
+        ) {
+          await updateDoc(
+            rosterRef,
+            stripUndefinedDeep({
+              miembros: nextMiembros,
+              updatedAt: serverTimestamp(),
+              updatedBy: auth.currentUser.uid
+            })
+          );
+        } else if (isSuperAdmin) {
+          await deleteDoc(rosterRef);
+          await setDoc(rosterRef, cleanPayload);
+        } else {
+          await updateDoc(
+            rosterRef,
+            stripUndefinedDeep({
+              miembros: nextMiembros,
+              updatedAt: serverTimestamp(),
+              updatedBy: auth.currentUser.uid
+            })
+          );
+        }
+      } catch (err) {
+        handleFirestoreError(err, OperationType.WRITE, rosterPath);
       }
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, rosterPath);
-    }
-  };
+    },
+    [isSuperAdmin]
+  );
+
+  const upsertGlobalUserIndex = useCallback(
+    async (member: EmpresaUserSummary, remove = false) => {
+      if (!isSuperAdmin || !auth.currentUser) return;
+      const idxPath = 'catalogos/global_users_index';
+      const idxRef = doc(db, 'catalogos', 'global_users_index');
+      try {
+        const snap = await getDoc(idxRef);
+        const existingData = snap.exists() ? snap.data() : null;
+        const currentItems: EmpresaUserSummary[] = existingData
+          ? ((existingData.items as EmpresaUserSummary[]) || [])
+          : [];
+        const filtered = currentItems.filter(
+          (m) =>
+            m &&
+            typeof m === 'object' &&
+            m.id !== member.id &&
+            (m.email || '').toLowerCase() !== member.email.toLowerCase()
+        );
+        const nextItems = remove ? filtered : [...filtered, member];
+        const cleanItems = stripUndefinedDeep(nextItems);
+
+        if (!snap.exists()) {
+          await setDoc(idxRef, {
+            catalogo: 'global_users_index',
+            items: cleanItems,
+            updatedAt: serverTimestamp(),
+            updatedBy: auth.currentUser.uid
+          });
+        } else if (existingData?.catalogo === 'global_users_index') {
+          await updateDoc(idxRef, {
+            items: cleanItems,
+            updatedAt: serverTimestamp(),
+            updatedBy: auth.currentUser.uid
+          });
+        } else {
+          await deleteDoc(idxRef);
+          await setDoc(idxRef, {
+            catalogo: 'global_users_index',
+            items: cleanItems,
+            updatedAt: serverTimestamp(),
+            updatedBy: auth.currentUser.uid
+          });
+        }
+      } catch (err) {
+        devWarn(`No se pudo sincronizar ${idxPath}:`, err);
+      }
+    },
+    [isSuperAdmin]
+  );
 
   const saveUserAccess = useCallback(
     async (input: SaveUserAccessInput) => {
@@ -431,41 +502,99 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         : input.role === 'super_admin'
         ? 'company_admin'
         : input.role;
-      const finalEmpresaCodigo =
+      const rawEmpresaCodigo =
         finalRole === 'super_admin'
           ? ''
           : isSuperAdmin
           ? input.empresaCodigo
           : userProfile.empresaCodigo;
+      const finalEmpresaCodigo = rawEmpresaCodigo ? makeSafeDocId(rawEmpresaCodigo) : '';
       const finalEmpresaNombre =
         finalRole === 'super_admin'
           ? 'Todas las Empresas'
           : isSuperAdmin
           ? input.empresaNombre
           : userProfile.empresaNombre;
+      const previousEmpresaCodigo = input.previousEmpresaCodigo
+        ? makeSafeDocId(input.previousEmpresaCodigo)
+        : '';
 
       let claimedUid = input.existingUid;
 
       try {
-        const invSnap = await getDoc(inviteRef);
+        let invSnap;
+        try {
+          invSnap = await getDoc(inviteRef);
+        } catch (getErr) {
+          const msg = getErr instanceof Error ? getErr.message : String(getErr);
+          if (!isSuperAdmin && /permission/i.test(msg)) {
+            throw new Error(
+              'Este correo electrónico ya pertenece a otra empresa o no tienes permisos para modificarlo.',
+              { cause: getErr }
+            );
+          }
+          throw getErr;
+        }
+
         if (invSnap.exists()) {
-          const existingInv = invSnap.data() as UserInvite;
+          const existingInv = invSnap.data() as Partial<UserInvite> & {
+            createdAt?: unknown;
+          };
+          if (!isSuperAdmin && existingInv.empresaCodigo && existingInv.empresaCodigo !== finalEmpresaCodigo) {
+            throw new Error(
+              'Este correo electrónico ya está registrado en otra empresa.'
+            );
+          }
           if (!claimedUid && existingInv.claimedUid) {
             claimedUid = existingInv.claimedUid;
           }
-          await updateDoc(
-            inviteRef,
-            stripUndefinedDeep({
-              nombre: input.nombre.trim(),
-              cargo: (input.cargo || '').trim(),
-              role: finalRole,
-              empresaCodigo: finalEmpresaCodigo,
-              empresaNombre: finalEmpresaNombre,
-              permisos: input.permisos,
-              activo: input.activo,
-              updatedAt: serverTimestamp()
-            })
+
+          const hasCompleteSchema = Boolean(
+            existingInv.id &&
+              existingInv.createdByUid &&
+              existingInv.createdAt &&
+              existingInv.email
           );
+
+          if (!hasCompleteSchema && isSuperAdmin) {
+            await deleteDoc(inviteRef);
+            await setDoc(
+              inviteRef,
+              stripUndefinedDeep({
+                id: inviteId,
+                email: normalizedEmail,
+                nombre: input.nombre.trim(),
+                cargo: (input.cargo || '').trim(),
+                role: finalRole,
+                empresaCodigo: finalEmpresaCodigo,
+                empresaNombre: finalEmpresaNombre,
+                permisos: input.permisos,
+                activo: input.activo,
+                ...(claimedUid ? { claimedUid } : {}),
+                createdByUid: auth.currentUser.uid,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+              })
+            );
+          } else {
+            await updateDoc(
+              inviteRef,
+              stripUndefinedDeep({
+                nombre: input.nombre.trim(),
+                cargo: (input.cargo || '').trim(),
+                role: finalRole,
+                permisos: input.permisos,
+                activo: input.activo,
+                ...(isSuperAdmin
+                  ? {
+                      empresaCodigo: finalEmpresaCodigo,
+                      empresaNombre: finalEmpresaNombre
+                    }
+                  : {}),
+                updatedAt: serverTimestamp()
+              })
+            );
+          }
         } else {
           await setDoc(
             inviteRef,
@@ -497,37 +626,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 nombre: input.nombre.trim(),
                 cargo: (input.cargo || '').trim(),
                 role: finalRole,
-                empresaCodigo: finalEmpresaCodigo,
-                empresaNombre: finalEmpresaNombre,
                 permisos: input.permisos,
                 activo: input.activo,
+                ...(isSuperAdmin
+                  ? {
+                      empresaCodigo: finalEmpresaCodigo,
+                      empresaNombre: finalEmpresaNombre
+                    }
+                  : {}),
                 updatedAt: serverTimestamp()
               })
             );
           }
         }
 
+        const memberSummary: EmpresaUserSummary = {
+          id: inviteId,
+          inviteId,
+          uid: claimedUid,
+          email: normalizedEmail,
+          nombre: input.nombre.trim(),
+          cargo: (input.cargo || '').trim(),
+          role: finalRole,
+          empresaCodigo: finalEmpresaCodigo,
+          empresaNombre: finalEmpresaNombre,
+          permisos: input.permisos,
+          activo: input.activo
+        };
+
+        // Remove from previous company roster if super_admin reassigned company or promoted to global super_admin
+        if (
+          isSuperAdmin &&
+          previousEmpresaCodigo &&
+          previousEmpresaCodigo !== finalEmpresaCodigo
+        ) {
+          await upsertRosterMember(previousEmpresaCodigo, memberSummary, true);
+        }
+
         // Update company roster if company-scoped
         if (finalEmpresaCodigo) {
-          await upsertRosterMember(finalEmpresaCodigo, {
-            id: inviteId,
-            inviteId,
-            uid: claimedUid,
-            email: normalizedEmail,
-            nombre: input.nombre.trim(),
-            cargo: (input.cargo || '').trim(),
-            role: finalRole,
-            empresaCodigo: finalEmpresaCodigo,
-            empresaNombre: finalEmpresaNombre,
-            permisos: input.permisos,
-            activo: input.activo
-          });
+          await upsertRosterMember(finalEmpresaCodigo, memberSummary);
+        }
+
+        // Sync global users index so super_admin users and cross-company directories always stay visible
+        if (isSuperAdmin) {
+          await upsertGlobalUserIndex(memberSummary);
         }
       } catch (err) {
+        if (
+          err instanceof Error &&
+          !err.message.trim().startsWith('{') &&
+          err.message.includes('ya pertenece a otra empresa')
+        ) {
+          throw err;
+        }
         handleFirestoreError(err, OperationType.WRITE, invitePath);
       }
     },
-    [isSuperAdmin, userProfile]
+    [isSuperAdmin, userProfile, upsertRosterMember, upsertGlobalUserIndex]
   );
 
   const deleteUserAccess = useCallback(
@@ -559,17 +715,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (target.empresaCodigo) {
           await upsertRosterMember(target.empresaCodigo, target, true);
         }
+        if (isSuperAdmin) {
+          await upsertGlobalUserIndex(target, true);
+        }
       } catch (err) {
         handleFirestoreError(err, OperationType.DELETE, `user_invites/${inviteId}`);
       }
     },
-    []
+    [isSuperAdmin, upsertRosterMember, upsertGlobalUserIndex]
   );
 
   const loadCompanyUsersRoster = useCallback(
     async (empresaCodigo: string): Promise<EmpresaUserSummary[]> => {
       if (!empresaCodigo) return [];
-      const rosterRef = doc(db, 'empresas', empresaCodigo, 'config', 'usuarios');
+      const empId = makeSafeDocId(empresaCodigo);
+      const rosterRef = doc(db, 'empresas', empId, 'config', 'usuarios');
       try {
         const snap = await getDoc(rosterRef);
         if (!snap.exists()) return [];
@@ -579,7 +739,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         handleFirestoreError(
           err,
           OperationType.GET,
-          `empresas/${empresaCodigo}/config/usuarios`
+          `empresas/${empId}/config/usuarios`
         );
       }
     },
@@ -591,14 +751,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!isSuperAdmin) return [];
       const merged = new Map<string, EmpresaUserSummary>();
 
-      // 1. Read every company's roster via allow get (works for ALL super admins)
+      // 1. Read global users directory (works for ALL super admins, including role === 'super_admin' users)
+      try {
+        const globalSnap = await getDoc(doc(db, 'catalogos', 'global_users_index'));
+        if (globalSnap.exists()) {
+          const items = (globalSnap.data().items as EmpresaUserSummary[]) || [];
+          for (const item of items) {
+            if (item && typeof item === 'object' && item.email) {
+              merged.set(item.email.toLowerCase(), item);
+            }
+          }
+        }
+      } catch {
+        // Ignore if global_users_index does not exist yet
+      }
+
+      // 2. Read every company's roster via allow get (works for ALL super admins)
       for (const cod of empresaCodigos) {
+        const empId = makeSafeDocId(cod);
+        if (!empId) continue;
         try {
-          const snap = await getDoc(doc(db, 'empresas', cod, 'config', 'usuarios'));
+          const snap = await getDoc(doc(db, 'empresas', empId, 'config', 'usuarios'));
           if (snap.exists()) {
             const list = (snap.data().miembros as EmpresaUserSummary[]) || [];
             for (const m of list) {
-              merged.set(m.email.toLowerCase(), m);
+              if (m?.email) {
+                merged.set(m.email.toLowerCase(), m);
+              }
             }
           }
         } catch {
@@ -606,7 +785,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // 2. If custom-claim super_admin, also merge global user_invites & users collections directly
+      // 3. If custom-claim super_admin, also merge global user_invites & users collections directly
       const tokenResult = firebaseUser ? await firebaseUser.getIdTokenResult().catch(() => null) : null;
       if (tokenResult?.claims?.role === 'super_admin') {
         try {
@@ -651,11 +830,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      // Ensure the signed-in super_admin profile always appears in the directory
+      if (userProfile?.email && !merged.has(userProfile.email.toLowerCase())) {
+        merged.set(userProfile.email.toLowerCase(), {
+          id: userProfile.inviteId || userProfile.uid,
+          inviteId: userProfile.inviteId,
+          uid: userProfile.uid,
+          email: userProfile.email,
+          nombre: userProfile.nombre,
+          cargo: userProfile.cargo,
+          role: userProfile.role,
+          empresaCodigo: userProfile.empresaCodigo,
+          empresaNombre: userProfile.empresaNombre,
+          permisos: userProfile.permisos,
+          activo: userProfile.activo
+        });
+      }
+
       return Array.from(merged.values()).sort((a, b) =>
         a.nombre.localeCompare(b.nombre)
       );
     },
-    [isSuperAdmin, firebaseUser]
+    [isSuperAdmin, firebaseUser, userProfile]
   );
 
   const syncEmpresaNombreEnRoster = useCallback(

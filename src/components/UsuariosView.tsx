@@ -25,6 +25,7 @@ import {
   ACCIONES_META,
   FULL_PERMISOS,
   getRoleLabel,
+  makeSafeDocId,
   MODULOS_META,
   PERMISO_PRESETS
 } from '../utils/rbac';
@@ -84,6 +85,18 @@ export const UsuariosView: React.FC = () => {
   useEffect(() => {
     void fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    if (
+      modalMode === 'create' &&
+      isSuperAdmin &&
+      fRole !== 'super_admin' &&
+      !fEmpresaCodigo &&
+      clientes.length > 0
+    ) {
+      setFEmpresaCodigo(clientes[0].codigo);
+    }
+  }, [modalMode, isSuperAdmin, fRole, fEmpresaCodigo, clientes]);
 
   if (!isCompanyAdmin) {
     return (
@@ -173,18 +186,26 @@ export const UsuariosView: React.FC = () => {
       return;
     }
 
-    const empresaObj = clientes.find((c) => c.codigo === fEmpresaCodigo);
-    if (fRole !== 'super_admin' && !empresaObj && !userProfile?.empresaCodigo) {
-      addToast('Seleccione la empresa a la que pertenecerá el usuario.', 'warning');
-      return;
+    const empresaObj = clientes.find(
+      (c) => makeSafeDocId(c.codigo) === makeSafeDocId(fEmpresaCodigo)
+    );
+    if (fRole !== 'super_admin') {
+      if (isSuperAdmin && !empresaObj) {
+        addToast('Seleccione la empresa a la que pertenecerá el usuario.', 'warning');
+        return;
+      }
+      if (!isSuperAdmin && !userProfile?.empresaCodigo) {
+        addToast('Su perfil no posee una empresa asignada.', 'error');
+        return;
+      }
     }
 
     const finalEmpresaCodigo =
       fRole === 'super_admin'
         ? ''
-        : isSuperAdmin
-        ? empresaObj?.codigo || fEmpresaCodigo
-        : userProfile?.empresaCodigo || '';
+        : makeSafeDocId(
+            isSuperAdmin ? empresaObj!.codigo : userProfile?.empresaCodigo || ''
+          );
 
     const finalEmpresaNombre =
       fRole === 'super_admin'
@@ -205,7 +226,8 @@ export const UsuariosView: React.FC = () => {
         permisos: fRole === 'super_admin' ? FULL_PERMISOS : fPermisos,
         activo: fActivo,
         existingInviteId: editingTarget?.inviteId || editingTarget?.id,
-        existingUid: editingTarget?.uid
+        existingUid: editingTarget?.uid,
+        previousEmpresaCodigo: editingTarget?.empresaCodigo
       });
       addToast(
         modalMode === 'create'
@@ -215,10 +237,24 @@ export const UsuariosView: React.FC = () => {
       setModalMode(null);
       await fetchUsers();
     } catch (err) {
-      addToast(
-        err instanceof Error ? err.message : 'No se pudo guardar el usuario.',
-        'error'
-      );
+      let msg = 'No se pudo guardar el usuario.';
+      if (err instanceof Error) {
+        try {
+          const parsed = JSON.parse(err.message) as {
+            error?: string;
+            operationType?: string;
+            path?: string;
+          };
+          if (parsed.error) {
+            msg = `Error en la nube (${parsed.path || 'usuarios'}): ${parsed.error}`;
+          } else {
+            msg = err.message;
+          }
+        } catch {
+          msg = err.message;
+        }
+      }
+      addToast(msg, 'error');
     } finally {
       setSaving(false);
     }
@@ -579,7 +615,7 @@ export const UsuariosView: React.FC = () => {
                     </label>
                     <select
                       value={fEmpresaCodigo}
-                      disabled={!isSuperAdmin || modalMode === 'edit'}
+                      disabled={!isSuperAdmin}
                       onChange={(e) => setFEmpresaCodigo(e.target.value)}
                       className="w-full font-semibold text-slate-900 dark:text-slate-100 prodexus:text-[#132B36] bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 prodexus:border-[#C5D5DE] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 prodexus:focus:ring-[#2F7CF6] disabled:bg-slate-100 dark:disabled:bg-slate-800 prodexus:disabled:bg-[#F3F6F8]"
                     >
